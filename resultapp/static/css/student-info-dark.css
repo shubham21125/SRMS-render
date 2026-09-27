@@ -1,0 +1,538 @@
+/*
+ * student-info-dark.css
+ * Scoped dark/violet glassmorphic theme for the Student Info page only.
+ * Every rule is prefixed with .student-info-dark to prevent any leakage
+ * to the sidebar, topbar, or any other page sharing parent_base.html.
+ *
+ * Colour tokens used here:
+ *   --sid-bg:       #0a0b0f   near-black page background
+ *   --sid-surface:  rgba(255,255,255,.04)  glassmorphic card surface
+ *   --sid-border:   rgba(255,255,255,.08)  card border
+ *   --sid-violet:   #8b5cf6   primary accent (SGPA value, chart line, export btn)
+ *   --sid-violet10: rgba(139,92,246,.10)   soft violet fill
+ *   --sid-violet20: rgba(139,92,246,.20)   hover surface
+ *   --sid-gray:     #6b7280   secondary / class-avg series
+ *   --sid-green:    #22c55e
+ *   --sid-red:      #ef4444
+ *   --sid-amber:    #f59e0b
+ *   --sid-blue:     #3b82f6
+ *   --sid-text:     #f5f5f7   primary text
+ *   --sid-muted:    #9ca3af   secondary text
+ *   --sid-dim:      #6b7280   dim / label text
+ */
+
+/* ─── page wrapper ─────────────────────────────────────────────────────── */
+
+.student-info-dark {
+  --sid-bg:       #0a0b0f;
+  --sid-surface:  rgba(255, 255, 255, 0.04);
+  --sid-surface2: rgba(255, 255, 255, 0.07);
+  --sid-border:   rgba(255, 255, 255, 0.08);
+  --sid-violet:   #8b5cf6;
+  --sid-violet10: rgba(139, 92, 246, 0.10);
+  --sid-violet20: rgba(139, 92, 246, 0.20);
+  --sid-gray:     #6b7280;
+  --sid-green:    #22c55e;
+  --sid-red:      #ef4444;
+  --sid-amber:    #f59e0b;
+  --sid-blue:     #3b82f6;
+  --sid-text:     #f5f5f7;
+  --sid-muted:    #9ca3af;
+  --sid-dim:      #6b7280;
+
+  background: var(--sid-bg);
+  border-radius: 14px;
+  padding: 1.25rem 1.25rem 2rem;
+  font-family: 'Inter', sans-serif;
+  color: var(--sid-text);
+  min-height: 80vh;
+}
+
+/* ─── page header ───────────────────────────────────────────────────────── */
+
+.student-info-dark .sid-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.student-info-dark .sid-header-left h2 {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: var(--sid-text);
+  margin: 0 0 0.15rem;
+  letter-spacing: -0.01em;
+}
+
+.student-info-dark .sid-header-left small {
+  font-size: 0.72rem;
+  color: var(--sid-muted);
+}
+
+/* "Live" pill */
+.student-info-dark .sid-live-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: rgba(34, 197, 94, 0.12);
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  border-radius: 999px;
+  padding: 0.2rem 0.65rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #22c55e;
+  letter-spacing: 0.05em;
+  margin-left: 0.6rem;
+  vertical-align: middle;
+}
+.student-info-dark .sid-live-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #22c55e;
+  box-shadow: 0 0 6px #22c55e;
+  animation: sid-pulse 1.6s infinite;
+}
+@keyframes sid-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.35; }
+}
+
+/* Back / Export buttons */
+.student-info-dark .sid-btn-back {
+  background: var(--sid-surface2);
+  color: var(--sid-muted);
+  border: 1px solid var(--sid-border);
+  border-radius: 8px;
+  padding: 0.35rem 0.85rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background .2s;
+  cursor: pointer;
+}
+.student-info-dark .sid-btn-back:hover {
+  background: var(--sid-surface);
+  color: var(--sid-text);
+}
+
+/* ─── stat card strip ────────────────────────────────────────────────────── */
+
+.student-info-dark .sid-stat-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.student-info-dark .sid-stat {
+  flex: 1 1 140px;
+  background: var(--sid-surface);
+  border: 1px solid var(--sid-border);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-radius: 14px;
+  padding: 1rem 1.1rem 0.9rem;
+  transition: background .2s;
+}
+.student-info-dark .sid-stat:hover {
+  background: var(--sid-surface2);
+}
+
+.student-info-dark .sid-stat-label {
+  font-size: 0.62rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--sid-dim);
+  margin-bottom: 0.35rem;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+.student-info-dark .sid-stat-label i {
+  font-size: 0.7rem;
+  color: var(--sid-violet);
+}
+
+.student-info-dark .sid-stat-val {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--sid-text);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+/* Violet accent on the primary SGPA card value */
+.student-info-dark .sid-stat-val.accent-violet {
+  color: var(--sid-violet);
+}
+.student-info-dark .sid-stat-val .sid-unit {
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: var(--sid-dim);
+  letter-spacing: 0;
+}
+
+.student-info-dark .sid-stat-sub {
+  font-size: 0.68rem;
+  color: var(--sid-muted);
+  margin-top: 0.25rem;
+}
+
+/* ─── two-column layout grid ─────────────────────────────────────────────── */
+
+.student-info-dark .sid-grid {
+  display: grid;
+  grid-template-columns: 1fr 330px;
+  gap: 0.9rem;
+  align-items: start;
+}
+@media (max-width: 900px) {
+  .student-info-dark .sid-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ─── generic glass card ─────────────────────────────────────────────────── */
+
+.student-info-dark .sid-card {
+  background: var(--sid-surface);
+  border: 1px solid var(--sid-border);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-radius: 14px;
+  padding: 1.1rem 1.25rem 1.15rem;
+  margin-bottom: 0.9rem;
+}
+
+.student-info-dark .sid-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 0.2rem;
+}
+
+.student-info-dark .sid-card-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--sid-text);
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.student-info-dark .sid-card-title i {
+  color: var(--sid-violet);
+  font-size: 0.8rem;
+}
+
+.student-info-dark .sid-card-sub {
+  font-size: 0.68rem;
+  color: var(--sid-dim);
+  margin-bottom: 1rem;
+}
+
+/* trend chart legend chips */
+.student-info-dark .sid-legend {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--sid-muted);
+}
+.student-info-dark .sid-legend-dot {
+  display: inline-block;
+  width: 18px;
+  height: 3px;
+  border-radius: 2px;
+  vertical-align: middle;
+  margin-right: 5px;
+}
+
+/* ─── subject results list ───────────────────────────────────────────────── */
+
+.student-info-dark .sid-subject-row {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.6rem 0;
+  border-bottom: 1px solid var(--sid-border);
+}
+.student-info-dark .sid-subject-row:last-child {
+  border-bottom: none;
+}
+
+/* book icon */
+.student-info-dark .sid-subj-icon {
+  flex: 0 0 26px;
+  height: 26px;
+  border-radius: 6px;
+  background: var(--sid-violet10);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.student-info-dark .sid-subj-icon i {
+  font-size: 0.7rem;
+  color: var(--sid-violet);
+}
+
+.student-info-dark .sid-subj-info {
+  flex: 0 0 130px;
+  min-width: 0;
+}
+.student-info-dark .sid-subj-name {
+  font-size: 0.83rem;
+  font-weight: 600;
+  color: var(--sid-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.student-info-dark .sid-subj-code {
+  font-size: 0.62rem;
+  color: var(--sid-dim);
+  letter-spacing: 0.03em;
+}
+
+/* progress bar */
+.student-info-dark .sid-bar-wrap {
+  flex: 1;
+  height: 5px;
+  background: rgba(255, 255, 255, 0.07);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.student-info-dark .sid-bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width .55s ease;
+}
+.student-info-dark .fill-green  { background: var(--sid-green); }
+.student-info-dark .fill-violet { background: var(--sid-violet); }
+.student-info-dark .fill-blue   { background: var(--sid-blue); }
+.student-info-dark .fill-amber  { background: var(--sid-amber); }
+.student-info-dark .fill-red    { background: var(--sid-red); }
+
+/* score */
+.student-info-dark .sid-score {
+  flex: 0 0 55px;
+  text-align: right;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--sid-text);
+}
+.student-info-dark .sid-score .sid-max {
+  font-size: 0.68rem;
+  font-weight: 400;
+  color: var(--sid-dim);
+}
+
+/* grade badge — all 8 NEP/UGC grades */
+.student-info-dark .sid-badge {
+  flex: 0 0 34px;
+  height: 26px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+/* O (≥80%): green */
+.student-info-dark .badge-O   { background: rgba(34,197,94,.15); color: #22c55e; border: 1px solid rgba(34,197,94,.25); }
+/* A+ (70-79%), A (60-69%): blue */
+.student-info-dark .badge-Ap  { background: rgba(59,130,246,.15); color: #3b82f6; border: 1px solid rgba(59,130,246,.25); }
+.student-info-dark .badge-A   { background: rgba(59,130,246,.13); color: #60a5fa; border: 1px solid rgba(59,130,246,.22); }
+/* B+ (55-59%), B (50-54%): violet */
+.student-info-dark .badge-Bp  { background: rgba(139,92,246,.15); color: #a78bfa; border: 1px solid rgba(139,92,246,.25); }
+.student-info-dark .badge-B   { background: rgba(139,92,246,.12); color: #c4b5fd; border: 1px solid rgba(139,92,246,.22); }
+/* C (45-49%), D (40-44%): amber */
+.student-info-dark .badge-C   { background: rgba(245,158,11,.15); color: #f59e0b; border: 1px solid rgba(245,158,11,.25); }
+.student-info-dark .badge-D   { background: rgba(245,158,11,.12); color: #fbbf24; border: 1px solid rgba(245,158,11,.22); }
+/* F: red */
+.student-info-dark .badge-F   { background: rgba(239,68,68,.15); color: #ef4444; border: 1px solid rgba(239,68,68,.25); }
+
+/* trend delta */
+.student-info-dark .sid-delta {
+  flex: 0 0 52px;
+  text-align: right;
+  font-size: 0.73rem;
+  font-weight: 600;
+}
+.student-info-dark .delta-up   { color: var(--sid-green); }
+.student-info-dark .delta-down { color: var(--sid-red); }
+.student-info-dark .delta-none { color: var(--sid-dim); }
+
+/* ─── top performers ─────────────────────────────────────────────────────── */
+
+.student-info-dark .sid-perf-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.55rem 0;
+  border-bottom: 1px solid var(--sid-border);
+}
+.student-info-dark .sid-perf-row:last-child { border-bottom: none; }
+
+.student-info-dark .sid-rank {
+  flex: 0 0 24px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-align: center;
+  color: var(--sid-dim);
+}
+.student-info-dark .medal-1 { color: #fbbf24; } /* gold */
+.student-info-dark .medal-2 { color: #9ca3af; } /* silver */
+.student-info-dark .medal-3 { color: #cd7c34; } /* bronze */
+
+.student-info-dark .sid-avatar {
+  flex: 0 0 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--sid-violet10);
+  border: 1px solid rgba(139,92,246,.3);
+  color: var(--sid-violet);
+  font-size: 0.62rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  letter-spacing: 0.02em;
+}
+
+.student-info-dark .sid-perf-info { flex: 1; min-width: 0; }
+.student-info-dark .sid-perf-name {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--sid-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.student-info-dark .sid-perf-class {
+  font-size: 0.63rem;
+  color: var(--sid-dim);
+}
+.student-info-dark .sid-perf-gpa {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--sid-violet);
+}
+
+/* ─── upcoming exams ─────────────────────────────────────────────────────── */
+
+.student-info-dark .sid-exam-row {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.55rem 0;
+  border-bottom: 1px solid var(--sid-border);
+}
+.student-info-dark .sid-exam-row:last-child { border-bottom: none; }
+
+.student-info-dark .sid-date-badge {
+  flex: 0 0 44px;
+  text-align: center;
+  background: var(--sid-violet10);
+  border: 1px solid rgba(139,92,246,.25);
+  border-radius: 10px;
+  padding: 0.3rem 0.4rem;
+}
+.student-info-dark .sid-date-num {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--sid-text);
+  line-height: 1;
+}
+.student-info-dark .sid-date-day {
+  font-size: 0.58rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--sid-dim);
+  letter-spacing: 0.05em;
+}
+
+.student-info-dark .sid-exam-info { flex: 1; min-width: 0; }
+.student-info-dark .sid-exam-title {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--sid-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.student-info-dark .sid-exam-date {
+  font-size: 0.63rem;
+  color: var(--sid-dim);
+}
+.student-info-dark .soon-tag {
+  flex: 0 0 auto;
+  background: rgba(245,158,11,.15);
+  border: 1px solid rgba(245,158,11,.35);
+  color: #f59e0b;
+  font-size: 0.6rem;
+  font-weight: 700;
+  padding: 0.12rem 0.45rem;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* ─── activity feed ──────────────────────────────────────────────────────── */
+
+.student-info-dark .sid-act-row {
+  display: flex;
+  gap: 0.65rem;
+  padding: 0.55rem 0;
+  border-bottom: 1px solid var(--sid-border);
+}
+.student-info-dark .sid-act-row:last-child { border-bottom: none; }
+
+.student-info-dark .sid-act-icon {
+  flex: 0 0 20px;
+  margin-top: 2px;
+  font-size: 0.82rem;
+}
+.student-info-dark .act-notice  { color: var(--sid-amber); }
+.student-info-dark .act-publish { color: var(--sid-green); }
+
+.student-info-dark .sid-act-body { flex: 1; }
+.student-info-dark .sid-act-text {
+  font-size: 0.77rem;
+  color: var(--sid-text);
+  line-height: 1.35;
+}
+.student-info-dark .sid-act-time {
+  font-size: 0.63rem;
+  color: var(--sid-dim);
+  margin-top: 0.1rem;
+}
+
+/* ─── empty state ────────────────────────────────────────────────────────── */
+
+.student-info-dark .sid-empty {
+  text-align: center;
+  padding: 2rem 0;
+  color: var(--sid-dim);
+  font-size: 0.8rem;
+}
+.student-info-dark .sid-empty i {
+  color: rgba(255,255,255,.1);
+}
+
+/* ─── overall average / gpa footer bar (inside bar-chart card) ─────────── */
+
+.student-info-dark .sid-chart-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 0.75rem;
+  font-size: 0.73rem;
+  color: var(--sid-muted);
+}
+.student-info-dark .sid-chart-footer strong { color: var(--sid-text); }
+.student-info-dark .sid-chart-footer .accent { color: var(--sid-violet); font-weight: 700; }

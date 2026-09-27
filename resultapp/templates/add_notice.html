@@ -1,0 +1,111 @@
+{% extends 'admin_base.html' %} {% load static %} {% block content %}
+
+<div class="container mt-4">
+  <div class="card gsap-up shadow-sm">
+    <div class="card gsap-up-body">
+      <h4 class="mb-4 text-success">
+        <i class="fas fa-user-plus me-2"></i>Add Notice
+      </h4>
+
+      <form method="post">
+        {% csrf_token %}
+
+        <div class="mb-3">
+          <label for="title" class="form-label">Notice Title</label>
+          <input
+            type="text"
+            class="form-control"
+            id="title"
+            name="title"
+            placeholder="Enter notice title"
+            required
+          />
+        </div>
+
+        <div class="mb-3">
+          <label for="details" class="form-label">Notice Details</label>
+          <textarea
+            class="form-control"
+            id="details"
+            name="details"
+            rows="5"
+            placeholder="Enter notice details"
+            required
+          ></textarea>
+        </div>
+
+        <div class="mb-3 form-check">
+          <input type="checkbox" class="form-check-input" id="send_whatsapp" name="send_whatsapp" value="1" checked>
+          <label class="form-check-label" for="send_whatsapp">Send WhatsApp alert to parents</label>
+        </div>
+
+        <button type="submit" class="btn btn-success">
+          <i class="fas fa-check-circle me-1"></i> Submit
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+{% if messages %}
+  {% for m in messages %}{% if m.tags == 'success' %}
+    window.SRMSList.confetti();
+  {% endif %}{% endfor %}
+{% endif %}
+</script>
+<script>
+(function() {
+  if (typeof gsap === 'undefined') return;
+
+  // Page header slide-in
+  gsap.fromTo('h2',
+    { opacity: 0, x: -30 },
+    { opacity: 1, x: 0, duration: 0.6, ease: 'power3.out', delay: 0.1 }
+  );
+
+  // Card(s) entrance
+  gsap.fromTo('.card',
+    { opacity: 0, y: 40, scale: 0.97 },
+    { opacity: 1, y: 0, scale: 1, duration: 0.65, ease: 'back.out(1.4)', delay: 0.2, stagger: 0.08 }
+  );
+
+  // Form fields stagger
+  gsap.fromTo('.form-control, .form-select, .form-check',
+    { opacity: 0, x: -16 },
+    { opacity: 1, x: 0, duration: 0.45, stagger: 0.06, ease: 'power3.out', delay: 0.45 }
+  );
+
+  // Buttons entrance
+  gsap.fromTo('.btn',
+    { opacity: 0, y: 12 },
+    { opacity: 1, y: 0, duration: 0.4, stagger: 0.07, ease: 'power3.out', delay: 0.75 }
+  );
+
+  // Alert slide-in
+  document.querySelectorAll('.alert').forEach(function(el) {
+    gsap.fromTo(el, { opacity: 0, x: 24 }, { opacity: 1, x: 0, duration: 0.5, ease: 'power3.out' });
+  });
+
+  // Focus glow on inputs
+  document.querySelectorAll('.form-control, .form-select').forEach(function(inp) {
+    inp.addEventListener('focus', function() {
+      gsap.to(inp, { boxShadow: '0 0 0 3px rgba(245,197,24,0.18)', duration: 0.2 });
+    });
+    inp.addEventListener('blur', function() {
+      gsap.to(inp, { boxShadow: 'none', duration: 0.2 });
+    });
+  });
+
+  // Table row stagger (if any)
+  gsap.fromTo('tbody tr',
+    { opacity: 0, x: -10 },
+    { opacity: 1, x: 0, duration: 0.15, stagger: 0.008, ease: 'power2.out', delay: 0.08 }
+  );
+  
+})();
+</script>
+{% endblock %}

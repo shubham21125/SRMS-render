@@ -1,0 +1,424 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#1c1c1c" />
+  <meta name="format-detection" content="telephone=no" />
+  <title>{% block title %}Student Result Management System{% endblock %}</title>
+  <meta name="description" content="{% block meta_description %}Access student grades, result records, attendance tracking, and performance reports on the SRMS Student Result Management System portal.{% endblock %}" />
+  <meta property="og:title" content="{% block og_title %}Student Result Management System{% endblock %}" />
+  <meta property="og:description" content="{% block og_description %}Access student grades, result records, attendance tracking, and performance reports on the SRMS Student Result Management System portal.{% endblock %}" />
+  <meta property="og:image" content="{% block og_image %}{% static 'images/srms-logo-full.png' %}{% endblock %}" />
+  <meta property="og:type" content="{% block og_type %}website{% endblock %}" />
+  <link rel="icon" type="image/png" href="{% static 'images/srms-logo-mark.png' %}">
+
+  <!-- Mobile perf/device detection — must run before any other script -->
+  <script src="{% static 'js/mobile-performance.js' %}"></script>
+
+  <!-- Self-hosted Fonts — Brutalist Heritage -->
+  <link rel="stylesheet" href="{% static 'vendor/fonts/fonts.css' %}">
+
+  <link href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet" />
+  <link rel="stylesheet" href="{% static 'vendor/fontawesome/css/all.min.css' %}" />
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+  <link rel="stylesheet" href="{% static 'css/mobile-performance.css' %}">
+
+  <!-- Lenis — smooth, lag-free scrolling (self-hosted) -->
+  <link rel="stylesheet" href="{% static 'vendor/lenis/lenis.css' %}">
+  <link rel="stylesheet" href="{% static 'css/dark-mode.css' %}">
+  {% block extra_head %}{% endblock %}
+</head>
+<body class="public-page {% block body_class %}{% endblock %}">
+
+  <!-- ─── HERO & OAUTH PAGE NAVBAR CONTROLS ─── -->
+  <script>
+    if (document.currentScript.ownerDocument.querySelector) {
+      if (window.location.pathname === '/' || window.location.pathname === '') {
+        document.body.classList.add('hero-page');
+      }
+    }
+    document.addEventListener('DOMContentLoaded', function() {
+      const navbar = document.querySelector('.navbar-public');
+
+      // ── Scrolled state triggers ──
+      if (document.querySelector('.hero-fullscreen')) {
+        document.body.classList.add('hero-page');
+        if (navbar) {
+          const toggle = () => {
+            if (window.scrollY > window.innerHeight * 0.75) {
+              navbar.classList.add('scrolled');
+            } else {
+              navbar.classList.remove('scrolled');
+            }
+          };
+          window.addEventListener('scroll', toggle, { passive: true });
+          toggle();
+        }
+      } else {
+        document.body.classList.add('non-hero-page');
+        const wrap = document.getElementById('page-content-wrap');
+        if (wrap && !document.body.classList.contains('search-result-page')) wrap.style.paddingTop = '70px';
+        
+        // If it is a login or result page (body.login-page), apply dark scrolled style always
+        if (document.body.classList.contains('login-page') && navbar) {
+          navbar.classList.add('navbar-scrolled-always');
+        }
+      }
+
+      // ── Show/Hide navbar on scroll down/up ──
+      if (navbar) {
+        let lastScrollY = window.scrollY;
+        window.addEventListener('scroll', () => {
+          const currentScrollY = window.scrollY;
+          // Ignore micro-scrolls
+          if (Math.abs(currentScrollY - lastScrollY) < 6) return;
+          
+          if (currentScrollY > lastScrollY && currentScrollY > 100) {
+            // Scrolling down — hide
+            navbar.classList.add('navbar-hidden');
+          } else {
+            // Scrolling up or near top — show
+            navbar.classList.remove('navbar-hidden');
+          }
+          lastScrollY = currentScrollY;
+        }, { passive: true });
+      }
+    });
+  </script>
+
+  <!-- ─── PAGE LOADER ─── -->
+  <div id="page-loader">
+    <div class="loader-inner">
+      <div class="loader-monogram" id="loaderMonogram" style="opacity:0;transform:scale(0.5);">SR<span>MS</span></div>
+      <div class="loader-label" id="loaderLabel" style="opacity:0;">Initialising Portal</div>
+      <div class="loader-track">
+        <div class="loader-fill" id="loaderFill"></div>
+      </div>
+      <div class="loader-dots" id="loaderDots" style="display:flex;gap:6px;margin-top:0.5rem;">
+        <span class="ld"></span><span class="ld"></span><span class="ld"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── GLOBAL SITE BACKGROUND VIDEO — scrubs frame-by-frame as you scroll ─── -->
+  <video id="site-bg-video" aria-hidden="true" muted playsinline preload="auto">
+    <source src="{% static 'images/grad_cap_best.mp4' %}" type="video/mp4" />
+  </video>
+
+  <!-- ─── GLOBAL SITE BACKGROUND SCRIM ─── -->
+  <div id="site-bg-scrim" aria-hidden="true"></div>
+
+  <!-- ─── FLOATING PARTICLES ─── -->
+  <div class="particles-container" id="particles"></div>
+
+  <!-- ─── NAVBAR ─── -->
+  <nav class="navbar navbar-expand-lg navbar-public shadow-sm fixed-top">
+    <div class="container">
+      <a class="navbar-brand" href="{% url 'home' %}">
+        <svg class="brand-logo-svg" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <defs>
+            <linearGradient id="logoGold" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#d9a441"/>
+              <stop offset="100%" stop-color="#f5c518"/>
+            </linearGradient>
+          </defs>
+          <!-- Cap board -->
+          <path class="logo-cap-board" d="M20 6 L35 14 L20 22 L5 14 Z" fill="url(#logoGold)"/>
+          <!-- Cap under -->
+          <path class="logo-cap-under" d="M12 17.5 L12 24 C12 28, 28 28, 28 24 L28 17.5" fill="none" stroke="url(#logoGold)" stroke-width="2.5" stroke-linecap="round"/>
+          <!-- Tassel Button -->
+          <circle cx="20" cy="14" r="1.5" fill="#f5f2ed"/>
+          <!-- Tassel Thread & Tassel (sways) -->
+          <g class="logo-tassel-group">
+            <path d="M20 14 L29 14 L29 23" fill="none" stroke="#f5f2ed" stroke-width="1.5" stroke-linecap="round"/>
+            <circle cx="29" cy="24" r="2.2" fill="#d9a441"/>
+          </g>
+        </svg>
+        <span class="brand-accent">SR</span>MS
+      </a>
+      <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav" aria-label="Toggle navigation">
+        <i class="fas fa-bars" style="color: var(--charcoal);"></i>
+      </button>
+      <div class="collapse navbar-collapse justify-content-end" id="mainNav">
+        <ul class="navbar-nav gap-1 align-items-center">
+          <li class="nav-item">
+            <a class="nav-link{% if request.resolver_match.url_name == 'home' %} active{% endif %}" href="{% url 'home' %}">Home</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link{% if request.resolver_match.url_name == 'search_result' or request.resolver_match.url_name == 'check_result' %} active{% endif %}" href="{% url 'search_result' %}">Student Info</a>
+          </li>
+          <li class="nav-item ms-1">
+            <a class="nav-link nav-cta" href="{% url 'login' %}">
+              <i class="fas fa-sign-in-alt me-1"></i> Login
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ─── PAGE CONTENT ─── -->
+  <div id="page-content-wrap" style="padding-bottom: 0;">
+    {% block content %}{% endblock %}
+  </div>
+
+  <!-- ─── FOOTER ─── -->
+  <footer class="site-footer">
+    <div class="container">
+      <p class="mb-0">
+        &copy; <span class="accent">Student Result Management System</span> — All Rights Reserved
+      </p>
+    </div>
+  </footer>
+
+  <!-- ─── SCRIPTS ─── -->
+  <script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+  <script src="{% static 'vendor/gsap/gsap.min.js' %}"></script>
+  <script src="{% static 'vendor/gsap/ScrollTrigger.min.js' %}"></script>
+  <script src="{% static 'vendor/gsap/SplitText.min.js' %}"></script>
+  <script src="{% static 'vendor/gsap/MorphSVGPlugin.min.js' %}"></script>
+  <script src="{% static 'vendor/gsap/ScrambleTextPlugin.min.js' %}"></script>
+  <script src="{% static 'js/admin-list.js' %}"></script>
+  <script src="{% static 'vendor/lenis/lenis.min.js' %}"></script>
+  <script src="{% static 'js/bg-video-scrub.js' %}"></script>
+
+  <script>
+    // ── SMOOTH SCROLLING (Lenis) — initialized immediately
+    // Lenis intercepts scroll and provides butter-smooth easing.
+    // We expose window.__srmsScrollY so bg-video-scrub.js reads the
+    // Lenis-interpolated scroll position (not raw window.scrollY),
+    // keeping the video perfectly in sync with the smooth scroll.
+    (function initSmoothScroll() {
+      if (typeof gsap === 'undefined' || typeof Lenis === 'undefined' || typeof ScrollTrigger === 'undefined') return;
+      const useLenis = window.SRMSPerf ? window.SRMSPerf.useLenis : !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (!useLenis) return;
+      gsap.registerPlugin(ScrollTrigger, SplitText, MorphSVGPlugin, ScrambleTextPlugin);
+      const lenis = new Lenis({
+        duration:      1.4,        // longer = heavier, more cinematic inertia
+        easing:        t => Math.min(1, 1.001 - Math.pow(2, -10 * t)), // expo ease-out
+        smoothWheel:   true,
+        wheelMultiplier: 1.0,
+        touchMultiplier: 1.8,
+      });
+
+      // Sync Lenis scroll value → global so bg-video-scrub can read it
+      window.__srmsScrollY     = window.scrollY;
+      window.__srmsScrollMax   = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
+
+      lenis.on('scroll', ({ scroll, limit }) => {
+        window.__srmsScrollY   = scroll;
+        window.__srmsScrollMax = Math.max(1, limit);
+        ScrollTrigger.update();
+      });
+
+      gsap.ticker.add((time) => { lenis.raf(time * 1000); });
+      gsap.ticker.lagSmoothing(0);
+      window.__srmsLenis = lenis;
+    })();
+
+
+    // ── PARTICLES (subtle ink specks on paper) ─────────
+    (function createParticles() {
+      const isReduced = (window.SRMSPerf && window.SRMSPerf.reducedMotion) || 
+                        (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+      if (isReduced) return;
+      const c = document.getElementById('particles');
+      const count = window.SRMSPerf ? window.SRMSPerf.particleCount(16) : 16;
+      for (let i = 0; i < count; i++) {
+        const p = document.createElement('div');
+        p.className = 'particle';
+        const s = Math.random() * 2 + 1;
+        p.style.cssText = `
+          width:${s}px; height:${s}px;
+          left:${Math.random()*100}%;
+          animation-duration:${Math.random()*22+16}s;
+          animation-delay:${Math.random()*14}s;
+          opacity:${Math.random()*0.12+0.02};
+        `;
+        c.appendChild(p);
+      }
+    })();
+
+    // ── PAGE LOADER ────────────────────────────────────
+    const loader = document.getElementById('page-loader');
+    const isHomepage = window.location.pathname === '/' || window.location.pathname === '';
+    const loaderPlayed = sessionStorage.getItem('srms-loader-played');
+    const playFullLoader = isHomepage && !loaderPlayed;
+
+    function hideLoaderInstant() {
+      if (!loader || loader.dataset.hidden) return;
+      loader.dataset.hidden = 'true';
+      loader.style.transition = 'opacity .2s ease';
+      loader.style.opacity = '0';
+      setTimeout(() => {
+        loader.style.display = 'none';
+        initPublicAnimations();
+      }, 200);
+    }
+
+    if (!playFullLoader) {
+      if (document.readyState === 'complete') {
+        hideLoaderInstant();
+      } else {
+        window.addEventListener('load', hideLoaderInstant);
+        setTimeout(hideLoaderInstant, 400); // safety fallback
+      }
+    } else {
+      sessionStorage.setItem('srms-loader-played', 'true');
+
+      function hideLoader() {
+        if (!loader || loader.dataset.hidden) return;
+        loader.dataset.hidden = 'true';
+        loader.style.transition = 'opacity .35s ease';
+        loader.style.opacity = '0';
+        setTimeout(() => {
+          loader.style.display = 'none';
+          initPublicAnimations();
+        }, 350);
+      }
+      setTimeout(hideLoader, 2500);
+
+      window.addEventListener('load', () => {
+        const fill = document.getElementById('loaderFill');
+        const mono = document.getElementById('loaderMonogram');
+        const lbl  = document.getElementById('loaderLabel');
+        const dots = document.querySelectorAll('.ld');
+
+        try {
+          if (typeof gsap === 'undefined') throw new Error('GSAP unavailable');
+          gsap.to(mono, { opacity:1, scale:1, duration:0.55, ease:'back.out(2)', delay:0.1 });
+          gsap.to(lbl,  { opacity:1, duration:0.4, delay:0.4 });
+          gsap.to(dots, { opacity:1, duration:0.3, stagger:0.12, delay:0.5, yoyo:true, repeat:-1 });
+          gsap.to(fill, {
+            width: '100%', duration: 0.85, ease: 'power2.inOut', delay: 0.3,
+            onComplete: () => {
+              gsap.to(loader, {
+                opacity: 0, y: -20, duration: 0.4, delay: 0.15,
+                onComplete: () => {
+                  loader.style.display = 'none';
+                  initPublicAnimations();
+                }
+              });
+            }
+          });
+        } catch(e) {
+          hideLoader();
+          initPublicAnimations();
+        }
+      });
+    }
+
+    function initPublicAnimations() {
+      if (typeof gsap === 'undefined') return;
+      gsap.registerPlugin(ScrollTrigger, SplitText, MorphSVGPlugin, ScrambleTextPlugin);
+      console.log("SplitText version:", typeof SplitText !== "undefined" ? SplitText.version : "undefined");
+      console.log("MorphSVGPlugin version:", typeof MorphSVGPlugin !== "undefined" ? MorphSVGPlugin.version : "undefined");
+      console.log("ScrambleTextPlugin version:", typeof ScrambleTextPlugin !== "undefined" ? ScrambleTextPlugin.version : "undefined");
+
+      // Lenis smooth scroll is initialized earlier (see
+      // initSmoothScroll above) so it's active immediately, not
+      // gated behind this loader-triggered function.
+
+      // Navbar slide-down
+      gsap.from('.navbar-public', { y: -70, opacity: 0, duration: 0.75, ease: 'back.out(1.5)' });
+
+      // ── GLOBAL BACKGROUND VIDEO — scroll-scrubbed ─────────
+      // Handled by bg-video-scrub.js (rAF-throttled, one seek per
+      // frame max) so it stays smooth instead of the old per-tick jank.
+
+      // Scroll-reveal helpers
+      gsap.utils.toArray('.gsap-fade').forEach(el => {
+        gsap.to(el, { opacity:1, duration:0.9, scrollTrigger: { trigger:el, start:'top 87%' } });
+      });
+      gsap.utils.toArray('.gsap-up').forEach((el, i) => {
+        gsap.to(el, { y:0, opacity:1, duration:0.75, delay:i*0.09, ease:'power3.out', scrollTrigger:{ trigger:el, start:'top 88%' } });
+      });
+      gsap.utils.toArray('.gsap-left').forEach(el => {
+        gsap.to(el, { x:0, opacity:1, duration:0.7, ease:'power3.out', scrollTrigger:{ trigger:el, start:'top 88%' } });
+      });
+      gsap.utils.toArray('.gsap-right').forEach(el => {
+        gsap.to(el, { x:0, opacity:1, duration:0.7, ease:'power3.out', scrollTrigger:{ trigger:el, start:'top 88%' } });
+      });
+      gsap.utils.toArray('.gsap-scale').forEach((el, i) => {
+        gsap.to(el, { scale:1, opacity:1, duration:0.65, delay:i*0.08, ease:'back.out(1.7)', scrollTrigger:{ trigger:el, start:'top 88%' } });
+      });
+
+      // Card magnetic lift (Brutalist: translate instead of float)
+      // Skipped on touch devices — mouseenter/mouseleave on touch
+      // screens causes the classic "first tap only hovers" bug.
+      if (!(window.SRMSPerf && window.SRMSPerf.isMobile)) {
+        document.querySelectorAll('.card, .stat-card, .notice-item, .feature-item').forEach(card => {
+          card.addEventListener('mouseenter', () => gsap.to(card, { y:-4, x:-4, duration:0.2, ease:'power2.out' }));
+          card.addEventListener('mouseleave', () => gsap.to(card, { y:0,  x:0,  duration:0.28, ease:'power2.out' }));
+        });
+      }
+
+      // Nav-link hover glow
+      document.querySelectorAll('.navbar-public .nav-link:not(.nav-cta)').forEach(link => {
+        link.addEventListener('mouseenter', () => gsap.to(link, { duration:0.12 }));
+        link.addEventListener('mouseleave', () => gsap.to(link, { duration:0.15 }));
+      });
+
+      // ── NON-HERO INNER PAGE ANIMATIONS ───────────────
+      // Animate pages that are not the home/hero page
+      const isHeroPage = document.querySelector('.hero-fullscreen');
+      if (!isHeroPage) {
+        // Page content slide-up entrance
+        gsap.fromTo('#page-content-wrap',
+          { opacity: 0, y: 30 },
+          { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out', delay: 0.25 }
+        );
+
+        // Table row stagger
+        const tableRows = document.querySelectorAll('tbody tr');
+        if (tableRows.length) {
+          const lite = window.SRMSPerf && window.SRMSPerf.isLite;
+          gsap.fromTo(tableRows,
+            { opacity: 0, x: lite ? 0 : -18 },
+            { opacity: 1, x: 0, duration: lite ? 0.01 : 0.4, stagger: lite ? 0 : 0.04, ease: 'power2.out', delay: lite ? 0 : 0.55 }
+          );
+        }
+
+        // Form fields stagger
+        const formFields = document.querySelectorAll(
+          '#page-content-wrap .form-control, #page-content-wrap .form-select, #page-content-wrap textarea'
+        );
+        if (formFields.length) {
+          gsap.fromTo(formFields,
+            { opacity: 0, x: -14 },
+            { opacity: 1, x: 0, duration: 0.38, stagger: 0.05, ease: 'power3.out', delay: 0.6 }
+          );
+          formFields.forEach(inp => {
+            inp.addEventListener('focus', () => gsap.to(inp, { boxShadow:'0 0 0 3px rgba(245,197,24,.18)', duration:.18 }));
+            inp.addEventListener('blur',  () => gsap.to(inp, { boxShadow:'none', duration:.2 }));
+          });
+        }
+
+        // Button entrance
+        const pageButtons = document.querySelectorAll(
+          '#page-content-wrap form .btn, #page-content-wrap > div > .btn'
+        );
+        if (pageButtons.length) {
+          gsap.fromTo(pageButtons,
+            { opacity: 0, y: 12 },
+            { opacity: 1, y: 0, duration: 0.38, stagger: 0.07, ease: 'power3.out', delay: 0.85 }
+          );
+        }
+      }
+
+      // Footer fade
+      gsap.fromTo('.site-footer',
+        { opacity:0, y:10 },
+        { opacity:1, y:0, duration:0.6, ease:'power3.out', delay:0.4 }
+      );
+    }
+  </script>
+
+  {% block extra_js %}{% endblock %}
+
+  <!-- ─── SRMS CHATBOT WIDGET ─── -->
+  {% include 'chatbot_widget.html' %}
+</body>
+</html>

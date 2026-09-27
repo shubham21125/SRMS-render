@@ -1,0 +1,163 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#1c1c1c">
+  <meta name="format-detection" content="telephone=no">
+  <title>{% block title %}Admin Dashboard — SRMS{% endblock %}</title>
+  <link rel="icon" type="image/png" href="{% static 'images/srms-logo-mark.png' %}">
+
+  <!-- Mobile perf/device detection — must run before any other script -->
+  <script src="{% static 'js/mobile-performance.js' %}"></script>
+
+  <!-- Dark mode preference — must run before render to avoid flash -->
+  <script>
+  (function(){
+    var stored = localStorage.getItem('srms-theme');
+    var pref = stored || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    document.documentElement.setAttribute('data-theme', pref);
+  })();
+  </script>
+
+  <!-- Self-hosted Fonts — Brutalist Heritage -->
+  <link rel="stylesheet" href="{% static 'vendor/fonts/fonts.css' %}">
+
+  <link href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet" />
+  <link rel="stylesheet" href="{% static 'vendor/fontawesome/css/all.min.css' %}" />
+  <link rel="stylesheet" href="{% static 'vendor/lenis/lenis.css' %}">
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+  <link rel="stylesheet" href="{% static 'css/mobile-performance.css' %}">
+  <!-- Admin console professional theme — overrides the brutalist look above -->
+  <link rel="stylesheet" href="{% static 'css/admin-theme.css' %}?v=1.8">
+  <link rel="stylesheet" href="{% static 'css/dark-mode.css' %}">
+</head>
+<body class="admin-page">
+
+  <!-- ─── PAGE LOADER ─── -->
+  <div id="page-loader">
+    <div class="loader-inner">
+      <img src="{% static 'images/srms-logo-mark.png' %}" alt="SRMS" class="loader-logo">
+      <div class="loader-label">Admin Console</div>
+      <div class="loader-track">
+        <div class="loader-fill" id="loaderFill"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── TOPBAR ─── -->
+  {% include 'topbar.html' %}
+
+  <div class="container-fluid" style="padding-top:60px;">
+    <div class="row g-0">
+
+      <!-- SIDEBAR -->
+      <div class="col-md-3 col-lg-2 sidebar-wrapper" data-lenis-prevent style="min-height:calc(100vh - 60px);">
+        {% include 'sidebar.html' %}
+      </div>
+
+      <!-- MAIN -->
+      <main class="col-md-9 col-lg-10">
+        {% if messages %}
+        <div class="px-3 pt-3">
+          {% for message in messages %}
+          <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
+            <i class="fas fa-info-circle me-2"></i>{{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+          </div>
+          {% endfor %}
+        </div>
+        {% endif %}
+
+        {% block content %}{% endblock %}
+      </main>
+    </div>
+  </div>
+
+  {% block modals %}{% endblock %}
+
+  <!-- ─── FOOTER ─── -->
+  <footer class="site-footer">
+    <div class="container-fluid px-4">
+      <p class="mb-0">
+        &copy; <span class="accent">Student Result Management System</span> &mdash; Admin Console &middot; All Rights Reserved
+      </p>
+    </div>
+  </footer>
+
+  <script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+  <script src="{% static 'vendor/gsap/gsap.min.js' %}"></script>
+  <script src="{% static 'vendor/gsap/ScrollTrigger.min.js' %}"></script>
+  <script src="{% static 'vendor/lenis/lenis.min.js' %}"></script>
+  <script src="{% static 'js/admin-list.js' %}"></script>
+
+  <!-- Composable Animations Toolkit -->
+  <script src="{% static 'js/animations/reveal.js' %}"></script>
+  <script src="{% static 'js/animations/counters.js' %}"></script>
+  <script src="{% static 'js/animations/transitions.js' %}"></script>
+  <script src="{% static 'js/animations/micro.js' %}"></script>
+  <script src="{% static 'js/animations/main.js' %}"></script>
+
+  <script>
+    const loader = document.getElementById('page-loader');
+    function hideLoaderInstant() {
+      if (!loader || loader.dataset.hidden) return;
+      loader.dataset.hidden = 'true';
+      loader.style.transition = 'opacity .2s ease';
+      loader.style.opacity = '0';
+      setTimeout(() => { loader.style.display = 'none'; }, 200);
+    }
+
+    if (document.readyState === 'complete') {
+      hideLoaderInstant();
+    } else {
+      window.addEventListener('load', hideLoaderInstant);
+      setTimeout(hideLoaderInstant, 400);
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      // ── SIDEBAR ACTIVE-LINK DETECTION ─────────────────────────────────────
+      const path = window.location.pathname.replace(/\/$/, '');
+      document.querySelectorAll('.sidebar .nav-link[href]').forEach(link => {
+        try {
+          const linkPath = new URL(link.href, window.location.origin).pathname.replace(/\/$/, '');
+          if (linkPath && linkPath === path) {
+            link.classList.add('active');
+            const parentCollapse = link.closest('.collapse');
+            if (parentCollapse) {
+              parentCollapse.classList.add('show');
+              const trigger = document.querySelector(`[data-bs-toggle="collapse"][href="#${parentCollapse.id}"]`);
+              if (trigger) trigger.setAttribute('aria-expanded', 'true');
+            }
+          }
+        } catch (e) {}
+      });
+
+      // ── NAVBAR SCROLL TRANSPARENCY ────────────────────────────────────────
+      const adminNav = document.querySelector('.navbar-public');
+      if (adminNav) {
+        const toggleAdminNav = () => {
+          if (window.scrollY > 40) adminNav.classList.add('scrolled');
+          else                     adminNav.classList.remove('scrolled');
+        };
+        window.addEventListener('scroll', toggleAdminNav, { passive: true });
+        toggleAdminNav();
+      }
+
+      // ── DARK MODE TOGGLE ──────────────────────────────────────────────────
+      var darkBtn = document.getElementById('darkToggleBtn');
+      if (darkBtn) {
+        darkBtn.addEventListener('click', function () {
+          var current = document.documentElement.getAttribute('data-theme');
+          var next = current === 'dark' ? 'light' : 'dark';
+          document.documentElement.setAttribute('data-theme', next);
+          localStorage.setItem('srms-theme', next);
+        });
+      }
+    });
+  </script>
+
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,116 @@
+{% extends 'admin_base.html' %}
+{% load static %}
+{% block title %}Manage Subject Combinations — SRMS{% endblock %}
+{% block content %}
+<div class="p-3">
+
+  <!-- Header -->
+  <div class="d-flex justify-content-between align-items-center mb-4 gsap-left">
+    <div>
+      <h2 class="mb-0"><i class="fas fa-cogs me-2"></i>Manage Subject Combinations</h2>
+      <small style="color:var(--text-secondary);">{{ page_obj.paginator.count }} combination(s)</small>
+    </div>
+    <a href="{% url 'add_subject_combination' %}" class="btn btn-primary">
+      <i class="fas fa-plus me-1"></i>Add New Combination
+    </a>
+  </div>
+
+  <!-- Search Bar (server-side; works correctly with pagination) -->
+  <div class="card mb-3 gsap-up">
+    <div class="card-body py-2 px-3">
+      <form method="get" class="input-group">
+        <span class="input-group-text" style="background:transparent;border-color:var(--rim);">
+          <i class="fas fa-search" style="color:var(--text-dim);"></i>
+        </span>
+        <input type="text" name="q" id="comboSearch" class="form-control"
+               placeholder="Search by class or subject…" value="{{ q }}"
+               style="border-color:var(--rim);background:transparent;color:var(--text-primary);">
+        {% if q %}
+          <a href="{% url 'manage_subject_combination' %}" class="btn" style="border-color:var(--rim);color:var(--text-dim);" title="Clear search">
+            <i class="fas fa-times"></i>
+          </a>
+        {% endif %}
+        <button type="submit" class="btn btn-outline-warning">Search</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Table Card -->
+  <div class="card gsap-up">
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover mb-0">
+          <thead>
+            <tr>
+              <th style="width:50px;">#</th>
+              <th>Class &amp; Section</th>
+              <th>Subject</th>
+              <th>Status</th>
+              <th>Created</th>
+              <th style="width:80px;">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for i in combinations %}
+            <tr class="combo-row">
+              <td style="color:var(--text-dim);">{{ forloop.counter0|add:page_obj.start_index }}</td>
+              <td class="fw-bold" style="color:var(--gold);">{{ i.student_class.class_name }} - Section {{ i.student_class.section }}</td>
+              <td>{{ i.subject.subject_name }} <span style="color:var(--text-dim);">({{ i.subject.subject_code }})</span></td>
+              <td>
+                {% if i.status == 1 %}
+                  <span class="badge" style="background:rgba(34,197,94,0.15);color:#22c55e;border:1px solid rgba(34,197,94,0.3);">
+                    <i class="fas fa-circle me-1" style="font-size:0.5rem;vertical-align:middle;"></i>Active
+                  </span>
+                {% else %}
+                  <span class="badge" style="background:rgba(156,163,175,0.15);color:#9CA3AF;border:1px solid rgba(156,163,175,0.3);">
+                    <i class="fas fa-circle me-1" style="font-size:0.5rem;vertical-align:middle;"></i>Inactive
+                  </span>
+                {% endif %}
+              </td>
+              <td>{{ i.creation_date|date:"d M Y" }}</td>
+              <td>
+                {% if i.status == 1 %}
+                  <a href="?did={{ i.id }}" onclick="return confirm('Deactivate this subject combination?')"
+                     class="btn btn-sm" title="Deactivate"
+                     style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);color:#ef4444;padding:4px 9px;">
+                    <i class="fas fa-times"></i>
+                  </a>
+                {% else %}
+                  <a href="?aid={{ i.id }}" onclick="return confirm('Activate this subject combination?')"
+                     class="btn btn-sm" title="Activate"
+                     style="background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.3);color:#22c55e;padding:4px 9px;">
+                    <i class="fas fa-check"></i>
+                  </a>
+                {% endif %}
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="6">
+                <div class="srms-empty-state">
+                  <i class="fas fa-cogs srms-empty-icon"></i>
+                  {% if q %}
+                    No combinations match "{{ q }}". <a href="{% url 'manage_subject_combination' %}">Clear search.</a>
+                  {% else %}
+                    No subject combinations found. <a href="{% url 'add_subject_combination' %}">Add one now.</a>
+                  {% endif %}
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  {% include '_pagination.html' %}
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  window.SRMSList.initServerSearch('comboSearch', { wait: 400, focusEnd: true });
+</script>
+{% endblock %}

@@ -1,0 +1,239 @@
+/* ====================================================
+   SRMS — Dark Mode Theme Layer
+   Applied via [data-theme="dark"] on <html>.
+   Overrides both Brutalist Heritage (public/parent)
+   and Admin Console (--adm-*) tokens in one pass.
+   
+   Toggle logic: base.html reads localStorage('srms-theme').
+   Falls back to prefers-color-scheme if no stored preference.
+   ==================================================== */
+
+/* ─── Smooth colour-scheme transition ─────────────── */
+html {
+  transition: background-color 0.28s ease, color 0.28s ease;
+}
+*, *::before, *::after {
+  transition: background-color 0.28s ease, color 0.2s ease, border-color 0.22s ease, box-shadow 0.22s ease;
+}
+/* Avoid transition on images and videos */
+img, video, canvas, svg { transition: none !important; }
+
+/* ─── DARK MODE TOKEN OVERRIDES ────────────────────── */
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  /* Brutalist Heritage — swap paper ↔ charcoal */
+  --charcoal:        #E8E4DE;
+  --charcoal-soft:   #C8C4BE;
+  --paper:           #0F1117;
+  --paper-dim:       #171B26;
+  --paper-deep:      #1E2330;
+  --gold:            #F0B84A;
+  --gold-bright:     #FFD166;
+  --gold-dim:        #D9A441;
+  --gold-container:  #3A2E10;
+  --gold-subtle:     rgba(240,184,74,0.10);
+  --gold-glow:       rgba(240,184,74,0.30);
+  --gold-border:     rgba(240,184,74,0.35);
+
+  --surface:         #131720;
+  --surface-low:     #0F1117;
+  --surface-mid:     #1A1F2E;
+  --surface-high:    #22283A;
+  --rim:             rgba(255,255,255,0.12);
+  --rim-soft:        rgba(255,255,255,0.08);
+
+  --text-primary:    #E8E4DE;
+  --text-secondary:  #9AA3B8;
+  --text-dim:        #6B7280;
+
+  --success:         #34D399;
+  --danger:          #F87171;
+  --info:            #60A5FA;
+
+  /* Hard shadows: soften in dark mode */
+  --shadow-card:     4px 4px 0px 0px rgba(240,184,74,0.18);
+  --shadow-gold:     4px 4px 0px 0px rgba(240,184,74,0.35);
+  --shadow-hover:    2px 2px 0px 0px rgba(240,184,74,0.25);
+}
+
+/* ─── Dark body background ────────────────────────── */
+[data-theme="dark"] body {
+  background-color: #0F1117 !important;
+  color: var(--text-primary);
+}
+
+/* ─── Admin page dark variant ─────────────────────── */
+[data-theme="dark"] body.admin-page {
+  --adm-bg:            #0D1117;
+  --adm-surface:       #161B26;
+  --adm-surface-muted: #1C2233;
+  --adm-border:        #252D3F;
+  --adm-border-strong: #2E3750;
+  --adm-text:          #E2E8F0;
+  --adm-text-secondary:#94A3B8;
+  --adm-text-muted:    #64748B;
+  --adm-primary:       #818CF8;
+  --adm-primary-dark:  #6366F1;
+  --adm-primary-light: rgba(99,102,241,0.12);
+  --adm-primary-ring:  rgba(99,102,241,0.25);
+  --adm-success:       #34D399;
+  --adm-success-bg:    rgba(52,211,153,0.10);
+  --adm-danger:        #F87171;
+  --adm-danger-bg:     rgba(248,113,113,0.10);
+  --adm-warning:       #FBBF24;
+  --adm-warning-bg:    rgba(251,191,36,0.10);
+  --adm-info:          #60A5FA;
+  --adm-info-bg:       rgba(96,165,250,0.10);
+  --adm-sidebar-bg:    #0A0D16;
+  --adm-sidebar-bg-alt:#0F1420;
+  --adm-sidebar-text:  #94A3B8;
+  --adm-sidebar-text-hi:#FFFFFF;
+  --adm-sidebar-border: rgba(255,255,255,0.08);
+  --adm-sidebar-active: rgba(99,102,241,0.15);
+  --adm-sidebar-hover-bg: rgba(255,255,255,0.06);
+  --adm-sidebar-active-text: #FFFFFF;
+  --adm-sidebar-scrollbar-thumb: rgba(255,255,255,0.15);
+  --adm-shadow-sm:     0 1px 2px rgba(0,0,0,0.4);
+  --adm-shadow-md:     0 6px 20px rgba(0,0,0,0.5);
+  --adm-shadow-lg:     0 16px 40px rgba(0,0,0,0.6);
+  background: var(--adm-bg) !important;
+}
+
+[data-theme="dark"] body.admin-page {
+  background-image:
+    radial-gradient(circle at 12% 8%, rgba(99,102,241,0.08), transparent 42%),
+    radial-gradient(circle at 92% 0%, rgba(52,211,153,0.06), transparent 38%) !important;
+}
+
+/* ─── Public page — paper texture swap ────────────── */
+[data-theme="dark"] body.public-page {
+  background-color: #0F1117 !important;
+}
+
+/* ─── Scrollbar dark ──────────────────────────────── */
+[data-theme="dark"] ::-webkit-scrollbar-track { background: #0F1117; }
+[data-theme="dark"] ::-webkit-scrollbar-thumb { background: #2E3750; }
+[data-theme="dark"] ::-webkit-scrollbar-thumb:hover { background: var(--gold); }
+
+/* ─── Cards dark ──────────────────────────────────── */
+[data-theme="dark"] .card {
+  background: #161B26 !important;
+  border-color: #252D3F !important;
+  color: var(--text-primary);
+}
+[data-theme="dark"] .card-header {
+  background: #1C2233 !important;
+  border-bottom-color: #252D3F !important;
+  color: var(--text-primary);
+}
+[data-theme="dark"] .card-body { color: #94A3B8; }
+
+/* ─── Inputs dark ─────────────────────────────────── */
+[data-theme="dark"] .form-control,
+[data-theme="dark"] .form-select {
+  background-color: #1C2233 !important;
+  border-color: #2E3750 !important;
+  color: #E2E8F0 !important;
+}
+[data-theme="dark"] .form-control::placeholder { color: #64748B; }
+[data-theme="dark"] .form-control:focus,
+[data-theme="dark"] .form-select:focus {
+  background-color: #1E2540 !important;
+  border-color: var(--gold) !important;
+  box-shadow: 0 0 0 3px rgba(240,184,74,0.15) !important;
+}
+
+/* ─── Navbar dark ─────────────────────────────────── */
+[data-theme="dark"] body.admin-page .navbar-public {
+  background: rgba(13,17,23,0.85) !important;
+  border-bottom-color: rgba(255,255,255,0.08) !important;
+}
+[data-theme="dark"] body.admin-page .navbar-public.scrolled {
+  background: rgba(13,17,23,0.97) !important;
+}
+[data-theme="dark"] .navbar-public .navbar-brand { color: var(--text-primary) !important; }
+[data-theme="dark"] .navbar-public .nav-link { color: var(--text-secondary) !important; }
+[data-theme="dark"] .navbar-public .nav-link:hover { color: var(--gold) !important; }
+
+/* ─── Tables dark ─────────────────────────────────── */
+[data-theme="dark"] .table {
+  color: #E2E8F0;
+  border-color: #252D3F;
+}
+[data-theme="dark"] .table thead th {
+  background: #1C2233 !important;
+  border-bottom-color: #2E3750 !important;
+  color: #94A3B8;
+}
+[data-theme="dark"] .table tbody tr:hover td { background: rgba(255,255,255,0.03) !important; }
+[data-theme="dark"] .table td { border-color: #1E2540; }
+
+/* ─── Alerts dark ─────────────────────────────────── */
+[data-theme="dark"] .alert-success { background: rgba(52,211,153,0.10); border-color: rgba(52,211,153,0.25); color: #34D399; }
+[data-theme="dark"] .alert-danger  { background: rgba(248,113,113,0.10); border-color: rgba(248,113,113,0.25); color: #F87171; }
+[data-theme="dark"] .alert-warning { background: rgba(251,191,36,0.10);  border-color: rgba(251,191,36,0.25);  color: #FBBF24; }
+[data-theme="dark"] .alert-info    { background: rgba(96,165,250,0.10);  border-color: rgba(96,165,250,0.25);  color: #60A5FA; }
+
+/* ─── Buttons dark ────────────────────────────────── */
+[data-theme="dark"] .btn-outline-warning {
+  color: var(--gold) !important;
+  border-color: var(--gold-border) !important;
+}
+[data-theme="dark"] .btn-outline-warning:hover {
+  background: var(--gold-subtle) !important;
+}
+
+/* ─── Stat cards dark ─────────────────────────────── */
+[data-theme="dark"] .stat-card {
+  background: #161B26 !important;
+  border-color: #252D3F !important;
+}
+
+/* ─── Dropdown dark ───────────────────────────────── */
+[data-theme="dark"] .dropdown-menu {
+  background: #1C2233;
+  border-color: #2E3750;
+}
+[data-theme="dark"] .dropdown-item { color: #94A3B8; }
+[data-theme="dark"] .dropdown-item:hover { background: rgba(255,255,255,0.05); color: #E2E8F0; }
+
+/* ─── Dark toggle button ──────────────────────────── */
+.dark-toggle-btn {
+  background: none;
+  border: 1px solid var(--rim-soft, rgba(18,18,18,0.15));
+  color: var(--text-secondary, #5C6480);
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: color 0.18s ease, border-color 0.18s ease, background 0.18s ease, transform 0.15s ease;
+  flex-shrink: 0;
+}
+.dark-toggle-btn:hover {
+  color: var(--gold, #D9A441);
+  border-color: var(--gold-border, rgba(217,164,65,0.4));
+  background: var(--gold-subtle, rgba(217,164,65,0.08));
+  transform: scale(1.08);
+}
+.dark-toggle-btn i {
+  font-size: 0.95rem;
+  transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.dark-toggle-btn:hover i { transform: rotate(20deg); }
+[data-theme="dark"] .dark-toggle-btn i.fa-moon { display: none; }
+[data-theme="dark"] .dark-toggle-btn i.fa-sun  { display: inline; }
+[data-theme="dark"] .dark-toggle-btn {
+  color: #FBBF24;
+  border-color: rgba(251,191,36,0.3);
+}
+.dark-toggle-btn i.fa-sun { display: none; }
+.dark-toggle-btn i.fa-moon { display: inline; }
+
+/* ─── Page loader dark ────────────────────────────── */
+[data-theme="dark"] #page-loader {
+  background: #0A0D16;
+}

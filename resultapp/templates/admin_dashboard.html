@@ -1,0 +1,159 @@
+{% extends 'admin_base.html' %}
+{% load static %}
+{% block title %}Dashboard — SRMS Admin{% endblock %}
+
+{% block content %}
+<div class="p-3">
+
+  <!-- Page Header -->
+  <div class="d-flex align-items-center gap-3 mb-4 gsap-left" id="dashHeader">
+    <div>
+      <h2 class="mb-0"><i class="fas fa-tachometer-alt me-2"></i>Dashboard</h2>
+      <small class="text-muted">Welcome back, Administrator</small>
+    </div>
+  </div>
+
+  <!-- STAT CARDS -->
+  <div class="row g-3 mb-4">
+    <div class="col-sm-6 col-xl-3 gsap-scale">
+      <div class="stat-card primary">
+        <div class="stat-icon"><i class="fas fa-users"></i></div>
+        <h3 class="counter" data-target="{{ total_students }}">0</h3>
+        <p>Registered Students</p>
+      </div>
+    </div>
+    <div class="col-sm-6 col-xl-3 gsap-scale">
+      <div class="stat-card danger">
+        <div class="stat-icon"><i class="fas fa-book-open"></i></div>
+        <h3 class="counter" data-target="{{ total_subjects }}">0</h3>
+        <p>Subjects Listed</p>
+      </div>
+    </div>
+    <div class="col-sm-6 col-xl-3 gsap-scale">
+      <div class="stat-card warning">
+        <div class="stat-icon"><i class="fas fa-school"></i></div>
+        <h3 class="counter" data-target="{{ total_classes }}">0</h3>
+        <p>Active Classes</p>
+      </div>
+    </div>
+    <div class="col-sm-6 col-xl-3 gsap-scale">
+      <div class="stat-card success">
+        <div class="stat-icon"><i class="fas fa-clipboard-check"></i></div>
+        <h3 class="counter" data-target="{{ total_results }}">0</h3>
+        <p>Results Declared</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- QUICK ACTIONS -->
+  <div class="row g-3 mb-4">
+    <div class="col-12 gsap-up">
+      <div class="card">
+        <div class="card-header d-flex align-items-center gap-2">
+          <i class="fas fa-bolt text-gold"></i>
+          <h5 class="mb-0">Quick Actions</h5>
+        </div>
+        <div class="card-body">
+          <div class="row g-2" id="quickActions">
+            <div class="col-6 col-md-3 qa-item">
+              <a href="{% url 'add_student' %}" class="btn btn-outline-warning w-100 text-start py-2">
+                <i class="fas fa-user-plus me-2"></i>Add Student
+              </a>
+            </div>
+            <div class="col-6 col-md-3 qa-item">
+              <a href="{% url 'add_result' %}" class="btn btn-outline-warning w-100 text-start py-2">
+                <i class="fas fa-plus me-2"></i>Add Result
+              </a>
+            </div>
+            <div class="col-6 col-md-3 qa-item">
+              <a href="{% url 'add_notice' %}" class="btn btn-outline-warning w-100 text-start py-2">
+                <i class="fas fa-bullhorn me-2"></i>Add Notice
+              </a>
+            </div>
+            <div class="col-6 col-md-3 qa-item">
+              <a href="{% url 'manage_students' %}" class="btn btn-outline-warning w-100 text-start py-2">
+                <i class="fas fa-list me-2"></i>View Students
+              </a>
+            </div>
+            <div class="col-6 col-md-3 qa-item">
+              <a href="{% url 'admin_analytics' %}" class="btn btn-outline-warning w-100 text-start py-2">
+                <i class="fas fa-chart-bar me-2"></i>Analytics
+              </a>
+            </div>
+            <div class="col-6 col-md-3 qa-item">
+              <a href="{% url 'manage_result' %}" class="btn btn-outline-warning w-100 text-start py-2">
+                <i class="fas fa-tasks me-2"></i>Manage Results
+              </a>
+            </div>
+            <div class="col-6 col-md-3 qa-item">
+              <a href="{% url 'add_attendance' %}" class="btn btn-outline-warning w-100 text-start py-2">
+                <i class="fas fa-calendar-alt me-2"></i>Bulk Attendance
+              </a>
+            </div>
+            <div class="col-6 col-md-3 qa-item">
+              <a href="{% url 'create_admin' %}" class="btn btn-outline-warning w-100 text-start py-2">
+                <i class="fas fa-user-shield me-2"></i>Admin Management
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- UNIVERSITY BANNER -->
+  <div class="gsap-up" style="border-radius:14px;overflow:hidden;border:1px solid var(--rim);position:relative;">
+    <img src="{% static 'images/university.png' %}" alt="University"
+         class="img-fluid w-100"
+         style="max-height:300px;object-fit:cover;display:block;filter:brightness(0.5);" />
+    <div style="position:absolute;bottom:0;left:0;right:0;padding:2rem;
+                background:linear-gradient(transparent,rgba(0,0,0,0.92));">
+      <h3 style="color:var(--gold);font-family:'Syne',sans-serif;font-size:1.6rem;margin:0;">
+        Student Result Management System
+      </h3>
+      <p style="color:#ccc;margin:0.25rem 0 0;font-size:0.88rem;">
+        Empowering academic excellence through technology
+      </p>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // ── Count-up (shared helper — see admin-list.js) ──
+  setTimeout(function () { window.SRMSList.initCounters({ duration: 1.2 }); }, 500);
+
+  // ── Quick action buttons stagger ─────────────────
+  gsap.fromTo('.qa-item',
+    { opacity: 0, y: 12 },
+    { opacity: 1, y: 0, duration: 0.4, stagger: 0.06, ease: 'power2.out', delay: 0.6 }
+  );
+
+  // ── Quick action hover lift + glow ───────────────
+  document.querySelectorAll('.qa-item .btn').forEach(btn => {
+    btn.addEventListener('mouseenter', () =>
+      gsap.to(btn, { y: -3, boxShadow:'0 6px 20px rgba(245,197,24,0.25)', duration: 0.2, ease:'power2.out' })
+    );
+    btn.addEventListener('mouseleave', () =>
+      gsap.to(btn, { y: 0, boxShadow:'none', duration: 0.25, ease:'power2.out' })
+    );
+  });
+
+  // ── Stat card magnetic tilt ───────────────────────
+  document.querySelectorAll('.stat-card').forEach(card => {
+    card.addEventListener('mousemove', e => {
+      const r   = card.getBoundingClientRect();
+      const cx  = r.left + r.width / 2;
+      const cy  = r.top + r.height / 2;
+      const rx  = ((e.clientY - cy) / (r.height / 2)) * 6;
+      const ry  = -((e.clientX - cx) / (r.width / 2)) * 6;
+      gsap.to(card, { rotateX: rx, rotateY: ry, duration: 0.25, ease:'power1.out', transformPerspective:600 });
+    });
+    card.addEventListener('mouseleave', () =>
+      gsap.to(card, { rotateX:0, rotateY:0, duration:0.45, ease:'back.out(1.4)' })
+    );
+  });
+</script>
+{% endblock %}

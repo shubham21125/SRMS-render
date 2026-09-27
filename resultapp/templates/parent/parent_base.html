@@ -1,0 +1,532 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#1c1c1c">
+  <meta name="format-detection" content="telephone=no">
+  <title>{% block title %}Parent Portal — SRMS{% endblock %}</title>
+  <link rel="icon" type="image/png" href="{% static 'images/srms-logo-mark.png' %}">
+
+  <!-- Mobile perf/device detection -->
+  <script src="{% static 'js/mobile-performance.js' %}"></script>
+
+  <!-- Dark mode preference -->
+  <script>
+  (function(){
+    var stored = localStorage.getItem('srms-theme');
+    var pref = stored || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    document.documentElement.setAttribute('data-theme', pref);
+  })();
+  </script>
+
+  <!-- Self-hosted Fonts — Brutalist Heritage -->
+  <link rel="stylesheet" href="{% static 'vendor/fonts/fonts.css' %}">
+  <link href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet" />
+  <link rel="stylesheet" href="{% static 'vendor/fontawesome/css/all.min.css' %}" />
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+  <link rel="stylesheet" href="{% static 'css/mobile-performance.css' %}">
+
+  <!-- Lenis — smooth, lag-free scrolling -->
+  <link rel="stylesheet" href="{% static 'vendor/lenis/lenis.css' %}">
+  <link rel="stylesheet" href="{% static 'css/dark-mode.css' %}">
+
+  <style>
+  /* ══════════════════════════════════════════════════════════════════════
+     PARENT PORTAL — REFINED, HIGH-CONTRAST DUAL-THEME DESIGN SYSTEM
+     ══════════════════════════════════════════════════════════════════════ */
+
+  /* 1. Base tokens & layout */
+  body.parent-portal-body {
+    background-color: var(--paper) !important;
+    color: var(--text-primary) !important;
+    min-height: 100vh;
+    font-family: 'Inter', 'Source Sans 3', system-ui, sans-serif;
+  }
+
+  /* Dark mode specific enhancements */
+  [data-theme="dark"] body.parent-portal-body {
+    --paper: #0c0b11;
+    --paper-dim: #111019;
+    --paper-deep: #08070d;
+    --surface: #171523;
+    --card: #171523;
+    --border: rgba(255, 255, 255, 0.08);
+    --text-primary: #f5f2ed;
+    --text-secondary: #c9c5bd;
+    --text-dim: #949089;
+    --gold: #d9a441;
+    --gold-bright: #f0c05a;
+    background-color: #0c0b11 !important;
+    background-image:
+      radial-gradient(ellipse 80% 60% at 10% 0%, rgba(217,164,65,0.08) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 50% at 90% 100%, rgba(99,102,241,0.06) 0%, transparent 60%) !important;
+  }
+
+  /* Light mode specific enhancements */
+  [data-theme="light"] body.parent-portal-body {
+    --paper: #f8f7f4;
+    --paper-dim: #f0eee9;
+    --paper-deep: #e8e5de;
+    --surface: #ffffff;
+    --card: #ffffff;
+    --border: rgba(0, 0, 0, 0.08);
+    --text-primary: #1c1a24;
+    --text-secondary: #4b5563;
+    --text-dim: #6b7280;
+    --gold: #b38128;
+    --gold-bright: #d9a441;
+    background-color: #f8f7f4 !important;
+    background-image:
+      radial-gradient(ellipse 80% 60% at 10% 0%, rgba(217,164,65,0.05) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 50% at 90% 100%, rgba(99,102,241,0.03) 0%, transparent 60%) !important;
+  }
+
+  /* 2. Public video & ambient background cleanup */
+  body.parent-portal-body #site-bg-video,
+  body.parent-portal-body #site-bg-scrim,
+  body.parent-portal-body .particles-container {
+    display: none !important;
+  }
+
+  /* 3. Main content area */
+  body.parent-portal-body main {
+    background: transparent !important;
+    padding: 1.25rem !important;
+    min-height: calc(100vh - 60px);
+    position: relative;
+    z-index: 5;
+  }
+  @media (max-width: 767.98px) {
+    body.parent-portal-body main {
+      padding: 0.75rem !important;
+    }
+  }
+
+  body.parent-portal-body main h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    letter-spacing: -0.01em;
+  }
+
+  /* 4. Topbar Navbar */
+  body.parent-portal-body .navbar-public {
+    padding: 0.55rem 0 !important;
+    background: var(--paper-deep) !important;
+    border-bottom: 1px solid var(--border) !important;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15) !important;
+  }
+  [data-theme="light"] body.parent-portal-body .navbar-public {
+    background: #ffffff !important;
+    border-bottom: 1px solid rgba(0,0,0,0.08) !important;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05) !important;
+  }
+  body.parent-portal-body .navbar-public .navbar-brand {
+    color: var(--text-primary) !important;
+    font-size: 1.15rem !important;
+    font-weight: 700 !important;
+  }
+  body.parent-portal-body .navbar-public .brand-accent {
+    color: var(--gold) !important;
+  }
+
+  /* 5. Sidebar Navigation */
+  body.parent-portal-body .sidebar-wrapper {
+    background: var(--paper-dim) !important;
+    border-right: 1px solid var(--border) !important;
+    z-index: 10;
+  }
+  @media (min-width: 768px) {
+    body.parent-portal-body .sidebar-wrapper {
+      min-height: calc(100vh - 60px);
+    }
+  }
+  @media (max-width: 767.98px) {
+    body.parent-portal-body .sidebar-wrapper {
+      border-right: none !important;
+      border-bottom: 1px solid var(--border) !important;
+    }
+  }
+
+  body.parent-portal-body .sidebar {
+    background: transparent !important;
+  }
+  body.parent-portal-body .admin-avatar-section {
+    padding: 1.25rem 0.75rem 1rem !important;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 0.5rem;
+  }
+  body.parent-portal-body .sidebar .nav-link {
+    color: var(--text-secondary) !important;
+    font-weight: 600;
+    font-size: 0.84rem;
+    border-radius: 10px;
+    padding: 0.62rem 0.95rem;
+    margin: 0.15rem 0.6rem;
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    border: 1px solid transparent;
+    transition: all 0.2s ease;
+  }
+  body.parent-portal-body .sidebar .nav-link i {
+    color: var(--gold);
+    font-size: 0.9rem;
+    width: 20px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+  body.parent-portal-body .sidebar .nav-link:hover {
+    color: var(--text-primary) !important;
+    background: var(--gold-subtle, rgba(217,164,65,0.1)) !important;
+    border-color: var(--gold-border, rgba(217,164,65,0.22));
+  }
+  body.parent-portal-body .sidebar .nav-link.active {
+    color: var(--text-primary) !important;
+    background: linear-gradient(90deg, var(--gold-subtle, rgba(217,164,65,0.2)), transparent) !important;
+    border: 1px solid var(--gold);
+    box-shadow: 0 2px 10px rgba(217,164,65,0.12);
+  }
+  body.parent-portal-body .y-divider {
+    border-color: var(--border);
+    opacity: 0.6;
+  }
+
+  /* 6. Cards & Containers */
+  body.parent-portal-body .card {
+    background: var(--card) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: 14px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+    overflow: hidden;
+  }
+  body.parent-portal-body .card-header {
+    background: var(--gold-subtle, rgba(217,164,65,0.06)) !important;
+    border-bottom: 1px solid var(--border) !important;
+    padding: 0.9rem 1.25rem;
+    font-weight: 600;
+    font-size: 0.92rem;
+    color: var(--text-primary) !important;
+  }
+  body.parent-portal-body .card-body {
+    background: transparent !important;
+    color: var(--text-primary);
+  }
+
+  /* 7. Stat Cards */
+  body.parent-portal-body .stat-card {
+    background: var(--surface) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: 14px;
+    padding: 1.25rem 1.15rem;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+    transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
+  }
+  body.parent-portal-body .stat-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(217,164,65,0.18);
+    border-color: var(--gold);
+  }
+  body.parent-portal-body .stat-card h3 {
+    font-size: 1.85rem;
+    font-weight: 800;
+    color: var(--text-primary) !important;
+    margin: 0.35rem 0 0.15rem;
+  }
+  body.parent-portal-body .stat-card .stat-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.15rem;
+    margin-bottom: 0.6rem;
+  }
+  body.parent-portal-body .stat-card p {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    color: var(--text-dim) !important;
+    text-transform: uppercase;
+  }
+
+  /* 8. High-Contrast Tables */
+  body.parent-portal-body .table,
+  body.parent-portal-body .att-table {
+    color: var(--text-primary) !important;
+    background: transparent !important;
+    --bs-table-bg: transparent !important;
+    --bs-table-hover-bg: rgba(217,164,65,0.06) !important;
+    border-color: var(--border) !important;
+  }
+  body.parent-portal-body .table thead th,
+  body.parent-portal-body .att-table thead th {
+    background: var(--paper-dim) !important;
+    color: var(--gold) !important;
+    border-color: var(--border) !important;
+    font-size: 0.74rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  body.parent-portal-body .table tbody tr,
+  body.parent-portal-body .att-table tbody tr {
+    background: var(--surface) !important;
+    color: var(--text-primary) !important;
+    border-bottom: 1px solid var(--border) !important;
+  }
+  body.parent-portal-body .table tbody td,
+  body.parent-portal-body .att-table tbody td {
+    color: var(--text-primary) !important;
+    background: transparent !important;
+    border-color: var(--border) !important;
+  }
+
+  /* 9. Buttons & Controls */
+  body.parent-portal-body .btn {
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+  }
+
+  /* 10. Page Loader */
+  #page-loader {
+    position: fixed !important;
+    inset: 0 !important;
+    background: var(--paper, #0c0b11) !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    z-index: 99999 !important;
+    opacity: 1;
+    transition: opacity 0.22s ease, visibility 0.22s ease;
+  }
+  #page-loader.loader-hidden {
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+  }
+  .loader-inner {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 1.25rem !important;
+  }
+  .loader-monogram {
+    font-family: 'Playfair Display', serif !important;
+    font-size: 3.4rem !important;
+    font-weight: 900 !important;
+    color: var(--gold) !important;
+    letter-spacing: -0.03em !important;
+    line-height: 1 !important;
+  }
+  .loader-label {
+    font-family: 'JetBrains Mono', monospace !important;
+    font-size: 0.72rem !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.3em !important;
+    text-transform: uppercase !important;
+    color: var(--text-secondary) !important;
+  }
+  .loader-track {
+    width: 220px !important;
+    height: 3px !important;
+    background: rgba(255,255,255,0.1) !important;
+    border-radius: 999px !important;
+    overflow: hidden !important;
+  }
+  .loader-fill {
+    height: 100% !important;
+    background: linear-gradient(90deg, #997528, #d9a441, #ffd700) !important;
+    width: 0%;
+    border-radius: 999px !important;
+    box-shadow: 0 0 8px rgba(217,164,65,0.6) !important;
+    transition: width 0.15s ease !important;
+  }
+
+  /* 11. Subtle Floating Orbs */
+  .pp-orb {
+    position: fixed;
+    border-radius: 50%;
+    pointer-events: none;
+    will-change: transform;
+    z-index: 0;
+    filter: blur(80px);
+    opacity: 0.06;
+    animation: orbFloat 14s ease-in-out infinite;
+  }
+  .pp-orb-1 {
+    width: 500px; height: 500px;
+    background: radial-gradient(circle, #d9a441 0%, transparent 70%);
+    top: -120px; left: -150px;
+    animation-delay: 0s;
+  }
+  .pp-orb-2 {
+    width: 350px; height: 350px;
+    background: radial-gradient(circle, #6366f1 0%, transparent 70%);
+    top: 40vh; right: -100px;
+    animation-delay: -5s;
+    opacity: 0.05;
+  }
+  .pp-orb-3 {
+    width: 300px; height: 300px;
+    background: radial-gradient(circle, #22c55e 0%, transparent 70%);
+    bottom: 8vh; left: 18vw;
+    animation-delay: -9s;
+    opacity: 0.04;
+  }
+  @keyframes orbFloat {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    33%  { transform: translate(24px, -16px) scale(1.03); }
+    66%  { transform: translate(-10px, 12px) scale(0.97); }
+  }
+
+  /* 12. Footer */
+  body.parent-portal-body .site-footer {
+    background: var(--paper-deep) !important;
+    border-top: 1px solid var(--border) !important;
+    color: var(--text-dim) !important;
+  }
+  body.parent-portal-body .site-footer .accent {
+    color: var(--gold) !important;
+  }
+  </style>
+  {% block extra_css %}{% endblock %}
+</head>
+<body class="admin-page parent-portal-body">
+
+  <!-- ── FLOATING ORB BACKGROUNDS ── -->
+  <div class="pp-orb pp-orb-1"></div>
+  <div class="pp-orb pp-orb-2"></div>
+  <div class="pp-orb pp-orb-3"></div>
+
+  <!-- ─── PAGE LOADER ─── -->
+  <div id="page-loader">
+    <div class="loader-inner">
+      <div class="loader-monogram">SR<span style="color:var(--text-secondary);opacity:0.8;">MS</span></div>
+      <div class="loader-label">Parent Portal</div>
+      <div class="loader-track">
+        <div class="loader-fill" id="loaderFill"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── TOPBAR ─── -->
+  {% include 'parent/topbar.html' %}
+
+  <div class="container-fluid" style="padding-top:60px;">
+    <div class="row g-0">
+
+      <!-- SIDEBAR (Collapsible on mobile) -->
+      <div class="col-md-3 col-lg-2 sidebar-wrapper" data-lenis-prevent>
+        {% include 'parent/sidebar.html' %}
+      </div>
+
+      <!-- MAIN -->
+      <main class="col-md-9 col-lg-10">
+        {% if messages %}
+        <div class="px-2 px-md-3 pt-3">
+          {% for message in messages %}
+          <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
+            <i class="fas fa-info-circle me-2"></i>{{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+          </div>
+          {% endfor %}
+        </div>
+        {% endif %}
+
+        {% block content %}{% endblock %}
+      </main>
+    </div>
+  </div>
+
+  <!-- ─── FOOTER ─── -->
+  <footer class="site-footer py-3">
+    <div class="container-fluid px-4">
+      <p class="mb-0 text-center text-md-start small">
+        &copy; <span class="accent">Student Result Management System</span> &mdash; Parent Portal &middot; Academic Year 2026-27
+      </p>
+    </div>
+  </footer>
+
+  <script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+  <script src="{% static 'vendor/gsap/gsap.min.js' %}"></script>
+  <script src="{% static 'vendor/gsap/ScrollTrigger.min.js' %}"></script>
+  <script src="{% static 'vendor/lenis/lenis.min.js' %}"></script>
+  <script src="{% static 'js/bg-video-scrub.js' %}"></script>
+  <script src="{% static 'js/admin-list.js' %}"></script>
+
+  <!-- Composable Animations Toolkit -->
+  <script src="{% static 'js/animations/reveal.js' %}"></script>
+  <script src="{% static 'js/animations/counters.js' %}"></script>
+  <script src="{% static 'js/animations/transitions.js' %}"></script>
+  <script src="{% static 'js/animations/micro.js' %}"></script>
+  <script src="{% static 'js/animations/main.js' %}"></script>
+
+  <script>
+    // ── Loader: animate fill bar then hide ──────────────────────────
+    (function() {
+      const loader = document.getElementById('page-loader');
+      const fill   = document.getElementById('loaderFill');
+
+      if (fill) {
+        let pct = 20;
+        fill.style.width = '20%';
+        const interval = setInterval(function() {
+          pct += Math.random() * 25 + 15;
+          if (pct >= 100) { pct = 100; clearInterval(interval); }
+          fill.style.width = pct + '%';
+        }, 50);
+      }
+
+      function hideLoader() {
+        if (!loader || loader.dataset.hidden) return;
+        loader.dataset.hidden = 'true';
+        loader.classList.add('loader-hidden');
+        setTimeout(function() { if (loader) loader.style.display = 'none'; }, 260);
+      }
+
+      if (document.readyState === 'complete') {
+        setTimeout(hideLoader, 100);
+      } else {
+        window.addEventListener('load', function() { setTimeout(hideLoader, 100); });
+        setTimeout(hideLoader, 1500); // hard cap
+      }
+    })();
+
+    document.addEventListener('DOMContentLoaded', function() {
+      // Navbar scroll transparency
+      const adminNav = document.querySelector('.navbar-public');
+      if (adminNav) {
+        const toggleAdminNav = function() {
+          if (window.scrollY > 40) adminNav.classList.add('scrolled');
+          else                     adminNav.classList.remove('scrolled');
+        };
+        window.addEventListener('scroll', toggleAdminNav, { passive: true });
+        toggleAdminNav();
+      }
+
+      // ── DARK / LIGHT MODE TOGGLE HANDLER ────────────────────────────
+      const darkBtn = document.getElementById('darkToggleBtn');
+      if (darkBtn) {
+        darkBtn.addEventListener('click', function () {
+          const current = document.documentElement.getAttribute('data-theme') || 'dark';
+          const next = current === 'dark' ? 'light' : 'dark';
+          document.documentElement.setAttribute('data-theme', next);
+          localStorage.setItem('srms-theme', next);
+        });
+      }
+    });
+  </script>
+
+  {% block extra_js %}{% endblock %}
+
+  <!-- ─── SRMS CHATBOT WIDGET ─── -->
+  {% include 'chatbot_widget.html' %}
+</body>
+</html>

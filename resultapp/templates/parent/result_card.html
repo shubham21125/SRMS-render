@@ -1,0 +1,240 @@
+{% extends 'parent/parent_base.html' %}
+{% load static %}
+{% block title %}Result Card — Parent Portal{% endblock %}
+
+{% block extra_css %}
+<style>
+  @media print {
+    .no-print, .sidebar-wrapper, .navbar-public, footer, #page-loader, #site-bg-video { display:none !important; }
+    body, main { background:#fff !important; color:#000 !important; }
+    .print-card { background:#fff !important; color:#000 !important; box-shadow:none !important; border:1px solid #ccc !important; }
+    .print-card * { color:#000 !important; background:transparent !important; }
+    .col-md-9, .col-lg-10 { width:100% !important; max-width:100% !important; }
+    .container-fluid { padding:0 !important; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="p-3">
+
+  <div class="d-flex align-items-center justify-content-between mb-4 gsap-left no-print">
+    <div>
+      <h2 class="mb-0"><i class="fas fa-id-card me-2" style="color:var(--gold)"></i>Result Card</h2>
+      <small class="text-muted">Official academic report — printable</small>
+    </div>
+    <div class="d-flex gap-2">
+      <a href="{% url 'parent_dashboard' %}" class="btn btn-sm no-print" style="background:var(--surface);color:var(--text-secondary);border:1px solid var(--border)">
+        <i class="fas fa-arrow-left me-1"></i>Back
+      </a>
+      <button onclick="window.print()" class="btn btn-sm no-print" style="background:var(--gold);color:var(--void);font-weight:600;">
+        <i class="fas fa-print me-1"></i>Print / Save PDF
+      </button>
+    </div>
+  </div>
+
+  <!-- The printable card -->
+  <div class="card print-card gsap-up" style="max-width:820px;margin:0 auto;">
+
+    <!-- Header -->
+    <div style="background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);padding:2rem 2.5rem;text-align:center;border-radius:var(--radius) var(--radius) 0 0;border-bottom:3px solid var(--gold);">
+      <h3 style="font-family:'Playfair Display',serif;color:var(--gold);letter-spacing:.12em;margin-bottom:.25rem;">STUDENT RESULT MANAGEMENT SYSTEM</h3>
+      <p style="color:rgba(255,255,255,.65);font-size:.85rem;margin-bottom:.5rem;letter-spacing:.08em;">OFFICIAL ACADEMIC RESULT CARD</p>
+      <p style="color:rgba(255,255,255,.4);font-size:.75rem;margin:0;">NEP 2020 — Mumbai University Pattern</p>
+    </div>
+
+    <div class="card-body p-4">
+
+      <!-- Student Info -->
+      <div class="row g-3 mb-4 pb-3" style="border-bottom:1px solid var(--border);">
+        <div class="col-md-6">
+          <table style="width:100%;border-collapse:separate;border-spacing:0 .4rem;font-size:.85rem;">
+            <tr>
+              <td style="color:var(--text-dim);width:40%">Student Name</td>
+              <td style="color:var(--text-primary);font-weight:600">{{ student.name }}</td>
+            </tr>
+            <tr>
+              <td style="color:var(--text-dim)">Student ID</td>
+              <td style="color:var(--text-primary)">{{ student.roll_id }}</td>
+            </tr>
+            <tr>
+              <td style="color:var(--text-dim)">Class</td>
+              <td style="color:var(--text-primary)">{{ student.student_class.class_name }} — Section {{ student.student_class.section }}</td>
+            </tr>
+          </table>
+        </div>
+        <div class="col-md-6">
+          <table style="width:100%;border-collapse:separate;border-spacing:0 .4rem;font-size:.85rem;">
+            <tr>
+              <td style="color:var(--text-dim);width:40%">Date of Birth</td>
+              <td style="color:var(--text-primary)">{{ student.dob }}</td>
+            </tr>
+            <tr>
+              <td style="color:var(--text-dim)">Gender</td>
+              <td style="color:var(--text-primary)">{{ student.gender|title }}</td>
+            </tr>
+            <tr>
+              <td style="color:var(--text-dim)">Generated On</td>
+              <td style="color:var(--text-primary)">{% now "d M Y" %}</td>
+            </tr>
+          </table>
+        </div>
+      </div>
+
+      <!-- Marks Table -->
+      <h6 class="mb-3" style="color:var(--gold);letter-spacing:.06em;"><i class="fas fa-table me-2"></i>SUBJECT-WISE MARKS</h6>
+      <div class="table-responsive mb-4">
+        <table class="table mb-0" style="color:var(--text-primary);font-size:.82rem;border-collapse:separate;border-spacing:0 3px;">
+          <thead>
+            <tr style="background:var(--surface);">
+              <th style="color:var(--text-dim);padding:.6rem .8rem;">#</th>
+              <th style="color:var(--text-dim);padding:.6rem .8rem;">SUBJECT</th>
+              <th style="color:var(--text-dim);padding:.6rem .8rem;">CODE</th>
+              <th style="color:var(--text-dim);padding:.6rem .8rem;text-align:center;">TH<br><small>(30)</small></th>
+              <th style="color:var(--text-dim);padding:.6rem .8rem;text-align:center;">IA<br><small>(20)</small></th>
+              <th style="color:var(--text-dim);padding:.6rem .8rem;text-align:center;">PR<br><small>(25)</small></th>
+              <th style="color:var(--text-dim);padding:.6rem .8rem;text-align:center;">OR<br><small>(25)</small></th>
+              <th style="color:var(--text-dim);padding:.6rem .8rem;text-align:center;">TOTAL</th>
+              <th style="color:var(--text-dim);padding:.6rem .8rem;text-align:center;">%</th>
+              <th style="color:var(--text-dim);padding:.6rem .8rem;text-align:center;">GRADE</th>
+              <th style="color:var(--text-dim);padding:.6rem .8rem;text-align:center;">GP</th>
+              <th style="color:var(--text-dim);padding:.6rem .8rem;text-align:center;">RESULT</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for r in results %}
+            <tr style="background:{% cycle 'var(--surface)' 'transparent' %};">
+              <td style="padding:.55rem .8rem;color:var(--text-dim);">{{ forloop.counter }}</td>
+              <td style="padding:.55rem .8rem;font-weight:500;">{{ r.subject.subject_name }}</td>
+              <td style="padding:.55rem .8rem;color:var(--text-dim);">{{ r.subject.subject_code }}</td>
+              <td style="padding:.55rem .8rem;text-align:center;">{{ r.theory_marks }}</td>
+              <td style="padding:.55rem .8rem;text-align:center;">{{ r.internal_marks }}</td>
+              <td style="padding:.55rem .8rem;text-align:center;">{{ r.practical_marks|default:"–" }}</td>
+              <td style="padding:.55rem .8rem;text-align:center;">{{ r.oral_marks|default:"–" }}</td>
+              <td style="padding:.55rem .8rem;text-align:center;font-weight:600;color:var(--gold);">{{ r.total_obtained }}/{{ r.total_max }}</td>
+              <td style="padding:.55rem .8rem;text-align:center;">{{ r.subject_percentage }}%</td>
+              <td style="padding:.55rem .8rem;text-align:center;">
+                <span style="font-weight:700;color:{% if r.nep_grade == 'O' or r.nep_grade == 'A+' %}#22c55e{% elif r.nep_grade == 'F' %}#ef4444{% else %}var(--gold){% endif %}">{{ r.nep_grade }}</span>
+              </td>
+              <td style="padding:.55rem .8rem;text-align:center;">{{ r.nep_grade_point }}</td>
+              <td style="padding:.55rem .8rem;text-align:center;">
+                {% if r.is_subject_pass %}
+                  <span style="color:#22c55e;font-weight:600;font-size:.78rem;">PASS</span>
+                {% else %}
+                  <span style="color:#ef4444;font-weight:600;font-size:.78rem;">FAIL</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+          <tfoot>
+            <tr style="background:var(--surface);border-top:2px solid var(--gold);">
+              <td colspan="7" style="padding:.65rem .8rem;font-weight:700;color:var(--text-dim);">TOTAL</td>
+              <td style="padding:.65rem .8rem;text-align:center;font-weight:700;color:var(--gold);">{{ total_obtained }}/{{ total_max }}</td>
+              <td style="padding:.65rem .8rem;text-align:center;font-weight:700;color:var(--gold);">{{ overall_pct }}%</td>
+              <td style="padding:.65rem .8rem;text-align:center;font-weight:700;color:var(--gold);">{{ overall_grade }}</td>
+              <td style="padding:.65rem .8rem;text-align:center;font-weight:700;color:var(--gold);">{{ cgpa }}</td>
+              <td style="padding:.65rem .8rem;text-align:center;font-weight:700;">
+                {% if failed_any %}
+                  <span style="color:#ef4444;font-weight:700;">FAIL</span>
+                {% else %}
+                  <span style="color:#22c55e;font-weight:700;">PASS</span>
+                {% endif %}
+              </td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+
+      <!-- Summary Row -->
+      <div class="row g-3 mb-4">
+        <div class="col-md-3">
+          <div style="background:var(--surface);border-radius:10px;padding:1rem;text-align:center;border:1px solid var(--border);">
+            <div style="font-size:.7rem;color:var(--text-dim);letter-spacing:.06em;margin-bottom:.35rem;">TOTAL MARKS</div>
+            <div style="font-size:1.4rem;font-weight:700;color:var(--gold);">{{ total_obtained }}<span style="font-size:.9rem;color:var(--text-dim);">/{{ total_max }}</span></div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div style="background:var(--surface);border-radius:10px;padding:1rem;text-align:center;border:1px solid var(--border);">
+            <div style="font-size:.7rem;color:var(--text-dim);letter-spacing:.06em;margin-bottom:.35rem;">PERCENTAGE</div>
+            <div style="font-size:1.4rem;font-weight:700;color:var(--gold);">{{ overall_pct }}%</div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div style="background:var(--surface);border-radius:10px;padding:1rem;text-align:center;border:1px solid var(--border);">
+            <div style="font-size:.7rem;color:var(--text-dim);letter-spacing:.06em;margin-bottom:.35rem;">CGPA</div>
+            <div style="position:relative;width:56px;height:56px;margin:0 auto;">
+              <svg width="56" height="56" viewBox="0 0 56 56" style="transform:rotate(-90deg);">
+                <circle cx="28" cy="28" r="22" fill="none" stroke="rgba(0,0,0,0.08)" stroke-width="5"></circle>
+                <circle id="cgpaRing" cx="28" cy="28" r="22" fill="none" stroke="var(--gold)" stroke-width="5"
+                        stroke-linecap="round" stroke-dasharray="138.2" stroke-dashoffset="138.2"></circle>
+              </svg>
+              <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+                font-size:.95rem;font-weight:700;color:var(--gold);">{{ cgpa }}</div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div style="background:var(--surface);border-radius:10px;padding:1rem;text-align:center;border:1px solid {% if failed_any %}rgba(239,68,68,.4){% else %}rgba(34,197,94,.4){% endif %};">
+            <div style="font-size:.7rem;color:var(--text-dim);letter-spacing:.06em;margin-bottom:.35rem;">FINAL RESULT</div>
+            <div style="font-size:1.4rem;font-weight:700;color:{% if failed_any %}#ef4444{% else %}#22c55e{% endif %};">
+              {% if failed_any %}FAIL{% else %}PASS{% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Grade Scale -->
+      <div style="background:var(--surface);border-radius:10px;padding:1rem 1.2rem;border:1px solid var(--border);font-size:.78rem;">
+        <p class="mb-2" style="color:var(--text-dim);font-weight:600;letter-spacing:.05em;">GRADE SCALE (NEP 2020)</p>
+        <div class="d-flex flex-wrap gap-2">
+          <span style="color:var(--text-dim);">O (10GP): 80–100% &nbsp;|&nbsp;</span>
+          <span style="color:var(--text-dim);">A+ (9GP): 70–79% &nbsp;|&nbsp;</span>
+          <span style="color:var(--text-dim);">A (8GP): 60–69% &nbsp;|&nbsp;</span>
+          <span style="color:var(--text-dim);">B+ (7GP): 55–59% &nbsp;|&nbsp;</span>
+          <span style="color:var(--text-dim);">B (6GP): 50–54% &nbsp;|&nbsp;</span>
+          <span style="color:var(--text-dim);">C (5GP): 45–49% &nbsp;|&nbsp;</span>
+          <span style="color:var(--text-dim);">D (4GP): 40–44% &nbsp;|&nbsp;</span>
+          <span style="color:#ef4444;">F (0GP): Below 40% or component fail</span>
+        </div>
+      </div>
+
+      <!-- Signature Block -->
+      <div class="row mt-4 pt-3" style="border-top:1px solid var(--border);">
+        <div class="col-4 text-center">
+          <div style="border-top:1px solid var(--border);margin-top:2rem;padding-top:.5rem;font-size:.78rem;color:var(--text-dim);">Class Teacher</div>
+        </div>
+        <div class="col-4 text-center">
+          <div style="border-top:1px solid var(--border);margin-top:2rem;padding-top:.5rem;font-size:.78rem;color:var(--text-dim);">Exam Controller</div>
+        </div>
+        <div class="col-4 text-center">
+          <div style="border-top:1px solid var(--border);margin-top:2rem;padding-top:.5rem;font-size:.78rem;color:var(--text-dim);">Principal</div>
+        </div>
+      </div>
+
+    </div>
+  </div><!-- /card -->
+
+  <div class="text-center mt-3 no-print">
+    <button onclick="window.print()" class="btn btn-lg" style="background:var(--gold);color:var(--void);font-weight:700;font-family:'Playfair Display',serif;letter-spacing:.06em;">
+      <i class="fas fa-print me-2"></i>PRINT / SAVE AS PDF
+    </button>
+    <p class="text-muted mt-2" style="font-size:.78rem;">Use your browser's Print → Save as PDF option to download.</p>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  const cgpaRing = document.getElementById('cgpaRing');
+  if (cgpaRing && typeof gsap !== 'undefined') {
+    const CIRC = 138.2;
+    const targetCgpa = Math.max(0, Math.min(10, parseFloat("{{ cgpa }}") || 0));
+    gsap.fromTo(cgpaRing,
+      { strokeDashoffset: CIRC },
+      { strokeDashoffset: CIRC * (1 - targetCgpa / 10), duration: 1.3, ease: 'power2.out', delay: 0.5 }
+    );
+  }
+</script>
+{% endblock %}

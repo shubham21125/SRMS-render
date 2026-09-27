@@ -1,0 +1,128 @@
+{% extends 'admin_base.html' %}
+{% load static %}
+
+{% block title %}Manage Teachers — SRMS Admin{% endblock %}
+
+{% block content %}
+<div class="p-4">
+  <div class="d-flex align-items-center gap-3 mb-4">
+    <div style="width:46px;height:46px;border-radius:var(--adm-radius-md);background:rgba(52,211,153,0.12);display:flex;align-items:center;justify-content:center;">
+      <i class="fas fa-chalkboard-teacher" style="color:var(--success);font-size:1.15rem;"></i>
+    </div>
+    <div>
+      <h2 class="mb-0" style="font-size:1.45rem;font-weight:700;">Manage Teachers</h2>
+      <small style="color:var(--adm-text-muted);">Create and manage teacher accounts with RBAC</small>
+    </div>
+  </div>
+
+  {% if error %}
+  <div class="alert alert-danger"><i class="fas fa-exclamation-circle me-2"></i>{{ error }}</div>
+  {% endif %}
+
+  <div class="row g-4">
+    <!-- Create form -->
+    <div class="col-lg-5">
+      <div class="card">
+        <div class="card-header"><h5 class="mb-0"><i class="fas fa-user-plus me-2" style="color:var(--success);"></i>Add New Teacher</h5></div>
+        <div class="card-body">
+          <form method="post">
+            {% csrf_token %}
+            <div class="row g-3">
+              <div class="col-6">
+                <label for="id_first_name" class="form-label">First Name <span class="text-danger">*</span></label>
+                <input type="text" id="id_first_name" name="first_name" class="form-control" required>
+              </div>
+              <div class="col-6">
+                <label for="id_last_name" class="form-label">Last Name</label>
+                <input type="text" id="id_last_name" name="last_name" class="form-control">
+              </div>
+              <div class="col-12">
+                <label for="id_username" class="form-label">Username <span class="text-danger">*</span></label>
+                <input type="text" id="id_username" name="username" class="form-control" required>
+              </div>
+              <div class="col-12">
+                <label for="id_email" class="form-label">Email <span class="text-danger">*</span></label>
+                <input type="email" id="id_email" name="email" class="form-control" required>
+              </div>
+              <div class="col-6">
+                <label for="id_password" class="form-label">Password <span class="text-danger">*</span></label>
+                <input type="password" id="id_password" name="password" class="form-control" minlength="8" required>
+              </div>
+              <div class="col-6">
+                <label for="id_confirm_password" class="form-label">Confirm Password <span class="text-danger">*</span></label>
+                <input type="password" id="id_confirm_password" name="confirm_password" class="form-control" required>
+              </div>
+              <div class="col-6">
+                <label for="id_phone" class="form-label">Phone</label>
+                <input type="text" id="id_phone" name="phone" class="form-control" placeholder="Optional">
+              </div>
+              <div class="col-6">
+                <label for="id_department" class="form-label">Department</label>
+                <input type="text" id="id_department" name="department" class="form-control" placeholder="e.g. BSc CS">
+              </div>
+              <div class="col-12">
+                <label for="id_assigned_classes" class="form-label">Assigned Classes <small class="text-muted">(hold Ctrl/Cmd for multi)</small></label>
+                <select id="id_assigned_classes" name="assigned_classes" class="form-select" multiple size="4" style="font-size:0.85rem;">
+                  {% for cls in classes %}
+                  <option value="{{ cls.id }}">{{ cls.class_name }}{% if cls.section %} – {{ cls.section }}{% endif %}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div class="col-12">
+                <label for="id_assigned_subjects" class="form-label">Assigned Subjects <small class="text-muted">(hold Ctrl/Cmd for multi)</small></label>
+                <select id="id_assigned_subjects" name="assigned_subjects" class="form-select" multiple size="4" style="font-size:0.85rem;">
+                  {% for subj in subjects %}
+                  <option value="{{ subj.id }}">{{ subj.subject_name }} ({{ subj.subject_code }})</option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div class="col-12">
+                <button type="submit" class="btn btn-success w-100">
+                  <i class="fas fa-plus me-2"></i>Create Teacher Account
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Teacher list -->
+    <div class="col-lg-7">
+      <div class="card">
+        <div class="card-header"><h5 class="mb-0"><i class="fas fa-users me-2" style="color:var(--success);"></i>All Teachers ({{ teachers.count }})</h5></div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-hover mb-0">
+              <thead>
+                <tr><th>Name</th><th>Username</th><th>Dept</th><th>Classes</th><th>Subjects</th><th></th></tr>
+              </thead>
+              <tbody>
+                {% for t in teachers %}
+                <tr>
+                  <td><strong style="color:var(--adm-text);">{{ t.user.get_full_name|default:t.user.username }}</strong></td>
+                  <td><code style="color:var(--success);font-size:0.8rem;">{{ t.user.username }}</code></td>
+                  <td style="color:var(--adm-text-secondary);font-size:0.85rem;">{{ t.department|default:"—" }}</td>
+                  <td><span class="badge" style="background:rgba(52,211,153,0.12);color:var(--success);">{{ t.assigned_classes.count }}</span></td>
+                  <td><span class="badge" style="background:rgba(167,139,250,0.12);color:var(--teacher-accent);">{{ t.assigned_subjects.count }}</span></td>
+                  <td>
+                    <form method="post" action="{% url 'delete_teacher' t.id %}" style="display:inline;" onsubmit="return confirm('Delete teacher {{ t.user.get_full_name|escapejs }}?');">
+                      {% csrf_token %}
+                      <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete teacher">
+                        <i class="fas fa-trash-alt"></i>
+                      </button>
+                    </form>
+                  </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="6" class="text-center py-4" style="color:var(--adm-text-muted);">No teacher accounts yet.</td></tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

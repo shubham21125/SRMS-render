@@ -1,0 +1,461 @@
+{% extends 'parent/parent_base.html' %}
+{% load static %}
+{% block title %}Parent Dashboard — {{ student.name }} | SRMS{% endblock %}
+
+{% block content %}
+<div class="px-1 px-md-3 py-2">
+
+  <!-- ── 1. WELCOME HEADER ── -->
+  <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3 gsap-left">
+    <div>
+      <h2 class="mb-1" style="font-size:1.65rem;font-weight:800;">
+        <i class="fas fa-home me-2" style="color:var(--gold);"></i>Parent Dashboard
+      </h2>
+      <p class="text-muted mb-0 small">
+        Academic performance &amp; attendance monitor for
+        <strong style="color:var(--text-primary);">{{ student.name }}</strong>
+        {% if parent %} &bull; Logged in as <em>{{ parent.get_relationship_display }}</em>{% endif %}
+      </p>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+      <span class="badge d-none d-sm-inline-flex align-items-center gap-1 py-2 px-3" style="background:rgba(217,164,65,0.12);color:var(--gold);border:1px solid rgba(217,164,65,0.25);font-size:0.75rem;">
+        <i class="fas fa-calendar-day"></i>{{ today|date:"l, d M Y" }}
+      </span>
+      <a href="{% url 'parent_consolidated_marksheet' %}" class="btn btn-sm btn-outline-warning d-inline-flex align-items-center gap-1">
+        <i class="fas fa-file-invoice"></i><span class="d-none d-sm-inline">Consolidated</span> Marksheet
+      </a>
+    </div>
+  </div>
+
+  <!-- ── 2. STUDENT HERO / PROFILE BANNER ── -->
+  <div class="card mb-4 gsap-up" style="border:1px solid rgba(217,164,65,0.25);background:linear-gradient(135deg, var(--card) 0%, rgba(217,164,65,0.06) 100%);">
+    <div class="card-body p-3 p-md-4">
+      <div class="row align-items-center g-3">
+        <!-- Avatar / Photo -->
+        <div class="col-auto">
+          <div style="width:72px;height:72px;border-radius:50%;background:rgba(217,164,65,0.12);border:2.5px solid var(--gold);display:flex;align-items:center;justify-content:center;font-size:1.9rem;color:var(--gold);overflow:hidden;box-shadow:0 0 16px rgba(217,164,65,0.2);">
+            {% if student.photo %}
+              <img src="{{ student.photo.url }}" alt="{{ student.name }}" style="width:100%;height:100%;object-fit:cover;">
+            {% else %}
+              <i class="fas fa-user-graduate"></i>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Student Meta Details -->
+        <div class="col">
+          <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+            <h4 class="mb-0 fw-bold" style="color:var(--text-primary);letter-spacing:-0.01em;">{{ student.name }}</h4>
+            <span class="badge" style="background:rgba(34,197,94,0.15);color:#22c55e;border:1px solid rgba(34,197,94,0.3);font-size:0.7rem;padding:3px 8px;">
+              <i class="fas fa-check-circle me-1"></i>Active Student
+            </span>
+          </div>
+
+          <div class="d-flex flex-wrap gap-2 gap-md-3 mt-2 text-muted small">
+            <span class="d-inline-flex align-items-center gap-1">
+              <i class="fas fa-id-badge" style="color:var(--gold);"></i>
+              <strong>Roll:</strong> {{ student.roll_id }}
+            </span>
+            <span class="text-dim">&bull;</span>
+            <span class="d-inline-flex align-items-center gap-1">
+              <i class="fas fa-university" style="color:var(--gold);"></i>
+              {{ student.student_class.class_name }} (Sec {{ student.student_class.section|default:"A" }})
+            </span>
+            <span class="text-dim d-none d-sm-inline">&bull;</span>
+            <span class="d-none d-sm-inline-flex align-items-center gap-1">
+              <i class="fas fa-code-branch" style="color:var(--gold);"></i>
+              {{ student.student_class.branch.branch_name|default:"Computer Science" }}
+            </span>
+            <span class="text-dim d-none d-md-inline">&bull;</span>
+            <span class="d-none d-md-inline-flex align-items-center gap-1">
+              <i class="fas fa-layer-group" style="color:var(--gold);"></i>
+              Semester {{ current_sem }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Quick Action / Print -->
+        <div class="col-12 col-md-auto d-flex gap-2 justify-content-start justify-content-md-end">
+          <a href="{% url 'parent_result_card' %}" class="btn btn-sm btn-outline-warning w-100 w-md-auto d-inline-flex align-items-center justify-content-center gap-1">
+            <i class="fas fa-id-card"></i>View Result Card
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 3. LOW ATTENDANCE WARNING (CONDITIONAL) ── -->
+  {% if is_low_attendance %}
+  <div class="alert alert-danger d-flex align-items-center gap-3 mb-4 gsap-up p-3" role="alert" style="border-radius:12px;border:1px solid rgba(239,68,68,0.4);background:rgba(239,68,68,0.08);">
+    <div style="font-size:1.8rem;color:#ef4444;line-height:1;">
+      <i class="fas fa-exclamation-triangle"></i>
+    </div>
+    <div class="flex-grow-1">
+      <div class="fw-bold" style="color:#ef4444;font-size:0.95rem;">Attendance Alert &mdash; Below Minimum Threshold</div>
+      <div class="small" style="color:var(--text-secondary);">
+        {{ student.name }}'s attendance over the last 2 months is <strong>{{ attendance_percentage }}%</strong> ({{ present_days }} of {{ total_days }} working days), which is below the mandatory <strong>75%</strong> requirement. Regular attendance is required to appear for semester end examinations.
+      </div>
+    </div>
+    <a href="{% url 'parent_attendance' %}" class="btn btn-sm btn-danger d-none d-md-inline-block text-nowrap">
+      View Attendance Log
+    </a>
+  </div>
+  {% endif %}
+
+  <!-- ── 4. KEY PERFORMANCE CARDS (ABOVE THE FOLD) ── -->
+  <div class="row g-3 mb-4">
+    <!-- Stat 1: SGPA (NEP 2020) -->
+    <div class="col-sm-6 col-xl-3 gsap-up">
+      <div class="stat-card h-100">
+        <div class="d-flex align-items-center justify-content-between">
+          <div class="stat-icon" style="background:rgba(217,164,65,0.15)">
+            <i class="fas fa-award" style="color:var(--gold);"></i>
+          </div>
+          <span class="badge" style="background:rgba(217,164,65,0.12);color:var(--gold);border:1px solid rgba(217,164,65,0.3);font-size:0.7rem;">
+            NEP 2020
+          </span>
+        </div>
+        <h3 class="mb-0">{{ current_sgpa|floatformat:2 }}<span style="font-size:1rem;color:var(--text-dim);font-weight:600;"> / 10</span></h3>
+        <p class="text-muted mt-1 mb-1">SEMESTER SGPA</p>
+        <div class="small" style="color:var(--gold);font-weight:600;">
+          {% if current_sgpa >= 9.0 %}
+            <i class="fas fa-star me-1"></i>Outstanding (Grade O)
+          {% elif current_sgpa >= 8.0 %}
+            <i class="fas fa-check-circle me-1"></i>Excellent (Grade A+)
+          {% elif current_sgpa >= 7.0 %}
+            <i class="fas fa-check-circle me-1"></i>Very Good (Grade A)
+          {% elif current_sgpa >= 6.0 %}
+            <i class="fas fa-check me-1"></i>Good (Grade B+)
+          {% elif current_sgpa >= 5.0 %}
+            Above Average (Grade B)
+          {% else %}
+            Needs Improvement
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Stat 2: Academic Standing / Result Status -->
+    <div class="col-sm-6 col-xl-3 gsap-up">
+      <div class="stat-card h-100">
+        <div class="d-flex align-items-center justify-content-between">
+          <div class="stat-icon" style="background:rgba(34,197,94,0.15)">
+            <i class="fas fa-chart-pie" style="color:#22c55e;"></i>
+          </div>
+          {% if not is_failed %}
+            <span class="badge" style="background:rgba(34,197,94,0.15);color:#22c55e;border:1px solid rgba(34,197,94,0.3);font-size:0.7rem;">
+              All Cleared
+            </span>
+          {% else %}
+            <span class="badge" style="background:rgba(239,68,68,0.15);color:#ef4444;border:1px solid rgba(239,68,68,0.3);font-size:0.7rem;">
+              Backlog Found
+            </span>
+          {% endif %}
+        </div>
+        <h3 class="mb-0">{{ overall_percentage|floatformat:1 }}%</h3>
+        <p class="text-muted mt-1 mb-1">OVERALL PERCENTAGE</p>
+        <div class="small" style="color:var(--text-secondary);">
+          {% if not is_failed %}
+            <span style="color:#22c55e;font-weight:600;"><i class="fas fa-check me-1"></i>Result Status: PASS</span>
+          {% else %}
+            <span style="color:#ef4444;font-weight:600;"><i class="fas fa-times me-1"></i>{{ failed_subjects|length }} Backlog(s)</span>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Stat 3: 2-Month Attendance -->
+    <div class="col-sm-6 col-xl-3 gsap-up">
+      <div class="stat-card h-100">
+        <div class="d-flex align-items-center justify-content-between">
+          <div class="stat-icon" style="background:{% if is_low_attendance %}rgba(239,68,68,0.15){% else %}rgba(99,102,241,0.15){% endif %};">
+            <i class="fas fa-calendar-check" style="color:{% if is_low_attendance %}#ef4444{% else %}#6366f1{% endif %};"></i>
+          </div>
+          <span class="badge" style="background:rgba(255,255,255,0.06);color:var(--text-secondary);font-size:0.7rem;">
+            Last 2 Months
+          </span>
+        </div>
+        <h3 class="mb-0" style="color:{% if is_low_attendance %}#ef4444{% else %}var(--text-primary){% endif %};">
+          {{ attendance_percentage }}%
+        </h3>
+        <p class="text-muted mt-1 mb-1">ATTENDANCE RATE</p>
+        <div class="small" style="color:var(--text-secondary);">
+          <strong style="color:var(--text-primary);">{{ present_days }}</strong> days present / <strong>{{ total_days }}</strong> working days
+        </div>
+      </div>
+    </div>
+
+    <!-- Stat 4: Upcoming Exams -->
+    <div class="col-sm-6 col-xl-3 gsap-up">
+      <div class="stat-card h-100">
+        <div class="d-flex align-items-center justify-content-between">
+          <div class="stat-icon" style="background:rgba(236,72,153,0.15)">
+            <i class="fas fa-clock" style="color:#ec4899;"></i>
+          </div>
+          <a href="{% url 'parent_exams' %}" class="small text-decoration-none" style="color:var(--gold);font-weight:600;font-size:0.75rem;">
+            Full Timetable &rarr;
+          </a>
+        </div>
+        <h3 class="mb-0" style="font-size:1.6rem;">
+          {% if upcoming_exams %}
+            {{ upcoming_exams|length }} Exams
+          {% else %}
+            None
+          {% endif %}
+        </h3>
+        <p class="text-muted mt-1 mb-1">UPCOMING EXAMINATIONS</p>
+        <div class="small text-truncate" style="color:var(--text-secondary);" title="{% if upcoming_exams %}Next: {{ upcoming_exams.0.subject.subject_name }} ({{ upcoming_exams.0.exam_date|date:'d M' }}){% else %}No exams scheduled{% endif %}">
+          {% if upcoming_exams %}
+            Next: <strong>{{ upcoming_exams.0.exam_date|date:"d M" }}</strong> &bull; {{ upcoming_exams.0.subject.subject_code }}
+          {% else %}
+            No exams scheduled currently
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 5. MAIN CONTENT SPLIT ── -->
+  <div class="row g-4">
+    <!-- LEFT COLUMN: Upcoming Exams Widget & Subject Results Table -->
+    <div class="col-lg-7">
+
+      <!-- Widget: Upcoming Examinations (Part B.6) -->
+      <div class="card mb-4 gsap-up">
+        <div class="card-header d-flex align-items-center justify-content-between">
+          <div class="d-flex align-items-center gap-2">
+            <i class="fas fa-calendar-alt" style="color:var(--gold);"></i>
+            <span class="fw-bold">Upcoming Exam Schedule</span>
+          </div>
+          <a href="{% url 'parent_exams' %}" class="btn btn-sm btn-outline-warning" style="font-size:0.75rem;padding:3px 10px;">
+            View All ({{ upcoming_exams|length }})
+          </a>
+        </div>
+        <div class="card-body p-0">
+          {% if upcoming_exams %}
+          <div class="list-group list-group-flush">
+            {% for ex in upcoming_exams %}
+            <div class="list-group-item d-flex align-items-center justify-content-between p-3" style="background:transparent;border-color:var(--border);">
+              <div class="d-flex align-items-center gap-3">
+                <!-- Date Pill -->
+                <div class="text-center px-2 py-1 rounded" style="background:rgba(217,164,65,0.1);border:1px solid rgba(217,164,65,0.25);min-width:50px;">
+                  <div style="font-size:0.68rem;font-weight:700;color:var(--gold);text-transform:uppercase;">{{ ex.exam_date|date:"M" }}</div>
+                  <div style="font-size:1.15rem;font-weight:800;color:var(--text-primary);line-height:1;">{{ ex.exam_date|date:"d" }}</div>
+                </div>
+
+                <div>
+                  <div class="fw-bold" style="color:var(--text-primary);font-size:0.9rem;">
+                    {{ ex.subject.subject_name }}
+                  </div>
+                  <div class="small text-muted">
+                    <span class="badge" style="background:rgba(255,255,255,0.06);color:var(--text-secondary);font-family:monospace;font-size:0.7rem;">
+                      {{ ex.subject.subject_code }}
+                    </span>
+                    &bull; {{ ex.title|default:"Mid-Term Theory Exam" }}
+                  </div>
+                </div>
+              </div>
+
+              <!-- Days Countdown Badge -->
+              <div class="text-end">
+                {% if ex.days_left == 0 %}
+                  <span class="badge bg-danger text-white px-2 py-1">TODAY</span>
+                {% elif ex.days_left == 1 %}
+                  <span class="badge bg-warning text-dark px-2 py-1">TOMORROW</span>
+                {% elif ex.days_left <= 7 %}
+                  <span class="badge px-2 py-1" style="background:rgba(234,179,8,0.15);color:#eab308;border:1px solid rgba(234,179,8,0.3);">
+                    In {{ ex.days_left }} days
+                  </span>
+                {% else %}
+                  <span class="badge px-2 py-1" style="background:rgba(99,102,241,0.12);color:#818cf8;border:1px solid rgba(99,102,241,0.25);">
+                    In {{ ex.days_left }} days
+                  </span>
+                {% endif %}
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+          {% else %}
+          <div class="text-center py-4 text-muted small">
+            <i class="fas fa-calendar-check fa-2x mb-2" style="opacity:0.4;"></i>
+            <p class="mb-0">No upcoming exams currently scheduled for this class.</p>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Subject Results Breakdown Table (NEP-compliant) -->
+      <div class="card gsap-up">
+        <div class="card-header d-flex align-items-center justify-content-between">
+          <div class="d-flex align-items-center gap-2">
+            <i class="fas fa-chart-bar" style="color:var(--gold);"></i>
+            <span class="fw-bold">Subject Evaluations (Semester {{ current_sem }})</span>
+          </div>
+          <a href="{% url 'parent_results' %}" class="btn btn-sm btn-outline-warning" style="font-size:0.75rem;padding:3px 10px;">
+            Full Results History
+          </a>
+        </div>
+        <div class="card-body p-0">
+          {% if semester_subjects %}
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+              <thead>
+                <tr style="border-bottom:1px solid var(--border);">
+                  <th style="padding:0.75rem 1rem;font-size:0.72rem;">SUBJECT</th>
+                  <th style="padding:0.75rem 1rem;font-size:0.72rem;text-align:center;">THEORY /30</th>
+                  <th style="padding:0.75rem 1rem;font-size:0.72rem;text-align:center;">INTERNAL /20</th>
+                  <th style="padding:0.75rem 1rem;font-size:0.72rem;text-align:center;">TOTAL MARKS</th>
+                  <th style="padding:0.75rem 1rem;font-size:0.72rem;text-align:center;">NEP GRADE</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for sub in semester_subjects %}
+                <tr style="border-bottom:1px solid var(--border);">
+                  <td style="padding:0.75rem 1rem;">
+                    <div class="fw-semibold" style="color:var(--text-primary);font-size:0.88rem;">{{ sub.subject_name }}</div>
+                    <small class="text-muted" style="font-family:monospace;">{{ sub.subject_code }} &bull; {{ sub.credits }} Credits</small>
+                  </td>
+                  <td style="padding:0.75rem 1rem;text-align:center;">
+                    <span style="font-weight:600;">{{ sub.theory_marks|default:"—" }}</span>
+                  </td>
+                  <td style="padding:0.75rem 1rem;text-align:center;">
+                    <span style="font-weight:600;">{{ sub.internal_marks|default:"—" }}</span>
+                  </td>
+                  <td style="padding:0.75rem 1rem;text-align:center;">
+                    <strong style="color:var(--text-primary);">{{ sub.total_obtained }}</strong>
+                    <span class="text-muted" style="font-size:0.75rem;">/{{ sub.total_max }}</span>
+                  </td>
+                  <td style="padding:0.75rem 1rem;text-align:center;">
+                    <span class="badge" style="{% if sub.nep_grade == 'O' or sub.nep_grade == 'A+' %}background:rgba(34,197,94,0.15);color:#22c55e;border:1px solid rgba(34,197,94,0.3);{% elif sub.nep_grade == 'A' or sub.nep_grade == 'B+' %}background:rgba(217,164,65,0.15);color:var(--gold);border:1px solid rgba(217,164,65,0.3);{% elif sub.nep_grade == 'B' or sub.nep_grade == 'C' or sub.nep_grade == 'P' %}background:rgba(99,102,241,0.15);color:#818cf8;border:1px solid rgba(99,102,241,0.3);{% else %}background:rgba(239,68,68,0.15);color:#ef4444;border:1px solid rgba(239,68,68,0.3);{% endif %}padding:4px 9px;font-size:0.75rem;font-weight:700;">
+                      {{ sub.nep_grade }} (GP: {{ sub.nep_grade_point }})
+                    </span>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% else %}
+          <div class="text-center py-4 text-muted small">
+            <i class="fas fa-inbox fa-2x mb-2" style="opacity:0.4;"></i>
+            <p class="mb-0">No subject marks recorded yet for this semester.</p>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT COLUMN: Progress Report, Notices & Quick Actions -->
+    <div class="col-lg-5">
+
+      <!-- Latest Progress Report Card -->
+      <div class="card mb-4 gsap-up">
+        <div class="card-header d-flex align-items-center justify-content-between">
+          <div class="d-flex align-items-center gap-2">
+            <i class="fas fa-user-check" style="color:var(--gold);"></i>
+            <span class="fw-bold">Teacher Remarks &amp; Progress</span>
+          </div>
+          <a href="{% url 'parent_progress' %}" class="btn btn-sm btn-outline-warning" style="font-size:0.75rem;padding:3px 10px;">
+            Full Report
+          </a>
+        </div>
+        <div class="card-body p-3">
+          {% if latest_progress %}
+            <div class="d-flex align-items-center justify-content-between mb-3 pb-2" style="border-bottom:1px solid var(--border);">
+              <div>
+                <div class="fw-bold" style="color:var(--text-primary);font-size:0.9rem;">{{ latest_progress.term }}</div>
+                <small class="text-muted">Recorded on {{ latest_progress.created_at|date:"d M Y" }}</small>
+              </div>
+              <span class="badge" style="background:rgba(217,164,65,0.15);color:var(--gold);border:1px solid rgba(217,164,65,0.3);font-size:0.8rem;padding:5px 10px;">
+                Grade {{ latest_progress.grade }} &bull; {{ latest_progress.overall_percentage }}%
+              </span>
+            </div>
+
+            <!-- Remarks -->
+            <div class="mb-3">
+              <label class="text-muted small fw-bold mb-1 d-block text-uppercase" style="letter-spacing:0.05em;font-size:0.7rem;">
+                Faculty Feedback
+              </label>
+              <div class="p-2 rounded" style="background:rgba(255,255,255,0.03);border:1px solid var(--border);font-size:0.88rem;line-height:1.5;color:var(--text-secondary);font-style:italic;">
+                &ldquo;{{ latest_progress.teacher_remarks }}&rdquo;
+              </div>
+            </div>
+
+            <!-- Strengths -->
+            <div class="mb-3">
+              <label class="text-muted small fw-bold mb-1 d-block text-uppercase" style="letter-spacing:0.05em;font-size:0.7rem;">
+                <i class="fas fa-thumbs-up me-1 text-success"></i>Demonstrated Strengths
+              </label>
+              <div class="small" style="color:var(--text-primary);">
+                {{ latest_progress.strengths|default:"Consistent performance in coursework." }}
+              </div>
+            </div>
+
+            <!-- Areas of Improvement -->
+            <div>
+              <label class="text-muted small fw-bold mb-1 d-block text-uppercase" style="letter-spacing:0.05em;font-size:0.7rem;">
+                <i class="fas fa-lightbulb me-1" style="color:var(--gold);"></i>Focus &amp; Growth Areas
+              </label>
+              <div class="small" style="color:var(--text-secondary);">
+                {{ latest_progress.areas_of_improvement|default:"Maintain steady daily study schedule." }}
+              </div>
+            </div>
+          {% else %}
+            <div class="text-center py-4 text-muted small">
+              <i class="fas fa-tasks fa-2x mb-2" style="opacity:0.4;"></i>
+              <p class="mb-0">No progress report filed by faculty yet for this term.</p>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Institutional Notices / Circulars -->
+      <div class="card mb-4 gsap-up">
+        <div class="card-header d-flex align-items-center justify-content-between">
+          <div class="d-flex align-items-center gap-2">
+            <i class="fas fa-bullhorn" style="color:var(--gold);"></i>
+            <span class="fw-bold">Important Notices</span>
+          </div>
+          <a href="{% url 'parent_notices' %}" class="small text-decoration-none" style="color:var(--gold);font-weight:600;font-size:0.75rem;">
+            All Notices &rarr;
+          </a>
+        </div>
+        <div class="card-body p-0">
+          {% if recent_notices %}
+          <div class="list-group list-group-flush">
+            {% for n in recent_notices %}
+            <div class="list-group-item p-3" style="background:transparent;border-color:var(--border);">
+              <div class="d-flex align-items-center justify-content-between mb-1">
+                <span class="badge" style="background:rgba(217,164,65,0.12);color:var(--gold);font-size:0.68rem;">Notice</span>
+                <small class="text-muted">{{ n.posting_date|date:"d M Y" }}</small>
+              </div>
+              <div class="fw-semibold" style="color:var(--text-primary);font-size:0.88rem;">{{ n.title }}</div>
+              <div class="text-muted small text-truncate mt-1">{{ n.content|striptags }}</div>
+            </div>
+            {% endfor %}
+          </div>
+          {% else %}
+          <div class="text-center py-4 text-muted small">
+            <p class="mb-0">No active circulars at this time.</p>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Quick AI Assistance Banner -->
+      <div class="card gsap-up" style="background:linear-gradient(135deg, rgba(99,102,241,0.1) 0%, rgba(217,164,65,0.1) 100%);border:1px solid rgba(217,164,65,0.3);">
+        <div class="card-body p-3 text-center">
+          <div style="font-size:1.8rem;margin-bottom:0.5rem;">🤖</div>
+          <h6 class="fw-bold mb-1" style="color:var(--text-primary);">Need Quick Academic Clarification?</h6>
+          <p class="small text-muted mb-3">Ask the SRMS AI Assistant about examination dates, grade scales, attendance rules, or syllabus topics.</p>
+          <button type="button" class="btn btn-sm btn-outline-warning w-100" onclick="var t=document.getElementById('srms-chat-trigger');if(t)t.click();">
+            <i class="fas fa-comments me-1"></i>Ask SRMS Assistant
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+{% endblock %}

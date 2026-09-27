@@ -1,0 +1,91 @@
+{% load static %}
+<nav class="navbar navbar-expand-lg navbar-public fixed-top">
+  <div class="container-fluid px-4">
+    <a class="navbar-brand" href="{% url 'admin_dashboard' %}">
+      <img src="{% static 'images/srms-logo-mark.png' %}" alt="SRMS" class="brand-logo-mark">
+      <span class="brand-wordmark"><span class="brand-accent">SR</span>MS</span>
+      <span style="font-size:0.65rem;color:var(--gold);font-weight:600;margin-left:8px;letter-spacing:0.15em;text-transform:uppercase;vertical-align:middle;opacity:0.8;">Admin</span>
+    </a>
+    <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#adminNav">
+      <i class="fas fa-bars" style="color:var(--gold);"></i>
+    </button>
+    <div class="collapse navbar-collapse justify-content-end" id="adminNav">
+      <ul class="navbar-nav gap-2 align-items-center mt-2 mt-lg-0">
+        <li class="nav-item">
+          <a class="btn btn-outline-warning btn-sm" href="{% url 'admin_dashboard' %}">
+            <i class="fas fa-home me-1"></i>Dashboard
+          </a>
+        </li>
+        <li class="nav-item dropdown">
+          <a class="btn btn-outline-info btn-sm dropdown-toggle" href="#" id="parentDropdown"
+             role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="fas fa-users me-1"></i>Parents
+          </a>
+          <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="parentDropdown">
+            <li>
+              <a class="dropdown-item" href="{% url 'create_parent_account' %}">
+                <i class="fas fa-user-plus me-2" style="color:var(--gold);"></i>Create Parent Account
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item" href="{% url 'manage_parents' %}">
+                <i class="fas fa-users-cog me-2" style="color:var(--gold);"></i>Manage Parents
+              </a>
+            </li>
+            <li><hr class="dropdown-divider"></li>
+            <li>
+              <a class="dropdown-item" href="{% url 'add_attendance' %}">
+                <i class="fas fa-calendar-alt me-2" style="color:var(--gold);"></i>Bulk Attendance
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item" href="{% url 'add_progress_report' %}">
+                <i class="fas fa-chart-line me-2" style="color:var(--gold);"></i>Add Progress Report
+              </a>
+            </li>
+          </ul>
+        </li>
+        <li class="nav-item dropdown">
+          <a class="btn btn-outline-secondary btn-sm dropdown-toggle" href="#" id="moreDropdown"
+             role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="fas fa-ellipsis-h me-1"></i>More
+          </a>
+          <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="moreDropdown">
+            <li>
+              <a class="dropdown-item" href="{% url 'create_teacher' %}">
+                <i class="fas fa-chalkboard-teacher me-2" style="color:var(--success);"></i>Manage Teachers
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item" href="{% url 'import_export' %}">
+                <i class="fas fa-exchange-alt me-2" style="color:var(--gold-bright);"></i>Import / Export
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item" href="{% url 'admin_analytics' %}">
+                <i class="fas fa-chart-bar me-2" style="color:var(--info);"></i>Analytics
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item" href="{% url 'create_admin' %}">
+                <i class="fas fa-user-shield me-2" style="color:var(--gold);"></i>Manage Admins
+              </a>
+            </li>
+          </ul>
+        </li>
+        <!-- Dark mode toggle -->
+        <li class="nav-item">
+          <button id="darkToggleBtn" class="dark-toggle-btn" title="Toggle dark/light mode" aria-label="Toggle dark mode">
+            <i class="fas fa-moon"></i>
+            <i class="fas fa-sun"></i>
+          </button>
+        </li>
+        <li class="nav-item">
+          <a class="btn btn-outline-danger btn-sm" href="{% url 'admin_logout' %}">
+            <i class="fas fa-sign-out-alt me-1"></i>Logout
+          </a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>

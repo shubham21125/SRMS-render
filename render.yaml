@@ -1,0 +1,40 @@
+databases:
+  - name: srms-db
+    plan: free
+    databaseName: srms_db
+    user: srms
+
+services:
+  - type: web
+    name: srms-web
+    runtime: python
+    plan: free
+    buildCommand: "./build.sh"
+    startCommand: "gunicorn StudentResultManagement.wsgi:application --bind 0.0.0.0:$PORT --workers 3"
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: srms-db
+          property: connectionString
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: "False"
+      - key: ALLOWED_HOSTS
+        value: ".onrender.com"
+      - key: PYTHON_VERSION
+        value: "3.13.0"
+      # Set these manually in the Render dashboard (Environment tab) —
+      # they hold real credentials and must never be committed to git:
+      #   EMAIL_HOST_USER
+      #   EMAIL_HOST_PASSWORD
+      #   DEFAULT_FROM_EMAIL
+      #   GOOGLE_OAUTH2_CLIENT_ID
+      #   GOOGLE_OAUTH2_CLIENT_SECRET
+      #   GOOGLE_OAUTH2_REDIRECT_URI   (e.g. https://srms-web.onrender.com/admin-google-callback/)
+      #   GOOGLE_ADMIN_ALLOWED_EMAILS
+      #   GEMINI_API_KEY
+      #   WHATSAPP_TOKEN
+      #   WHATSAPP_PHONE_NUMBER_ID
+      #   CSRF_TRUSTED_ORIGINS        (e.g. https://srms-web.onrender.com)
+      #   REDIS_URL                   (optional; falls back to local memory cache if unset)

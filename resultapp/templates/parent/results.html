@@ -1,0 +1,561 @@
+{% extends 'parent/parent_base.html' %}
+{% load static %}
+{% block title %}Student Info — Parent Portal{% endblock %}
+
+{# ── Page-scoped CSS + Chart.js (same pattern as performance.html) ── #}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/student-info-dark.css' %}">
+<script src="{% static 'vendor/chartjs/chart.umd.min.js' %}"></script>
+{% endblock %}
+
+
+{% block content %}
+{% comment %}
+   .student-info-dark  scoping wrapper — ALL dark-theme rules
+   are prefixed with this class in student-info-dark.css so
+   they cannot leak to sidebar, topbar or any other page.
+{% endcomment %}
+<div class="student-info-dark p-1">
+
+  {# ── PAGE HEADER ── #}
+  <div class="sid-header gsap-left">
+    <div class="sid-header-left">
+      <h2>
+        <i class="fas fa-circle-info"></i>&nbsp;Student Info
+        <span class="sid-live-pill">
+          <span class="sid-live-dot"></span>Live
+        </span>
+      </h2>
+      <small>
+        {{ student.name }} &mdash; {{ student.roll_id }}
+        {% if student.student_class %}&mdash; {{ student.student_class }}{% endif %}
+      </small>
+    </div>
+    <a href="{% url 'parent_dashboard' %}" class="sid-btn-back">
+      <i class="fas fa-arrow-left me-1"></i>Back
+    </a>
+  </div>{# /sid-header #}
+
+
+  {# ── STAT CARD STRIP ── #}
+  <div class="sid-stat-row gsap-up">
+
+    {# SGPA #}
+    <div class="sid-stat">
+      <div class="sid-stat-label"><i class="fas fa-star"></i>SGPA</div>
+      <div class="sid-stat-val accent-violet">
+        {{ sgpa }}<span class="sid-unit"> / 10.00</span>
+      </div>
+      <div class="sid-stat-sub">NEP 2020 credit-weighted</div>
+    </div>
+
+    {# Class Rank #}
+    <div class="sid-stat">
+      <div class="sid-stat-label"><i class="fas fa-trophy"></i>Class Rank</div>
+      <div class="sid-stat-val">
+        #{{ class_rank }}<span class="sid-unit"> of {{ class_size }}</span>
+      </div>
+      <div class="sid-stat-sub">Same class / section</div>
+    </div>
+
+    {# Avg Score #}
+    <div class="sid-stat">
+      <div class="sid-stat-label"><i class="fas fa-chart-line"></i>Avg Score</div>
+      <div class="sid-stat-val">{{ percentage }}%</div>
+      <div class="sid-stat-sub">Overall this term</div>
+    </div>
+
+    {# Passed #}
+    <div class="sid-stat">
+      <div class="sid-stat-label"><i class="fas fa-check-circle"></i>Passed</div>
+      <div class="sid-stat-val">
+        {{ passed_count }}<span class="sid-unit"> / {{ total_subjects }}</span>
+      </div>
+      <div class="sid-stat-sub">Subjects cleared</div>
+    </div>
+
+    {# Best Subject #}
+    <div class="sid-stat">
+      <div class="sid-stat-label"><i class="fas fa-bolt"></i>Best Subject</div>
+      <div class="sid-stat-val">
+        {% if best_subject_name != "N/A" %}
+          {{ best_subject_score }}<span class="sid-unit"> mks</span>
+        {% else %}—{% endif %}
+      </div>
+      <div class="sid-stat-sub">{{ best_subject_name }}</div>
+    </div>
+
+  </div>{# /sid-stat-row #}
+
+
+  {# ── TWO-COLUMN GRID ── #}
+  <div class="sid-grid">
+
+    {# ─────────── LEFT COLUMN ─────────── #}
+    <div>
+
+      {# GPA Trend — line chart #}
+      <div class="sid-card gsap-up">
+        <div class="sid-card-header">
+          <div>
+            <div class="sid-card-title"><i class="fas fa-chart-line"></i>GPA &amp; Score Trend</div>
+            <div class="sid-card-sub">Your SGPA vs class average — per semester</div>
+          </div>
+          {% if trend_labels != '[]' %}
+          <div class="sid-legend">
+            <span><span class="sid-legend-dot" style="background:#8b5cf6"></span>You</span>
+            <span><span class="sid-legend-dot" style="background:#6b7280"></span>Class</span>
+          </div>
+          {% endif %}
+        </div>
+        {% if trend_labels == '[]' %}
+          <div class="sid-empty">
+            <i class="fas fa-history fa-2x mb-2 d-block"></i>
+            No multi-semester history yet. Chart will populate once results from more than one semester are published.
+          </div>
+        {% else %}
+          <div style="height:210px;position:relative">
+            <canvas id="trendChart"></canvas>
+          </div>
+        {% endif %}
+      </div>
+
+      {# Subject Results #}
+      <div class="sid-card gsap-up">
+        <div class="sid-card-header">
+          <div>
+            <div class="sid-card-title"><i class="fas fa-list-alt"></i>Subject Results</div>
+            <div class="sid-card-sub">
+              {{ total_subjects }} subject{{ total_subjects|pluralize }} &middot;
+              trend delta vs prior term &mdash; shown where prior data exists
+            </div>
+          </div>
+        </div>
+        {% if detailed_results %}
+          {% for res in detailed_results %}
+          <div class="sid-subject-row">
+
+            {# book icon #}
+            <div class="sid-subj-icon"><i class="fas fa-book-open"></i></div>
+
+            {# name + code #}
+            <div class="sid-subj-info">
+              <div class="sid-subj-name">{{ res.subject }}</div>
+              <div class="sid-subj-code">{{ res.code }}</div>
+            </div>
+
+            {# bar — colour by score band #}
+            <div class="sid-bar-wrap">
+              <div class="sid-bar-fill
+                {% if res.percentage >= 80 %}fill-green
+                {% elif res.percentage >= 60 %}fill-blue
+                {% elif res.percentage >= 50 %}fill-violet
+                {% elif res.percentage >= 40 %}fill-amber
+                {% else %}fill-red{% endif %}"
+                style="width:{{ res.percentage }}%">
+              </div>
+            </div>
+
+            {# score #}
+            <div class="sid-score">{{ res.score }}<span class="sid-max">/{{ res.max }}</span></div>
+
+            {# grade badge — all 8 NEP grades with individual colour classes #}
+            {% with g=res.grade %}
+            <div class="sid-badge
+              {% if g == 'O' %}badge-O
+              {% elif g == 'A+' %}badge-Ap
+              {% elif g == 'A' %}badge-A
+              {% elif g == 'B+' %}badge-Bp
+              {% elif g == 'B' %}badge-B
+              {% elif g == 'C' %}badge-C
+              {% elif g == 'D' %}badge-D
+              {% else %}badge-F{% endif %}">
+              {{ g }}
+            </div>
+            {% endwith %}
+
+            {# trend delta — real or "—" (never fabricated) #}
+            <div class="sid-delta">
+              {% if res.delta is not None %}
+                {% if res.delta > 0 %}
+                  <span class="delta-up">&#9650; +{{ res.delta }}</span>
+                {% elif res.delta < 0 %}
+                  <span class="delta-down">&#9660; {{ res.delta }}</span>
+                {% else %}
+                  <span class="delta-none">&#8212;</span>
+                {% endif %}
+              {% else %}
+                <span class="delta-none">—</span>
+              {% endif %}
+            </div>
+
+          </div>
+          {% endfor %}
+
+          {# footer bar: overall avg + GPA #}
+          <div class="sid-chart-footer mt-2">
+            <span>Overall Average: <strong>{{ percentage }}%</strong></span>
+            <span>Credit Weighted SGPA: <span class="accent">{{ sgpa }}</span></span>
+          </div>
+        {% else %}
+          <div class="sid-empty">
+            <i class="fas fa-file-alt fa-2x mb-2 d-block"></i>
+            No results published yet.
+          </div>
+        {% endif %}
+      </div>
+
+      {# Marks by Subject — bar chart #}
+      <div class="sid-card gsap-up">
+        <div class="sid-card-header">
+          <div>
+            <div class="sid-card-title"><i class="fas fa-chart-bar"></i>Marks by Subject</div>
+            <div class="sid-card-sub">Term score comparison &middot; dashed line = Pass threshold</div>
+          </div>
+        </div>
+        {% if bar_labels == '[]' %}
+          <div class="sid-empty"><i class="fas fa-chart-bar fa-2x mb-2 d-block"></i>No data.</div>
+        {% else %}
+          <div style="height:230px;position:relative">
+            <canvas id="barChart"></canvas>
+          </div>
+        {% endif %}
+      </div>
+
+    </div>{# /left col #}
+
+
+    {# ─────────── RIGHT COLUMN ─────────── #}
+    <div>
+
+      {# Subject Spread — radar #}
+      <div class="sid-card gsap-up">
+        <div class="sid-card-title"><i class="fas fa-spider"></i>&nbsp;Subject Spread</div>
+        <div class="sid-card-sub">Strength by discipline</div>
+        {% if radar_labels == '[]' %}
+          <div class="sid-empty"><i class="fas fa-spider fa-2x mb-2 d-block"></i>No data.</div>
+        {% else %}
+          <div style="height:220px;position:relative">
+            <canvas id="radarChart"></canvas>
+          </div>
+        {% endif %}
+      </div>
+
+      {# Top Performers — school-wide #}
+      <div class="sid-card gsap-up">
+        <div class="sid-card-title"><i class="fas fa-ranking-star"></i>&nbsp;Top Performers</div>
+        <div class="sid-card-sub">School-wide &middot; by SGPA</div>
+        {% if top_performers %}
+          {% for perf in top_performers %}
+          <div class="sid-perf-row">
+            <div class="sid-rank {% if forloop.counter == 1 %}medal-1{% elif forloop.counter == 2 %}medal-2{% elif forloop.counter == 3 %}medal-3{% endif %}">
+              {% if forloop.counter <= 3 %}
+                <i class="fas fa-medal"></i>
+              {% else %}
+                {{ forloop.counter }}
+              {% endif %}
+            </div>
+            <div class="sid-avatar">{{ perf.avatar }}</div>
+            <div class="sid-perf-info">
+              <div class="sid-perf-name">{{ perf.name }}</div>
+              <div class="sid-perf-class">{{ perf.grade }}</div>
+            </div>
+            <div class="sid-perf-gpa">{{ perf.gpa }}</div>
+          </div>
+          {% endfor %}
+        {% else %}
+          <div class="sid-empty">No ranked students yet.</div>
+        {% endif %}
+      </div>
+
+      {# Upcoming Exams #}
+      <div class="sid-card gsap-up">
+        <div class="sid-card-title">
+          <i class="far fa-calendar-alt"></i>&nbsp;Upcoming Exams
+        </div>
+        <div class="sid-card-sub">Your class &middot; nearest first</div>
+        {% if upcoming_exams %}
+          {% for exam in upcoming_exams %}
+          <div class="sid-exam-row">
+            <div class="sid-date-badge">
+              <div class="sid-date-num">{{ exam.day }}</div>
+              <div class="sid-date-day">{{ exam.day_name }}</div>
+            </div>
+            <div class="sid-exam-info">
+              <div class="sid-exam-title">{{ exam.subject }}</div>
+              <div class="sid-exam-date">
+                <i class="far fa-clock" style="font-size:.6rem"></i>
+                {{ exam.month }} {{ exam.day }}
+              </div>
+            </div>
+            {% if exam.soon %}<span class="soon-tag">Soon</span>{% endif %}
+          </div>
+          {% endfor %}
+        {% else %}
+          <div class="sid-empty">
+            <i class="far fa-calendar fa-2x mb-2 d-block"></i>
+            No upcoming exams scheduled for your class.
+          </div>
+        {% endif %}
+      </div>
+
+      {# Activity Feed — this student's own results + school notices only #}
+      <div class="sid-card gsap-up">
+        <div class="sid-card-title"><i class="fas fa-wave-square"></i>&nbsp;Activity Feed</div>
+        <div class="sid-card-sub">Your results &amp; school notices only</div>
+        {% if activities %}
+          {% for act in activities %}
+          <div class="sid-act-row">
+            <div class="sid-act-icon {% if act.type == 'warning' %}act-notice{% else %}act-publish{% endif %}">
+              <i class="fas {{ act.icon }}"></i>
+            </div>
+            <div class="sid-act-body">
+              <div class="sid-act-text">{{ act.text }}</div>
+              <div class="sid-act-time">{{ act.time }}</div>
+            </div>
+          </div>
+          {% endfor %}
+        {% else %}
+          <div class="sid-empty">No recent activity.</div>
+        {% endif %}
+      </div>
+
+    </div>{# /right col #}
+
+  </div>{# /sid-grid #}
+
+</div>{# /student-info-dark #}
+{% endblock %}
+
+
+{% block extra_js %}
+{% if trend_labels != '[]' or bar_labels != '[]' or radar_labels != '[]' %}
+<script>
+(function () {
+  'use strict';
+
+  /* ── Dark/violet palette ── */
+  const VIOLET      = '#8b5cf6';
+  const VIOLET10    = 'rgba(139,92,246,0.10)';
+  const VIOLET30    = 'rgba(139,92,246,0.30)';
+  const GRAY        = '#6b7280';
+  const GRID_COLOR  = 'rgba(255,255,255,0.07)';
+  const TICK_COLOR  = '#6b7280';
+  const GREEN       = '#22c55e';
+  const BLUE        = '#3b82f6';
+  const AMBER       = '#f59e0b';
+  const RED         = '#ef4444';
+  const TEXT        = '#f5f5f7';
+
+  /* ── Tooltip style ── */
+  const tooltipDefaults = {
+    backgroundColor: 'rgba(12,12,20,0.95)',
+    borderColor:     'rgba(139,92,246,0.4)',
+    borderWidth:      1,
+    titleColor:       TEXT,
+    bodyColor:        '#9ca3af',
+    padding:          10,
+    cornerRadius:     8,
+    displayColors:    false,
+  };
+
+  /* ── bar colour by % score band (mirrors CSS class logic) ── */
+  function barColor(v) {
+    if (v >= 80) return GREEN;
+    if (v >= 60) return BLUE;
+    if (v >= 50) return VIOLET;
+    if (v >= 40) return AMBER;
+    return RED;
+  }
+
+  /* ────────────────────────────────────────────────────────────
+     1. GPA Trend — line chart
+  ──────────────────────────────────────────────────────────── */
+  {% if trend_labels != '[]' %}
+  (function () {
+    const ctx = document.getElementById('trendChart');
+    if (!ctx) return;
+    const labels    = {{ trend_labels|safe }};
+    const youData   = {{ student_trend|safe }};
+    const classData = {{ class_trend|safe }};
+
+    new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [
+          {
+            label: 'You',
+            data: youData,
+            borderColor: VIOLET,
+            backgroundColor: VIOLET10,
+            borderWidth: 2.5,
+            tension: 0.35,
+            pointBackgroundColor: VIOLET,
+            pointBorderColor: '#0a0b0f',
+            pointBorderWidth: 2,
+            pointRadius: 4,
+            pointHoverRadius: 6,
+            fill: true,
+          },
+          {
+            label: 'Class Avg',
+            data: classData,
+            borderColor: GRAY,
+            backgroundColor: 'transparent',
+            borderWidth: 1.8,
+            borderDash: [5, 4],
+            tension: 0.35,
+            pointRadius: 0,
+            fill: false,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: tooltipDefaults,
+        },
+        scales: {
+          x: {
+            grid: { display: false },
+            border: { display: false },
+            ticks: { color: TICK_COLOR, font: { size: 11 } },
+          },
+          y: {
+            min: 0, max: 10,
+            grid: { color: GRID_COLOR },
+            border: { display: false },
+            ticks: { color: TICK_COLOR, stepSize: 2, font: { size: 11 } },
+            title: { display: true, text: 'SGPA (0–10)', color: GRAY, font: { size: 10 } },
+          },
+        },
+      },
+    });
+  })();
+  {% endif %}
+
+  /* ────────────────────────────────────────────────────────────
+     2. Marks by Subject — bar chart with pass-threshold line
+  ──────────────────────────────────────────────────────────── */
+  {% if bar_labels != '[]' %}
+  (function () {
+    const ctx = document.getElementById('barChart');
+    if (!ctx) return;
+    const labels = {{ bar_labels|safe }};
+    const data   = {{ bar_data|safe }};
+    const colors = data.map(barColor);
+
+    /* Inline Chart.js plugin: dashed pass-threshold line at y=40 */
+    const passLinePlugin = {
+      id: 'passLine',
+      afterDraw(chart) {
+        const { ctx: c, scales: { y, x } } = chart;
+        const yPx = y.getPixelForValue(40);
+        c.save();
+        c.beginPath();
+        c.strokeStyle = 'rgba(239,68,68,0.5)';
+        c.lineWidth   = 1.5;
+        c.setLineDash([6, 4]);
+        c.moveTo(x.left, yPx);
+        c.lineTo(x.right, yPx);
+        c.stroke();
+        /* "Pass: 50" label — right-aligned to match screenshot */
+        c.fillStyle   = 'rgba(239,68,68,0.75)';
+        c.font        = '10px Inter, sans-serif';
+        c.textAlign   = 'right';
+        c.fillText('Pass: 40', x.right - 4, yPx - 4);
+        c.restore();
+      },
+    };
+
+    new Chart(ctx, {
+      type: 'bar',
+      plugins: [passLinePlugin],
+      data: {
+        labels: labels,
+        datasets: [{
+          data: data,
+          backgroundColor: colors,
+          borderRadius: 6,
+          borderSkipped: false,
+          barThickness: 28,
+        }],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: tooltipDefaults,
+        },
+        scales: {
+          x: {
+            grid: { display: false },
+            border: { display: false },
+            ticks: { color: TICK_COLOR, font: { size: 11, weight: '600' } },
+          },
+          y: {
+            min: 0, max: 100,
+            grid: { color: GRID_COLOR },
+            border: { display: false },
+            ticks: { color: TICK_COLOR, stepSize: 20, font: { size: 11 } },
+          },
+        },
+      },
+    });
+  })();
+  {% endif %}
+
+  /* ────────────────────────────────────────────────────────────
+     3. Subject Spread — radar chart
+  ──────────────────────────────────────────────────────────── */
+  {% if radar_labels != '[]' %}
+  (function () {
+    const ctx = document.getElementById('radarChart');
+    if (!ctx) return;
+    const labels = {{ radar_labels|safe }};
+    const data   = {{ radar_data|safe }};
+
+    new Chart(ctx, {
+      type: 'radar',
+      data: {
+        labels: labels,
+        datasets: [{
+          data: data,
+          backgroundColor: VIOLET10,
+          borderColor: VIOLET,
+          borderWidth: 2,
+          pointBackgroundColor: VIOLET,
+          pointBorderColor: '#0a0b0f',
+          pointRadius: 3,
+          pointHoverRadius: 5,
+        }],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: tooltipDefaults,
+        },
+        scales: {
+          r: {
+            min: 0, max: 100,
+            grid:        { color: GRID_COLOR },
+            angleLines:  { color: GRID_COLOR },
+            pointLabels: { color: '#9ca3af', font: { size: 10, weight: '600' } },
+            ticks:       { display: false },
+          },
+        },
+      },
+    });
+  })();
+  {% endif %}
+
+})();
+</script>
+{% endif %}
+{% endblock %}

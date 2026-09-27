@@ -1,0 +1,551 @@
+{% extends 'admin_base.html' %}
+{% load static %}
+{% block title %}Analytics — SRMS Admin{% endblock %}
+
+{% block content %}
+<div class="p-3">
+
+  <!-- Page Header -->
+  <div class="d-flex align-items-center gap-3 mb-4 gsap-left">
+    <div>
+      <h2 class="mb-0"><i class="fas fa-chart-bar me-2"></i>Analytics Dashboard</h2>
+      <small style="color:var(--text-secondary);">Insights across students, results & attendance</small>
+    </div>
+  </div>
+
+  <!-- ── STAT CARDS ── -->
+  <div class="row g-3 mb-4">
+    <div class="col-sm-6 col-xl-3">
+      <div class="stat-card primary gsap-scale">
+        <div class="stat-icon"><i class="fas fa-percentage"></i></div>
+        <h3 id="ctr-pass">0%</h3>
+        <p>Overall Pass Rate</p>
+      </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+      <div class="stat-card success gsap-scale">
+        <div class="stat-icon"><i class="fas fa-calendar-check"></i></div>
+        <h3 id="ctr-att">0%</h3>
+        <p>Avg Attendance (30d)</p>
+      </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+      <div class="stat-card warning gsap-scale">
+        <div class="stat-icon"><i class="fas fa-trophy"></i></div>
+        <h3 id="ctr-top">0</h3>
+        <p>Top Performers (90%+)</p>
+      </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+      <div class="stat-card danger gsap-scale">
+        <div class="stat-icon"><i class="fas fa-exclamation-triangle"></i></div>
+        <h3 id="ctr-risk">0</h3>
+        <p>At-Risk Students</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── CHARTS ROW ── -->
+  <div class="row g-3 mb-4">
+
+    <!-- Class-wise Bar Chart -->
+    <div class="col-lg-7 gsap-up">
+      <div class="card h-100">
+        <div class="card-header d-flex align-items-center gap-2">
+          <i class="fas fa-chart-bar" style="color:var(--gold);"></i>
+          <h5 class="mb-0">Class-wise Average Marks</h5>
+        </div>
+        <div class="card-body">
+          <canvas id="classChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Grade Distribution Doughnut -->
+    <div class="col-lg-5 gsap-up">
+      <div class="card h-100">
+        <div class="card-header d-flex align-items-center gap-2">
+          <i class="fas fa-chart-pie" style="color:var(--gold);"></i>
+          <h5 class="mb-0">Grade Distribution</h5>
+        </div>
+        <div class="card-body d-flex align-items-center justify-content-center">
+          <canvas id="gradeChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── EXTRA ANALYTICS ROW ── -->
+  <div class="row g-3 mb-4">
+    <!-- Branch-wise Performance (Stacked/Mixed Chart) -->
+    <div class="col-lg-7 gsap-up">
+      <div class="card h-100">
+        <div class="card-header d-flex align-items-center gap-2">
+          <i class="fas fa-graduation-cap" style="color:var(--gold);"></i>
+          <h5 class="mb-0">Branch Performance (Pass vs Fail &amp; Avg Marks)</h5>
+        </div>
+        <div class="card-body" style="position:relative; min-height: 280px;">
+          <canvas id="branchChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- SGPA Distribution Chart -->
+    <div class="col-lg-5 gsap-up">
+      <div class="card h-100">
+        <div class="card-header d-flex align-items-center gap-2">
+          <i class="fas fa-chart-line" style="color:var(--gold);"></i>
+          <h5 class="mb-0">SGPA Distribution Trend</h5>
+        </div>
+        <div class="card-body" style="position:relative; min-height: 280px;">
+          <canvas id="sgpaChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── PASS/FAIL + ATTENDANCE PROGRESS ── -->
+  <div class="row g-3 mb-4">
+    <div class="col-md-6 gsap-up">
+      <div class="card">
+        <div class="card-header d-flex align-items-center gap-2">
+          <i class="fas fa-check-circle" style="color:var(--gold);"></i>
+          <h5 class="mb-0">Pass / Fail Summary</h5>
+        </div>
+        <div class="card-body">
+          <div class="d-flex justify-content-between mb-1">
+            <span style="font-size:0.82rem;color:var(--text-secondary);">Passed</span>
+            <span style="color:#22c55e;font-weight:700;">{{ pass_percentage }}%</span>
+          </div>
+          <div class="progress-track mb-3">
+            <div class="progress-fill pass-fill" data-width="{{ pass_percentage }}"></div>
+          </div>
+          <div class="row g-2 text-center">
+            <div class="col-6">
+              <div style="padding:0.75rem;background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.2);border-radius:8px;">
+                <div style="font-size:1.4rem;font-weight:800;color:#22c55e;">{{ passed_count }}</div>
+                <div style="font-size:0.72rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.08em;">Passed</div>
+              </div>
+            </div>
+            <div class="col-6">
+              <div style="padding:0.75rem;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);border-radius:8px;">
+                <div style="font-size:1.4rem;font-weight:800;color:#ef4444;">{{ failed_count }}</div>
+                <div style="font-size:0.72rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.08em;">Failed</div>
+              </div>
+            </div>
+          </div>
+          <small style="color:var(--text-dim);font-size:0.75rem;display:block;margin-top:0.75rem;">
+            Based on {{ total_students }} enrolled student(s)
+          </small>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-6 gsap-up">
+      <div class="card">
+        <div class="card-header d-flex align-items-center gap-2">
+          <i class="fas fa-user-clock" style="color:var(--gold);"></i>
+          <h5 class="mb-0">Attendance Rate (Last 30 Days)</h5>
+        </div>
+        <div class="card-body">
+          <div class="d-flex justify-content-between mb-1">
+            <span style="font-size:0.82rem;color:var(--text-secondary);">Present Days</span>
+            <span style="color:#60A5FA;font-weight:700;">{{ avg_attendance }}%</span>
+          </div>
+          <div class="progress-track mb-3">
+            <div class="progress-fill att-fill" data-width="{{ avg_attendance }}"></div>
+          </div>
+          <!-- Attendance level indicator -->
+          <div style="padding:0.75rem;background:
+            {% if avg_attendance >= 75 %}rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.2);{% elif avg_attendance >= 50 %}rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);{% else %}rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);{% endif %}
+            border-radius:8px;display:flex;align-items:center;gap:0.75rem;">
+            <i class="fas
+              {% if avg_attendance >= 75 %}fa-smile{% elif avg_attendance >= 50 %}fa-meh{% else %}fa-frown{% endif %}"
+              style="font-size:1.5rem;color:
+              {% if avg_attendance >= 75 %}#22c55e{% elif avg_attendance >= 50 %}#FBBF24{% else %}#ef4444{% endif %};"></i>
+            <div>
+              <div style="font-weight:700;color:var(--text-primary);font-size:0.9rem;">
+                {% if avg_attendance >= 75 %}Good Attendance{% elif avg_attendance >= 50 %}Average Attendance{% else %}Low Attendance{% endif %}
+              </div>
+              <div style="font-size:0.75rem;color:var(--text-dim);">
+                {% if avg_attendance >= 75 %}Students are attending regularly{% elif avg_attendance >= 50 %}Some improvement needed{% else %}Attention required — many absences{% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── GRADE BREAKDOWN TABLE ── -->
+  <div class="card gsap-up">
+    <div class="card-header d-flex align-items-center gap-2">
+      <i class="fas fa-medal" style="color:var(--gold);"></i>
+      <h5 class="mb-0">Grade Breakdown</h5>
+    </div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover mb-0">
+          <thead>
+            <tr>
+              <th>Grade</th>
+              <th>Label</th>
+              <th>Count</th>
+              <th style="width:45%;">Distribution</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% with total_graded=grade_o|add:grade_aplus|add:grade_a|add:grade_bplus|add:grade_b|add:grade_c|add:grade_d|add:grade_f %}
+            <tr>
+              <td><span class="badge" style="background:#22c55e;color:#fff;font-size:0.82rem;min-width:36px;">O</span></td>
+              <td style="color:var(--adm-text-secondary);font-size:0.85rem;">80% and above</td>
+              <td class="fw-bold" style="color:#22c55e;">{{ grade_o }}</td>
+              <td>
+                <div class="progress-track" style="height:6px;">
+                  <div style="height:100%;border-radius:999px;background:#22c55e;width:{% if total_graded > 0 %}{% widthratio grade_o total_graded 100 %}%{% else %}0%{% endif %};"></div>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td><span class="badge" style="background:#3b82f6;color:#fff;font-size:0.82rem;min-width:36px;">A+</span></td>
+              <td style="color:var(--adm-text-secondary);font-size:0.85rem;">70% – 79.99%</td>
+              <td class="fw-bold" style="color:#3b82f6;">{{ grade_aplus }}</td>
+              <td>
+                <div class="progress-track" style="height:6px;">
+                  <div style="height:100%;border-radius:999px;background:#3b82f6;width:{% if total_graded > 0 %}{% widthratio grade_aplus total_graded 100 %}%{% else %}0%{% endif %};"></div>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td><span class="badge" style="background:#14B87A;color:#fff;font-size:0.82rem;min-width:36px;">A</span></td>
+              <td style="color:var(--adm-text-secondary);font-size:0.85rem;">60% – 69.99%</td>
+              <td class="fw-bold" style="color:#22c55e;">{{ grade_a }}</td>
+              <td><div class="progress-track" style="height:6px;"><div style="height:100%;border-radius:999px;background:#14B87A;width:{% if total_graded > 0 %}{% widthratio grade_a total_graded 100 %}%{% else %}0%{% endif %};"></div></div></td>
+            </tr>
+            <tr>
+              <td><span class="badge" style="background:#8B5CF6;color:#fff;font-size:0.82rem;min-width:36px;">B+</span></td>
+              <td style="color:var(--adm-text-secondary);font-size:0.85rem;">55% – 59.99%</td>
+              <td class="fw-bold" style="color:#8B5CF6;">{{ grade_bplus }}</td>
+              <td><div class="progress-track" style="height:6px;"><div style="height:100%;border-radius:999px;background:#8B5CF6;width:{% if total_graded > 0 %}{% widthratio grade_bplus total_graded 100 %}%{% else %}0%{% endif %};"></div></div></td>
+            </tr>
+            <tr>
+              <td><span class="badge" style="background:#a78bfa;color:#fff;font-size:0.82rem;min-width:36px;">B</span></td>
+              <td style="color:var(--adm-text-secondary);font-size:0.85rem;">50% – 54.99%</td>
+              <td class="fw-bold" style="color:#8B5CF6;">{{ grade_b }}</td>
+              <td><div class="progress-track" style="height:6px;"><div style="height:100%;border-radius:999px;background:#a78bfa;width:{% if total_graded > 0 %}{% widthratio grade_b total_graded 100 %}%{% else %}0%{% endif %};"></div></div></td>
+            </tr>
+            <tr>
+              <td><span class="badge" style="background:#F59E0B;color:#fff;font-size:0.82rem;min-width:36px;">C</span></td>
+              <td style="color:var(--adm-text-secondary);font-size:0.85rem;">45% – 49.99%</td>
+              <td class="fw-bold" style="color:#D97706;">{{ grade_c }}</td>
+              <td><div class="progress-track" style="height:6px;"><div style="height:100%;border-radius:999px;background:#F59E0B;width:{% if total_graded > 0 %}{% widthratio grade_c total_graded 100 %}%{% else %}0%{% endif %};"></div></div></td>
+            </tr>
+            <tr>
+              <td><span class="badge" style="background:#64748B;color:#fff;font-size:0.82rem;min-width:36px;">D</span></td>
+              <td style="color:var(--adm-text-secondary);font-size:0.85rem;">40% – 44.99%</td>
+              <td class="fw-bold" style="color:#475569;">{{ grade_d }}</td>
+              <td><div class="progress-track" style="height:6px;"><div style="height:100%;border-radius:999px;background:#64748B;width:{% if total_graded > 0 %}{% widthratio grade_d total_graded 100 %}%{% else %}0%{% endif %};"></div></div></td>
+            </tr>
+            <tr>
+              <td><span class="badge bg-danger" style="font-size:0.82rem;min-width:36px;">F</span></td>
+              <td style="color:var(--adm-text-secondary);font-size:0.85rem;">Below 40% (or Fail)</td>
+              <td class="fw-bold" style="color:#ef4444;">{{ grade_f }}</td>
+              <td><div class="progress-track" style="height:6px;"><div style="height:100%;border-radius:999px;background:#F04848;width:{% if total_graded > 0 %}{% widthratio grade_f total_graded 100 %}%{% else %}0%{% endif %};"></div></div></td>
+            </tr>
+            {% endwith %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'vendor/chartjs/chart.umd.min.js' %}"></script>
+<script>
+  // ── Data from Django (JSON-safe) ─────────────────────────────────
+  const classLabels = {{ class_labels_json|safe|default:"[]" }};
+  const classAvgs   = {{ class_avgs_json|safe|default:"[]" }};
+  const gradeData   = [
+    {{ grade_o|default:0 }}, {{ grade_aplus|default:0 }}, {{ grade_a|default:0 }}, {{ grade_bplus|default:0 }},
+    {{ grade_b|default:0 }}, {{ grade_c|default:0 }},     {{ grade_d|default:0 }}, {{ grade_f|default:0 }}
+  ];
+  const passVal = {{ pass_percentage|default:0 }};
+  const attVal  = {{ avg_attendance|default:0 }};
+  const topVal  = {{ top_performers|default:0 }};
+  const riskVal = {{ at_risk_students|default:0 }};
+
+  // Branch & SGPA data
+  const branchLabels = {{ branch_labels_json|safe|default:"[]" }};
+  const branchPass   = {{ branch_pass_json|safe|default:"[]" }};
+  const branchFail   = {{ branch_fail_json|safe|default:"[]" }};
+  const branchAvg    = {{ branch_avg_pcts_json|safe|default:"[]" }};
+  const sgpaLabels   = {{ sgpa_labels_json|safe|default:"[]" }};
+  const sgpaBuckets  = {{ sgpa_buckets_json|safe|default:"[]" }};
+
+  window.srmsDrawCharts = function() {
+    // ── Chart defaults ────────────────────────────────────────────────
+    Chart.defaults.color = '#9999AA';
+    Chart.defaults.borderColor = '#2A2A35';
+    Chart.defaults.font.family = "'Source Sans 3', sans-serif";
+
+    // ── Bar Chart ─────────────────────────────────────────────────────
+    const barCtx = document.getElementById('classChart');
+    if (barCtx) {
+      new Chart(barCtx, {
+        type: 'bar',
+        data: {
+          labels: classLabels.length ? classLabels : ['No Data'],
+          datasets: [{
+            label: 'Average Marks / 100',
+            data: classAvgs.length ? classAvgs : [0],
+            backgroundColor: 'rgba(245,197,24,0.22)',
+            borderColor: '#F5C518',
+            borderWidth: 2,
+            borderRadius: 7,
+            hoverBackgroundColor: 'rgba(245,197,24,0.42)',
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: ctx => ` Avg: ${ctx.parsed.y} / 100`
+              }
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true, max: 100,
+              grid: { color: 'rgba(255,255,255,0.05)' },
+              ticks: { color: '#9999AA', callback: v => v + '%' }
+            },
+            x: {
+              grid: { display: false },
+              ticks: { color: '#9999AA' }
+            }
+          },
+          animation: { duration: 1200, easing: 'easeOutQuart' }
+        }
+      });
+    }
+
+    // ── Doughnut Chart ────────────────────────────────────────────────
+    const dCtx = document.getElementById('gradeChart');
+    if (dCtx) {
+      new Chart(dCtx, {
+        type: 'doughnut',
+        data: {
+          labels: ['O', 'A+', 'A', 'B+', 'B', 'C', 'D', 'F'],
+          datasets: [{
+            data: gradeData,
+            backgroundColor: [
+              '#22C55E','#3B82F6','#14B87A','#8B5CF6','#a78bfa',
+              '#F59E0B','#64748B','#F04848'
+            ],
+            borderColor: '#0E0E10',
+            borderWidth: 3,
+            hoverOffset: 10,
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: '65%',
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: { padding: 12, color: '#9999AA', font: { size: 11 }, boxWidth: 12 }
+            },
+            tooltip: {
+              callbacks: {
+                label: ctx => ` ${ctx.label}: ${ctx.parsed} student(s)`
+              }
+            }
+          },
+          animation: { animateRotate: true, duration: 1400 }
+        }
+      });
+    }
+
+    // ── Mixed Branch Performance Chart ─────────────────────────────────
+    const branchCtx = document.getElementById('branchChart');
+    if (branchCtx) {
+      new Chart(branchCtx, {
+        type: 'bar',
+        data: {
+          labels: branchLabels.length ? branchLabels : ['No Data'],
+          datasets: [
+            {
+              label: 'Pass Count',
+              data: branchPass.length ? branchPass : [0],
+              backgroundColor: 'rgba(52, 211, 153, 0.35)',
+              borderColor: '#34D399',
+              borderWidth: 2,
+              borderRadius: 5,
+              yAxisID: 'yCounts',
+            },
+            {
+              label: 'Fail Count',
+              data: branchFail.length ? branchFail : [0],
+              backgroundColor: 'rgba(248, 113, 113, 0.35)',
+              borderColor: '#F87171',
+              borderWidth: 2,
+              borderRadius: 5,
+              yAxisID: 'yCounts',
+            },
+            {
+              label: 'Avg Marks %',
+              type: 'line',
+              data: branchAvg.length ? branchAvg : [0],
+              backgroundColor: 'rgba(251, 191, 36, 0.15)',
+              borderColor: '#FBBF24',
+              borderWidth: 3,
+              pointBackgroundColor: '#FBBF24',
+              yAxisID: 'yPercent',
+              fill: false,
+              tension: 0.35,
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: { color: '#9999AA', font: { size: 11 }, boxWidth: 12 }
+            }
+          },
+          scales: {
+            yCounts: {
+              type: 'linear',
+              position: 'left',
+              beginAtZero: true,
+              title: { display: true, text: 'Student Count', color: '#9999AA' },
+              grid: { color: 'rgba(255,255,255,0.05)' }
+            },
+            yPercent: {
+              type: 'linear',
+              position: 'right',
+              beginAtZero: true,
+              max: 100,
+              title: { display: true, text: 'Avg Marks (%)', color: '#9999AA' },
+              grid: { drawOnChartArea: false },
+              ticks: { callback: v => v + '%' }
+            },
+            x: {
+              grid: { display: false }
+            }
+          }
+        }
+      });
+    }
+
+    // ── SGPA Distribution Trend (Area Chart) ──────────────────────────
+    const sgpaCtx = document.getElementById('sgpaChart');
+    if (sgpaCtx) {
+      new Chart(sgpaCtx, {
+        type: 'line',
+        data: {
+          labels: sgpaLabels.length ? sgpaLabels : ['0'],
+          datasets: [{
+            label: 'Students Count',
+            data: sgpaBuckets.length ? sgpaBuckets : [0],
+            backgroundColor: 'rgba(99, 102, 241, 0.15)',
+            borderColor: '#818CF8',
+            borderWidth: 3,
+            pointBackgroundColor: '#818CF8',
+            fill: true,
+            tension: 0.4,
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                title: items => `SGPA Band: ${items[0].label}`,
+                label: ctx => ` Students: ${ctx.parsed.y}`
+              }
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              title: { display: true, text: 'Student Count', color: '#9999AA' },
+              grid: { color: 'rgba(255,255,255,0.05)' }
+            },
+            x: {
+              title: { display: true, text: 'SGPA Range (0-10)', color: '#9999AA' },
+              grid: { display: false }
+            }
+          }
+        }
+      });
+    }
+  };
+
+  // ── Progress bars (GSAP) ─────────────────────────────────────────
+  document.querySelectorAll('.progress-fill').forEach(el => {
+    const w = parseFloat(el.dataset.width) || 0;
+    if (typeof gsap !== 'undefined') {
+      gsap.fromTo(el, { width: '0%' }, {
+        width: Math.min(w, 100) + '%',
+        duration: 1.4, ease: 'power3.out', delay: 0.6
+      });
+    } else {
+      el.style.width = Math.min(w, 100) + '%';
+    }
+  });
+
+  // ── Number count-up ──────────────────────────────────────────────
+  function countUp(id, target, suffix = '') {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (typeof gsap !== 'undefined') {
+      gsap.to({ val: 0 }, {
+        val: target, duration: 1.6, ease: 'power2.out', delay: 0.5,
+        onUpdate: function () {
+          el.textContent = Math.round(this.targets()[0].val) + suffix;
+        }
+      });
+    } else {
+      el.textContent = target + suffix;
+    }
+  }
+  countUp('ctr-pass', passVal, '%');
+  countUp('ctr-att',  attVal,  '%');
+  countUp('ctr-top',  topVal);
+  countUp('ctr-risk', riskVal);
+
+  // Directly draw charts on page load
+  if (typeof window.srmsDrawCharts === 'function') {
+    window.srmsDrawCharts();
+  }
+</script>
+
+<style>
+  .progress-track {
+    height: 6px;
+    background: var(--adm-border, #E2E8F0);
+    border-radius: 999px;
+    overflow: hidden;
+    margin-bottom: 0.5rem;
+  }
+  .progress-fill {
+    height: 100%;
+    border-radius: 999px;
+    width: 0;
+  }
+  .pass-fill { background: linear-gradient(90deg, #14B87A, #2EE99A); }
+  .att-fill  { background: linear-gradient(90deg, #3B82F6, #93C5FD); }
+</style>
+{% endblock %}

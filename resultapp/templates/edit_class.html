@@ -1,0 +1,97 @@
+{% extends 'admin_base.html' %} 
+{% load static %}
+{% block content %}
+
+<div class="container">
+    <h2 class="mb-4 gsap-left"><i class="fas fa-edit"></i> Edit Student Class</h2>
+    <form method="post">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label for="branch" class="form-label">Branch</label>
+            <select class="form-select" id="branch" name="branch">
+                <option value="">--Select Branch (optional)--</option>
+                {% for b in branches %}
+                    <option value="{{ b.id }}" {% if class_obj.branch_id == b.id %}selected{% endif %}>{{ b.branch_name }} ({{ b.branch_code }})</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="mb-3">
+            <label for="classname" class="form-label">Class Name</label>
+            <input type="text" class="form-control" id="classname" name="classname" placeholder="Enter Class Name" value="{{ class_obj.class_name }}" required>
+            <small class="text-muted">e.g., First Year CS, Second Year CS, Third Year CS</small>
+        </div>
+
+        <div class="mb-3">
+            <label for="classnamenumeric" class="form-label">Class Name in Numeric</label>
+            <input type="number" class="form-control" id="classnamenumeric" name="classnamenumeric" placeholder="Enter Year Number" min="1" max="3" value="{{ class_obj.class_numeric }}" required>
+            <small class="text-muted">e.g., 1, 2, 3</small>
+        </div>
+
+        <div class="mb-3">
+            <label for="section" class="form-label">Section</label>
+            <input type="text" class="form-control" id="section" name="section" placeholder="Enter Section" maxlength="1" value="{{class_obj.section}}" required>
+            <small class="text-muted">e.g., A, B, C</small>
+        </div>
+
+        <button type="submit" class="btn btn-success">
+            <i class="fas fa-check-circle me-1"></i>Submit
+        </button>
+    </form>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function() {
+  if (typeof gsap === 'undefined') return;
+
+  // Page header slide-in
+  gsap.fromTo('h2',
+    { opacity: 0, x: -30 },
+    { opacity: 1, x: 0, duration: 0.6, ease: 'power3.out', delay: 0.1 }
+  );
+
+  // Card(s) entrance
+  gsap.fromTo('.card',
+    { opacity: 0, y: 40, scale: 0.97 },
+    { opacity: 1, y: 0, scale: 1, duration: 0.65, ease: 'back.out(1.4)', delay: 0.2, stagger: 0.08 }
+  );
+
+  // Form fields stagger
+  gsap.fromTo('.form-control, .form-select, .form-check',
+    { opacity: 0, x: -16 },
+    { opacity: 1, x: 0, duration: 0.45, stagger: 0.06, ease: 'power3.out', delay: 0.45 }
+  );
+
+  // Buttons entrance
+  gsap.fromTo('.btn',
+    { opacity: 0, y: 12 },
+    { opacity: 1, y: 0, duration: 0.4, stagger: 0.07, ease: 'power3.out', delay: 0.75 }
+  );
+
+  // Alert slide-in
+  document.querySelectorAll('.alert').forEach(function(el) {
+    gsap.fromTo(el, { opacity: 0, x: 24 }, { opacity: 1, x: 0, duration: 0.5, ease: 'power3.out' });
+  });
+
+  // Focus glow on inputs
+  document.querySelectorAll('.form-control, .form-select').forEach(function(inp) {
+    inp.addEventListener('focus', function() {
+      gsap.to(inp, { boxShadow: '0 0 0 3px rgba(245,197,24,0.18)', duration: 0.2 });
+    });
+    inp.addEventListener('blur', function() {
+      gsap.to(inp, { boxShadow: 'none', duration: 0.2 });
+    });
+  });
+
+  // Table row stagger (if any)
+  gsap.fromTo('tbody tr',
+    { opacity: 0, x: -10 },
+    { opacity: 1, x: 0, duration: 0.15, stagger: 0.008, ease: 'power2.out', delay: 0.08 }
+  );
+  
+})();
+</script>
+{% endblock %}

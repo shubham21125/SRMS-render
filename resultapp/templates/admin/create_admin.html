@@ -1,0 +1,427 @@
+{% extends 'admin_base.html' %}
+{% block title %}Admin Management — SRMS{% endblock %}
+
+{% block content %}
+<div class="p-3">
+
+  <!-- Header -->
+  <div class="d-flex justify-content-between align-items-center mb-4 gsap-left">
+    <div>
+      <h2 class="mb-0"><i class="fas fa-user-shield me-2"></i>Admin Management</h2>
+      <small style="color:var(--text-secondary);">Create and manage administrator accounts</small>
+    </div>
+  </div>
+
+  <div class="row g-4">
+
+    <!-- ── CREATE ADMIN FORM ── -->
+    <div class="col-lg-5">
+      <div class="card gsap-up" id="createCard">
+        <div class="card-header d-flex align-items-center gap-2">
+          <i class="fas fa-user-plus" style="color:var(--gold);"></i>
+          <h5 class="mb-0">Create New Admin</h5>
+        </div>
+        <div class="card-body p-4">
+
+          {% if messages %}
+            {% for msg in messages %}
+            <div class="alert alert-{% if msg.tags == 'error' %}danger{% else %}{{ msg.tags }}{% endif %} alert-dismissible fade show mb-3" role="alert" id="flashMsg">
+              <i class="fas fa-{% if msg.tags == 'error' %}times-circle{% else %}check-circle{% endif %} me-2"></i>{{ msg }}
+              <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            {% endfor %}
+          {% endif %}
+
+          {% if error %}
+          <div class="alert alert-danger mb-3" id="errAlert">
+            <i class="fas fa-exclamation-circle me-2"></i>{{ error }}
+          </div>
+          {% endif %}
+
+          <form method="post" id="createAdminForm" autocomplete="off" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <div class="row g-3 mb-3">
+              <div class="col-6">
+                <label class="form-label" style="color:var(--text-secondary);font-size:0.82rem;text-transform:uppercase;letter-spacing:0.06em;">
+                  First Name <span style="color:#F87171;">*</span>
+                </label>
+                <input type="text" class="form-control" name="first_name"
+                       placeholder="e.g. Rahul" required
+                       value="{{ request.POST.first_name|default:'' }}">
+              </div>
+              <div class="col-6">
+                <label class="form-label" style="color:var(--text-secondary);font-size:0.82rem;text-transform:uppercase;letter-spacing:0.06em;">
+                  Last Name
+                </label>
+                <input type="text" class="form-control" name="last_name"
+                       placeholder="e.g. Sharma"
+                       value="{{ request.POST.last_name|default:'' }}">
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label" style="color:var(--text-secondary);font-size:0.82rem;text-transform:uppercase;letter-spacing:0.06em;">
+                Username <span style="color:#F87171;">*</span>
+              </label>
+              <div style="position:relative;">
+                <span style="position:absolute;left:0.75rem;top:50%;transform:translateY(-50%);color:var(--text-dim);">
+                  <i class="fas fa-at" style="font-size:0.85rem;"></i>
+                </span>
+                <input type="text" class="form-control" name="username"
+                       placeholder="unique_username" required
+                       style="padding-left:2.2rem;"
+                       value="{{ request.POST.username|default:'' }}">
+              </div>
+              <small style="color:var(--text-dim);font-size:0.75rem;">Letters, digits and underscores only.</small>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label" style="color:var(--text-secondary);font-size:0.82rem;text-transform:uppercase;letter-spacing:0.06em;">
+                Email Address <span style="color:#F87171;">*</span>
+              </label>
+              <div style="position:relative;">
+                <span style="position:absolute;left:0.75rem;top:50%;transform:translateY(-50%);color:var(--text-dim);">
+                  <i class="fas fa-envelope" style="font-size:0.85rem;"></i>
+                </span>
+                <input type="email" class="form-control" name="email"
+                       placeholder="admin@example.com" required
+                       style="padding-left:2.2rem;"
+                       value="{{ request.POST.email|default:'' }}">
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label" style="color:var(--text-secondary);font-size:0.82rem;text-transform:uppercase;letter-spacing:0.06em;">
+                Password <span style="color:#F87171;">*</span>
+              </label>
+              <div style="position:relative;">
+                <input type="password" class="form-control" name="password"
+                       id="passInput" placeholder="Min. 8 characters" required>
+                <button type="button" id="togglePass"
+                        style="position:absolute;right:0.75rem;top:50%;transform:translateY(-50%);
+                               background:none;border:none;color:var(--text-dim);cursor:pointer;padding:0;">
+                  <i class="fas fa-eye" id="eyeIcon"></i>
+                </button>
+              </div>
+              <!-- Password strength bar -->
+              <div style="margin-top:0.4rem;">
+                <div style="height:4px;background:var(--rim);border-radius:999px;overflow:hidden;">
+                  <div id="strengthBar" style="height:100%;width:0;border-radius:999px;transition:all 0.3s;"></div>
+                </div>
+                <small id="strengthLabel" style="font-size:0.72rem;color:var(--text-dim);"></small>
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label" style="color:var(--text-secondary);font-size:0.82rem;text-transform:uppercase;letter-spacing:0.06em;">
+                Confirm Password <span style="color:#F87171;">*</span>
+              </label>
+              <div style="position:relative;">
+                <input type="password" class="form-control" name="confirm_password"
+                       id="confirmInput" placeholder="Repeat password" required>
+                <span id="matchIcon" style="position:absolute;right:0.75rem;top:50%;transform:translateY(-50%);font-size:0.9rem;"></span>
+              </div>
+            </div>
+
+            <div class="mb-4">
+              <label class="form-label" style="color:var(--text-secondary);font-size:0.82rem;text-transform:uppercase;letter-spacing:0.06em;">
+                Profile Photo
+              </label>
+              <input type="file" class="form-control" name="photo" accept="image/*"
+                     style="background:var(--surface-hover);border-color:var(--rim);color:var(--text-secondary);">
+              <small style="color:var(--text-dim);font-size:0.75rem;">Optional. JPG, PNG or WEBP.</small>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100 py-3" id="submitBtn"
+                    style="font-family:'Playfair Display',serif;letter-spacing:0.08em;">
+              <i class="fas fa-user-plus me-2"></i>CREATE ADMIN ACCOUNT
+            </button>
+          </form>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ── EXISTING ADMINS TABLE ── -->
+    <div class="col-lg-7">
+      <div class="card gsap-up" id="adminsCard">
+        <div class="card-header d-flex align-items-center justify-content-between">
+          <div class="d-flex align-items-center gap-2">
+            <i class="fas fa-shield-alt" style="color:var(--gold);"></i>
+            <h5 class="mb-0">Existing Administrators</h5>
+          </div>
+          <span class="badge" style="background:var(--gold-subtle);color:var(--gold);border:1px solid var(--gold-border);">
+            {{ admins|length }} admin{{ admins|length|pluralize }}
+          </span>
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-hover mb-0">
+              <thead>
+                <tr>
+                  <th style="width:42px;">#</th>
+                  <th>Name</th>
+                  <th>Username</th>
+                  <th>Email</th>
+                  <th>Joined</th>
+                  <th style="width:80px;">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for admin in admins %}
+                <tr class="admin-row">
+                  <td style="color:var(--text-dim);">{{ forloop.counter }}</td>
+                  <td>
+                    <div class="d-flex align-items-center gap-2">
+                      {% if admin.admin_profile.photo %}
+                      <img src="{{ admin.admin_profile.photo.url }}" alt="Photo"
+                           style="width:32px;height:32px;border-radius:50%;object-fit:cover;border:1px solid var(--gold-border);flex-shrink:0;" />
+                      {% else %}
+                      <div style="width:32px;height:32px;border-radius:50%;
+                                  background:linear-gradient(135deg,var(--gold-subtle),rgba(245,197,24,0.05));
+                                  border:1px solid var(--gold-border);
+                                  display:flex;align-items:center;justify-content:center;
+                                  font-size:0.75rem;font-weight:700;color:var(--gold);flex-shrink:0;">
+                        {{ admin.first_name|slice:":1"|upper|default:admin.username|slice:":1"|upper }}
+                      </div>
+                      {% endif %}
+                      <div>
+                        <div style="font-weight:600;color:var(--text-primary);font-size:0.88rem;">
+                          {{ admin.get_full_name|default:admin.username }}
+                        </div>
+                        {% if admin.id == request.user.id %}
+                        <small style="color:var(--gold);font-size:0.7rem;">
+                          <i class="fas fa-circle me-1" style="font-size:0.45rem;vertical-align:middle;"></i>You
+                        </small>
+                        {% endif %}
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <code style="color:var(--text-secondary);background:var(--surface-hover);padding:2px 7px;border-radius:4px;font-size:0.8rem;">
+                      {{ admin.username }}
+                    </code>
+                  </td>
+                  <td style="color:var(--text-secondary);font-size:0.84rem;">
+                    {{ admin.email|default:"—" }}
+                  </td>
+                  <td style="color:var(--text-dim);font-size:0.8rem;">
+                    {{ admin.date_joined|date:"d M Y" }}
+                  </td>
+                  <td>
+                    <div class="d-flex align-items-center gap-1">
+                      <button type="button"
+                              class="btn btn-sm update-photo-btn"
+                              data-admin-id="{{ admin.id }}"
+                              data-admin-name="{{ admin.get_full_name|default:admin.username }}"
+                              title="Update profile photo"
+                              style="background:rgba(217,164,65,0.1);border:1px solid rgba(217,164,65,0.3);
+                                     color:var(--gold);padding:4px 9px;">
+                        <i class="fas fa-camera"></i>
+                      </button>
+                      {% if admin.id != request.user.id %}
+                      <button type="button"
+                              class="btn btn-sm delete-admin-btn"
+                              data-admin-id="{{ admin.id }}"
+                              data-admin-name="{{ admin.get_full_name|default:admin.username }}"
+                              title="Delete admin"
+                              style="background:rgba(240,72,72,0.1);border:1px solid rgba(240,72,72,0.3);
+                                     color:#F87171;padding:4px 9px;">
+                        <i class="fas fa-trash"></i>
+                      </button>
+                      {% endif %}
+                    </div>
+                  </td>
+                </tr>
+                {% empty %}
+                <tr>
+                  <td colspan="6" class="text-center py-4" style="color:var(--text-dim);">
+                    No admins found.
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block modals %}
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteAdminModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content" style="background:var(--surface);border:1px solid var(--rim);">
+      <div class="modal-header" style="border-color:var(--rim);">
+        <h5 class="modal-title" style="color:var(--gold);">
+          <i class="fas fa-exclamation-triangle me-2" style="color:#F87171;"></i>Delete Admin Account
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" style="color:var(--text-secondary);">
+        Are you sure you want to delete admin <strong id="deleteAdminName" style="color:var(--text-primary);"></strong>?
+        <br><small style="color:#F87171;">This cannot be undone. The admin will lose all access immediately.</small>
+      </div>
+      <div class="modal-footer" style="border-color:var(--rim);">
+        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+        <form method="post" id="deleteAdminForm" style="display:inline;">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-sm" style="background:#F04848;color:#fff;border:none;">
+            <i class="fas fa-trash me-1"></i>Yes, Delete
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Update Photo Modal -->
+<div class="modal fade" id="updatePhotoModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content" style="background:var(--surface);border:1px solid var(--rim);">
+      <div class="modal-header" style="border-color:var(--rim);">
+        <h5 class="modal-title" style="color:var(--gold);">
+          <i class="fas fa-camera me-2"></i>Update Profile Photo
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <form method="post" id="updatePhotoForm" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="modal-body" style="color:var(--text-secondary);">
+          <p>Choose a new profile photo for <strong id="updatePhotoAdminName" style="color:var(--text-primary);"></strong>.</p>
+          <div class="mb-3">
+            <input type="file" class="form-control" name="photo" accept="image/*" required
+                   style="background:var(--surface-hover);border-color:var(--rim);color:var(--text-secondary);">
+            <small style="color:var(--text-dim);font-size:0.75rem;">Supported formats: JPG, PNG, WEBP.</small>
+          </div>
+        </div>
+        <div class="modal-footer" style="border-color:var(--rim);">
+          <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-sm" style="background:var(--gold);color:#000;border:none;font-weight:600;">
+            <i class="fas fa-upload me-1"></i>Upload Photo
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// ── GSAP entrance ────────────────────────────────────────────────
+if (typeof gsap !== 'undefined') {
+  gsap.fromTo('#createCard',
+    { opacity: 0, x: -30 },
+    { opacity: 1, x: 0, duration: 0.6, ease: 'power3.out', delay: 0.15 }
+  );
+  gsap.fromTo('#adminsCard',
+    { opacity: 0, x: 30 },
+    { opacity: 1, x: 0, duration: 0.6, ease: 'power3.out', delay: 0.25 }
+  );
+  gsap.fromTo('.admin-row',
+    { opacity: 0, x: -14 },
+    { opacity: 1, x: 0, duration: 0.4, stagger: 0.055, ease: 'power2.out', delay: 0.45 }
+  );
+  const flashMsg = document.getElementById('flashMsg');
+  if (flashMsg) gsap.fromTo(flashMsg, { opacity:0, x:20 }, { opacity:1, x:0, duration:0.5, delay:0.2 });
+  const errAlert = document.getElementById('errAlert');
+  if (errAlert) {
+    gsap.fromTo(errAlert, { opacity:0, x:20 }, { opacity:1, x:0, duration:0.4, delay:0.2 });
+    gsap.to(errAlert, { x:5, duration:0.08, repeat:5, yoyo:true, ease:'none', delay:0.4 });
+  }
+}
+
+// ── Password toggle ───────────────────────────────────────────────
+document.getElementById('togglePass').addEventListener('click', function() {
+  const inp  = document.getElementById('passInput');
+  const icon = document.getElementById('eyeIcon');
+  if (inp.type === 'password') { inp.type = 'text';     icon.className = 'fas fa-eye-slash'; }
+  else                         { inp.type = 'password'; icon.className = 'fas fa-eye'; }
+});
+
+// ── Password strength meter ───────────────────────────────────────
+document.getElementById('passInput').addEventListener('input', function() {
+  const val = this.value;
+  const bar  = document.getElementById('strengthBar');
+  const lbl  = document.getElementById('strengthLabel');
+  let score = 0;
+  if (val.length >= 8)               score++;
+  if (/[A-Z]/.test(val))             score++;
+  if (/[0-9]/.test(val))             score++;
+  if (/[^A-Za-z0-9]/.test(val))      score++;
+  const map = [
+    { w:'0%',   color:'transparent', text:'' },
+    { w:'25%',  color:'#F04848',     text:'Weak' },
+    { w:'50%',  color:'#F59E0B',     text:'Fair' },
+    { w:'75%',  color:'#3B82F6',     text:'Good' },
+    { w:'100%', color:'#14B87A',     text:'Strong' },
+  ];
+  bar.style.width = map[score].w;
+  bar.style.background = map[score].color;
+  lbl.textContent = map[score].text;
+  lbl.style.color = map[score].color;
+});
+
+// ── Confirm password match indicator ──────────────────────────────
+function checkMatch() {
+  const pass    = document.getElementById('passInput').value;
+  const confirm = document.getElementById('confirmInput').value;
+  const icon    = document.getElementById('matchIcon');
+  if (!confirm) { icon.innerHTML = ''; return; }
+  if (pass === confirm) {
+    icon.innerHTML = '<i class="fas fa-check-circle" style="color:#34D399;"></i>';
+  } else {
+    icon.innerHTML = '<i class="fas fa-times-circle" style="color:#F87171;"></i>';
+  }
+}
+document.getElementById('passInput').addEventListener('input', checkMatch);
+document.getElementById('confirmInput').addEventListener('input', checkMatch);
+
+// ── Submit loading state ──────────────────────────────────────────
+document.getElementById('createAdminForm').addEventListener('submit', function() {
+  const btn = document.getElementById('submitBtn');
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Creating…';
+  btn.disabled = true;
+});
+
+// ── Focus glow ────────────────────────────────────────────────────
+document.querySelectorAll('.form-control').forEach(inp => {
+  inp.addEventListener('focus', () => {
+    if (typeof gsap !== 'undefined')
+      gsap.to(inp, { boxShadow: '0 0 0 3px rgba(245,197,24,0.18)', duration: 0.2 });
+  });
+  inp.addEventListener('blur', () => {
+    if (typeof gsap !== 'undefined')
+      gsap.to(inp, { boxShadow: 'none', duration: 0.2 });
+  });
+});
+
+// ── Delete modal ─────────────────────────────────────────────────
+document.querySelectorAll('.delete-admin-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const id   = btn.dataset.adminId;
+    const name = btn.dataset.adminName;
+    document.getElementById('deleteAdminName').textContent = name;
+    document.getElementById('deleteAdminForm').action = `/manage/delete-admin/${id}/`;
+    new bootstrap.Modal(document.getElementById('deleteAdminModal')).show();
+  });
+});
+
+// ── Update Photo modal ─────────────────────────────────────────────
+document.querySelectorAll('.update-photo-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const id = btn.dataset.adminId;
+    const name = btn.dataset.adminName;
+    document.getElementById('updatePhotoAdminName').textContent = name;
+    document.getElementById('updatePhotoForm').action = `/manage/update-admin-photo/${id}/`;
+    new bootstrap.Modal(document.getElementById('updatePhotoModal')).show();
+  });
+});
+</script>
+{% endblock %}

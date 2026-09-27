@@ -1,0 +1,263 @@
+{% load static %}
+<!-- ═══════════════════════════════════════════════════════
+     SRMS CHATBOT WIDGET  — include in any base template
+     ═══════════════════════════════════════════════════════ -->
+
+<!-- Floating Trigger -->
+<button id="srms-chat-trigger" aria-label="Open SRMS Assistant" title="SRMS Assistant">
+  <i class="fas fa-robot"></i>
+  <span id="srms-chat-badge" style="display:none;">1</span>
+</button>
+
+<!-- Chat Window -->
+<div id="srms-chat-window" role="dialog" aria-label="SRMS Chatbot" aria-modal="true">
+
+  <!-- Header -->
+  <div id="srms-chat-header">
+    <div class="chat-avatar">🤖</div>
+    <div class="chat-header-info">
+      <h6>SRMS Assistant</h6>
+      <small><i class="fas fa-circle" style="font-size:7px;"></i> Online — AI powered</small>
+    </div>
+    <button id="srms-chat-close" aria-label="Close chat"><i class="fas fa-times"></i></button>
+  </div>
+
+  <!-- Messages -->
+  <div id="srms-chat-messages" aria-live="polite" data-lenis-prevent>
+    <!-- Welcome bubble injected by JS -->
+  </div>
+
+  <!-- Quick Reply Chips -->
+  <div id="srms-quick-replies" aria-label="Quick questions">
+    <button class="quick-reply-chip" data-msg="Show my child's results">📊 Results</button>
+    <button class="quick-reply-chip" data-msg="How to download result PDF">📄 PDF Download</button>
+    <button class="quick-reply-chip" data-msg="Show attendance">📅 Attendance</button>
+    <button class="quick-reply-chip" data-msg="I can't login, help me">🔐 Login Help</button>
+    <button class="quick-reply-chip" data-msg="Show latest notices">📢 Notices</button>
+    <button class="quick-reply-chip" data-msg="How to contact admin">📞 Contact</button>
+  </div>
+
+  <!-- Input -->
+  <form id="srms-chat-form" autocomplete="off" data-no-loading>
+    {% csrf_token %}
+    <input
+      type="text"
+      id="srms-chat-input"
+      placeholder="Ask me anything…"
+      aria-label="Chat message"
+      maxlength="500"
+    />
+    <button type="submit" id="srms-chat-send" aria-label="Send message">
+      <i class="fas fa-paper-plane"></i>
+    </button>
+  </form>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  const CHATBOT_URL = '/chatbot/';
+  const trigger     = document.getElementById('srms-chat-trigger');
+  const window_el   = document.getElementById('srms-chat-window');
+  const closeBtn    = document.getElementById('srms-chat-close');
+  const messages    = document.getElementById('srms-chat-messages');
+  const form        = document.getElementById('srms-chat-form');
+  const input       = document.getElementById('srms-chat-input');
+  const badge       = document.getElementById('srms-chat-badge');
+  const chips       = document.querySelectorAll('.quick-reply-chip');
+
+  let isOpen        = false;
+  let history       = [];   // [{role:'user'|'bot', content:'...'}]
+  let hasBadge      = true;
+
+  // ── CSRF token helper ───────────────────────────────
+  function getCsrf() {
+    const el = document.querySelector('[name=csrfmiddlewaretoken]');
+    return el ? el.value : '';
+  }
+
+  // ── Time helper ─────────────────────────────────────
+  function now() {
+    return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  }
+
+  // ── Format bot text (basic markdown → HTML) ─────────
+  function formatText(text) {
+    return text
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')  // **bold**
+      .replace(/\*(.*?)\*/g, '<em>$1</em>')               // *italic*
+      .replace(/→/g, '→')
+      .replace(/\n/g, '<br>');
+  }
+
+  // ── Append a message bubble ──────────────────────────
+  function appendMsg(role, text, skipScroll) {
+    const wrap   = document.createElement('div');
+    wrap.className = `chat-msg ${role}`;
+
+    const bubble = document.createElement('div');
+    bubble.className = 'chat-bubble';
+    if (role === 'bot') {
+      bubble.innerHTML = formatText(text);
+    } else {
+      bubble.textContent = text;
+    }
+
+    const time = document.createElement('span');
+    time.className = 'chat-time';
+    time.textContent = now();
+
+    wrap.appendChild(bubble);
+    wrap.appendChild(time);
+    messages.appendChild(wrap);
+
+    if (!skipScroll) {
+      messages.scrollTop = messages.scrollHeight;
+    }
+    history.push({ role: role === 'user' ? 'user' : 'model', content: text });
+    return wrap;
+  }
+
+  // ── Show typing indicator ────────────────────────────
+  function showTyping() {
+    const el = document.createElement('div');
+    el.className = 'chat-msg bot';
+    el.id = 'chat-typing-el';
+    el.innerHTML = `<div class="chat-typing">
+      <div class="typing-dot"></div>
+      <div class="typing-dot"></div>
+      <div class="typing-dot"></div>
+    </div>`;
+    messages.appendChild(el);
+    messages.scrollTop = messages.scrollHeight;
+    return el;
+  }
+
+  // ── Remove typing indicator ──────────────────────────
+  function removeTyping() {
+    const el = document.getElementById('chat-typing-el');
+    if (el) el.remove();
+  }
+
+  // ── Send message to backend ──────────────────────────
+  async function sendMessage(text) {
+    if (!text.trim()) return;
+    input.value = '';
+    appendMsg('user', text);
+
+    // Disable input while waiting
+    input.disabled = true;
+    document.getElementById('srms-chat-send').disabled = true;
+
+    const typing = showTyping();
+
+    try {
+      const res = await fetch(CHATBOT_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCsrf(),
+        },
+        body: JSON.stringify({
+          message: text,
+          history: history.slice(-6),  // last 3 pairs
+        }),
+      });
+
+      removeTyping();
+
+      if (!res.ok) throw new Error('Network error');
+      const data = await res.json();
+      appendMsg('bot', data.reply || "I'm sorry, I couldn't process that. Please try again.");
+    } catch (err) {
+      removeTyping();
+      appendMsg('bot', "⚠️ Connection issue. Please check your internet and try again.");
+    } finally {
+      input.disabled = false;
+      document.getElementById('srms-chat-send').disabled = false;
+      input.focus();
+    }
+  }
+
+  // ── Toggle chat window ───────────────────────────────
+  function toggleChat() {
+    isOpen = !isOpen;
+    if (isOpen) {
+      window_el.classList.add('chat-open');
+      // Hide icon → show X
+      trigger.querySelector('i').className = 'fas fa-times';
+      // Remove badge
+      if (hasBadge) {
+        badge.style.display = 'none';
+        hasBadge = false;
+      }
+      // Focus input with slight delay for animation
+      setTimeout(() => { input.focus(); }, 320);
+    } else {
+      window_el.classList.remove('chat-open');
+      trigger.querySelector('i').className = 'fas fa-robot';
+    }
+  }
+
+  // ── Welcome message ──────────────────────────────────
+  function showWelcome() {
+    {% if user.is_authenticated and not user.is_superuser %}
+      appendMsg('bot', "👋 Hello {{ user.get_full_name|default:user.username }}! I'm SRMS Assistant.\n\nI can help you with:\n• 📊 Your child's results & grades\n• 📅 Attendance records\n• 📄 Downloading result PDF\n• 🔐 Login or password issues\n• 📢 Latest school notices\n\nWhat would you like to know?", true);
+    {% elif user.is_authenticated and user.is_superuser %}
+      appendMsg('bot', "👋 Hello Admin! I'm SRMS Assistant.\n\nI can help parents and students with results, attendance, PDF downloads, and login issues. I'm always available on all portal pages.\n\nIs there anything I can assist you with?", true);
+    {% else %}
+      appendMsg('bot', "👋 Welcome to SRMS! I'm your AI Assistant.\n\nI can help you with:\n• 📊 Check exam results\n• 📢 View school notices\n• 🔐 Login & password help\n• 📄 PDF result download guide\n• 📞 Contact admin\n\nLog into the **Parent Portal** for personalized help about your child. What would you like to know?", true);
+    {% endif %}
+    messages.scrollTop = messages.scrollHeight;
+  }
+
+  // ── Quick reply chips ────────────────────────────────
+  chips.forEach(chip => {
+    chip.addEventListener('click', () => {
+      if (!isOpen) toggleChat();
+      sendMessage(chip.dataset.msg);
+    });
+  });
+
+  // ── Form submit ──────────────────────────────────────
+  form.addEventListener('submit', e => {
+    e.preventDefault();
+    sendMessage(input.value.trim());
+  });
+
+  // ── Enter key (not shift+enter) ─────────────────────
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      form.dispatchEvent(new Event('submit'));
+    }
+  });
+
+  // ── Open/close toggle ────────────────────────────────
+  trigger.addEventListener('click', toggleChat);
+  closeBtn.addEventListener('click', toggleChat);
+
+  // ── ESC key closes chat ──────────────────────────────
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && isOpen) toggleChat();
+  });
+
+  // ── Show badge on page load ──────────────────────────
+  setTimeout(() => {
+    badge.style.display = 'flex';
+  }, 2500);
+
+  // ── Init welcome ─────────────────────────────────────
+  showWelcome();
+
+  // ── Fix scroll inside chat (prevent Lenis/GSAP interception) ─────────────
+  messages.addEventListener('wheel', function(e) {
+    e.stopPropagation();
+  }, { passive: true });
+  messages.addEventListener('touchmove', function(e) {
+    e.stopPropagation();
+  }, { passive: true });
+
+})();
+</script>

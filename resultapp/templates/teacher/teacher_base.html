@@ -1,0 +1,205 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#0D1117">
+  <meta name="format-detection" content="telephone=no">
+  <title>{% block title %}Teacher Portal — SRMS{% endblock %}</title>
+  <link rel="icon" type="image/png" href="{% static 'images/srms-logo-mark.png' %}">
+
+  <!-- Mobile perf/device detection — must run before any other script -->
+  <script src="{% static 'js/mobile-performance.js' %}"></script>
+
+  <!-- Dark mode preference — must run before render to avoid flash -->
+  <script>
+  (function(){
+    var stored = localStorage.getItem('srms-theme');
+    var pref = stored || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    document.documentElement.setAttribute('data-theme', pref);
+  })();
+  </script>
+
+  <!-- Self-hosted Fonts — Brutalist Heritage -->
+  <link rel="stylesheet" href="{% static 'vendor/fonts/fonts.css' %}">
+
+  <link href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet" />
+  <link rel="stylesheet" href="{% static 'vendor/fontawesome/css/all.min.css' %}" />
+  <link rel="stylesheet" href="{% static 'vendor/lenis/lenis.css' %}">
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+  <link rel="stylesheet" href="{% static 'css/mobile-performance.css' %}">
+  <link rel="stylesheet" href="{% static 'css/admin-theme.css' %}?v=1.8">
+  <link rel="stylesheet" href="{% static 'css/dark-mode.css' %}">
+
+  <style>
+  /* ── TEACHER PORTAL ACCENT ─────────────────────── */
+  :root {
+    --teacher-accent: #34D399;
+    --teacher-accent-dim: rgba(52,211,153,0.12);
+    --teacher-accent-border: rgba(52,211,153,0.35);
+  }
+  .teacher-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.22rem 0.65rem;
+    background: var(--teacher-accent-dim);
+    border: 1px solid var(--teacher-accent-border);
+    border-radius: 20px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--teacher-accent);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  body.admin-page .sidebar .nav-link.active {
+    background: rgba(52,211,153,0.15) !important;
+    border-left: 3px solid var(--teacher-accent);
+    color: var(--teacher-accent) !important;
+  }
+  body.admin-page .sidebar .nav-link:hover { color: var(--teacher-accent) !important; }
+  body.admin-page .admin-avatar-section h6 i { color: var(--teacher-accent); }
+  </style>
+
+  {% block extra_css %}{% endblock %}
+</head>
+<body class="admin-page">
+
+  <!-- ─── PAGE LOADER ─── -->
+  <div id="page-loader">
+    <div class="loader-inner">
+      <img src="{% static 'images/srms-logo-mark.png' %}" alt="SRMS" class="loader-logo">
+      <div class="loader-label">Teacher Portal</div>
+      <div class="loader-track">
+        <div class="loader-fill" id="loaderFill"></div>
+      </div>
+    </div>
+  </div>
+
+  {% include 'topbar.html' %}
+
+  <div class="container-fluid" style="padding-top:60px;">
+    <div class="row g-0">
+
+      <!-- SIDEBAR -->
+      <div class="col-md-3 col-lg-2 sidebar-wrapper" data-lenis-prevent style="min-height:calc(100vh - 60px);">
+        <nav class="sidebar py-3 px-2 d-flex flex-column h-100">
+
+          <!-- Avatar section -->
+          <div class="admin-avatar-section mb-2">
+            <div style="width:56px;height:56px;border-radius:50%;background:var(--teacher-accent-dim);border:2px solid var(--teacher-accent);display:flex;align-items:center;justify-content:center;">
+              <i class="fas fa-chalkboard-teacher fa-lg" style="color:var(--teacher-accent);"></i>
+            </div>
+            <h6><i class="fas fa-circle" style="font-size:0.45rem;vertical-align:middle;"></i>{{ teacher.user.get_full_name|default:teacher.user.username }}</h6>
+            <div class="teacher-badge"><i class="fas fa-user-graduate"></i>Teacher</div>
+            {% if teacher.department %}<small style="color:var(--adm-text-muted);font-size:0.72rem;">{{ teacher.department }}</small>{% endif %}
+          </div>
+
+          <hr class="y-divider">
+
+          <!-- Nav links -->
+          <ul class="nav flex-column gap-1 mt-1">
+            <li class="nav-item">
+              <a href="{% url 'teacher_dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'teacher_dashboard' %}active{% endif %}">
+                <i class="fas fa-tachometer-alt"></i> Dashboard
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="{% url 'teacher_students' %}" class="nav-link {% if request.resolver_match.url_name == 'teacher_students' %}active{% endif %}">
+                <i class="fas fa-users"></i> My Students
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="{% url 'teacher_results' %}" class="nav-link {% if request.resolver_match.url_name == 'teacher_results' %}active{% endif %}">
+                <i class="fas fa-poll-h"></i> Results
+              </a>
+            </li>
+          </ul>
+
+          <div style="flex:1;"></div>
+          <hr class="y-divider">
+          <ul class="nav flex-column">
+            <li class="nav-item">
+              <a href="{% url 'teacher_logout' %}" class="nav-link text-danger">
+                <i class="fas fa-sign-out-alt"></i> Logout
+              </a>
+            </li>
+          </ul>
+        </nav>
+      </div>
+
+      <!-- MAIN -->
+      <main class="col-md-9 col-lg-10">
+        {% if messages %}
+        <div class="px-3 pt-3">
+          {% for message in messages %}
+          <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
+            <i class="fas fa-info-circle me-2"></i>{{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+          {% endfor %}
+        </div>
+        {% endif %}
+
+        {% block content %}{% endblock %}
+      </main>
+
+    </div>
+  </div>
+
+  <script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+  <script src="{% static 'vendor/gsap/gsap.min.js' %}"></script>
+  <script src="{% static 'vendor/gsap/ScrollTrigger.min.js' %}"></script>
+  <script src="{% static 'vendor/lenis/lenis.min.js' %}"></script>
+  <script src="{% static 'js/admin-list.js' %}"></script>
+
+  <!-- Composable Animations Toolkit -->
+  <script src="{% static 'js/animations/reveal.js' %}"></script>
+  <script src="{% static 'js/animations/counters.js' %}"></script>
+  <script src="{% static 'js/animations/transitions.js' %}"></script>
+  <script src="{% static 'js/animations/micro.js' %}"></script>
+  <script src="{% static 'js/animations/main.js' %}"></script>
+
+  <script>
+  // Page loader - near-instant fade-out
+  document.addEventListener('DOMContentLoaded', function () {
+    var loader = document.getElementById('page-loader');
+    if (!loader) return;
+
+    function hideLoaderInstant() {
+      if (loader.dataset.hidden) return;
+      loader.dataset.hidden = 'true';
+      loader.style.transition = 'opacity .2s ease';
+      loader.style.opacity = '0';
+      setTimeout(function () {
+        if (loader.parentNode) {
+          loader.parentNode.removeChild(loader);
+        }
+      }, 200);
+    }
+
+    if (document.readyState === 'complete') {
+      hideLoaderInstant();
+    } else {
+      window.addEventListener('load', hideLoaderInstant);
+      setTimeout(hideLoaderInstant, 400);
+    }
+  });
+
+  // Dark mode toggle
+  document.addEventListener('DOMContentLoaded', function () {
+    var btn = document.getElementById('darkToggleBtn');
+    if (!btn) return;
+    btn.addEventListener('click', function () {
+      var current = document.documentElement.getAttribute('data-theme');
+      var next = current === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', next);
+      localStorage.setItem('srms-theme', next);
+    });
+  });
+  </script>
+
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

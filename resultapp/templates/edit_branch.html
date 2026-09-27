@@ -1,0 +1,89 @@
+{% extends 'admin_base.html' %} 
+{% load static %}
+{% block content %}
+
+<div class="container">
+    <h2 class="mb-4 gsap-left"><i class="fas fa-edit"></i> Edit Branch</h2>
+    <form method="post">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label for="branchname" class="form-label">Branch Name</label>
+            <input type="text" class="form-control" id="branchname" name="branchname" value="{{ branch_obj.branch_name }}" required>
+            <small class="text-muted">e.g., BSc Computer Science, BSc Information Technology, BCA</small>
+        </div>
+
+        <div class="mb-3">
+            <label for="branchcode" class="form-label">Branch Code</label>
+            <input type="text" class="form-control" id="branchcode" name="branchcode" maxlength="20" value="{{ branch_obj.branch_code }}" required>
+            <small class="text-muted">e.g., BSCCS, BSCIT, BCA</small>
+        </div>
+
+        <div class="mb-3">
+            <label for="description" class="form-label">Description <span class="text-muted">(optional)</span></label>
+            <textarea class="form-control" id="description" name="description" rows="3">{{ branch_obj.description }}</textarea>
+        </div>
+
+        <button type="submit" class="btn btn-success">
+            <i class="fas fa-check-circle me-1"></i>Submit
+        </button>
+        <a href="{% url 'manage_branches' %}" class="btn btn-secondary">
+            <i class="fas fa-times me-1"></i>Cancel
+        </a>
+    </form>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function() {
+  if (typeof gsap === 'undefined') return;
+
+  // Page header slide-in
+  gsap.fromTo('h2',
+    { opacity: 0, x: -30 },
+    { opacity: 1, x: 0, duration: 0.6, ease: 'power3.out', delay: 0.1 }
+  );
+
+  // Card(s) entrance
+  gsap.fromTo('.card',
+    { opacity: 0, y: 40, scale: 0.97 },
+    { opacity: 1, y: 0, scale: 1, duration: 0.65, ease: 'back.out(1.4)', delay: 0.2, stagger: 0.08 }
+  );
+
+  // Form fields stagger
+  gsap.fromTo('.form-control, .form-select, .form-check',
+    { opacity: 0, x: -16 },
+    { opacity: 1, x: 0, duration: 0.45, stagger: 0.06, ease: 'power3.out', delay: 0.45 }
+  );
+
+  // Buttons entrance
+  gsap.fromTo('.btn',
+    { opacity: 0, y: 12 },
+    { opacity: 1, y: 0, duration: 0.4, stagger: 0.07, ease: 'power3.out', delay: 0.75 }
+  );
+
+  // Alert slide-in
+  document.querySelectorAll('.alert').forEach(function(el) {
+    gsap.fromTo(el, { opacity: 0, x: 24 }, { opacity: 1, x: 0, duration: 0.5, ease: 'power3.out' });
+  });
+
+  // Focus glow on inputs
+  document.querySelectorAll('.form-control, .form-select').forEach(function(inp) {
+    inp.addEventListener('focus', function() {
+      gsap.to(inp, { boxShadow: '0 0 0 3px rgba(245,197,24,0.18)', duration: 0.2 });
+    });
+    inp.addEventListener('blur', function() {
+      gsap.to(inp, { boxShadow: 'none', duration: 0.2 });
+    });
+  });
+
+  // Table row stagger (if any)
+  gsap.fromTo('tbody tr',
+    { opacity: 0, x: -10 },
+    { opacity: 1, x: 0, duration: 0.15, stagger: 0.008, ease: 'power2.out', delay: 0.08 }
+  );
+  
+})();
+</script>
+{% endblock %}

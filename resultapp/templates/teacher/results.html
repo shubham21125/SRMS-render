@@ -1,0 +1,84 @@
+{% extends 'teacher/teacher_base.html' %}
+{% load static %}
+
+{% block title %}Results — Teacher Portal{% endblock %}
+
+{% block content %}
+<div class="p-4">
+  <div class="d-flex align-items-center gap-3 mb-4">
+    <div style="width:46px;height:46px;border-radius:var(--adm-radius-md);background:rgba(96,165,250,0.12);display:flex;align-items:center;justify-content:center;">
+      <i class="fas fa-poll-h" style="color:#60A5FA;font-size:1.15rem;"></i>
+    </div>
+    <div>
+      <h2 class="mb-0" style="font-size:1.45rem;font-weight:700;">Results</h2>
+      <small style="color:var(--adm-text-muted);">Scoped to your assigned subjects &amp; classes</small>
+    </div>
+  </div>
+
+  <!-- Subject filter pills -->
+  <div class="d-flex gap-2 flex-wrap mb-3">
+    {% for subj in assigned_subjects %}
+    <span class="badge" style="background:rgba(167,139,250,0.14);color:#A78BFA;border:1px solid rgba(167,139,250,0.3);font-size:0.75rem;padding:0.35rem 0.75rem;border-radius:20px;">
+      <i class="fas fa-book-open me-1"></i>{{ subj.subject_name }}
+    </span>
+    {% endfor %}
+  </div>
+
+  <!-- Search -->
+  <div class="card mb-3">
+    <div class="card-body py-2 px-3">
+      <form method="get" class="d-flex gap-2 align-items-center" data-no-loading>
+        <i class="fas fa-search" style="color:var(--adm-text-muted);"></i>
+        <input type="text" name="q" value="{{ q }}" class="form-control form-control-sm border-0 shadow-none" placeholder="Search by student name, roll ID or subject…" style="background:transparent;color:var(--adm-text);">
+        {% if q %}<a href="{% url 'teacher_results' %}" class="btn btn-sm btn-outline-secondary">Clear</a>{% endif %}
+      </form>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <h5 class="mb-0"><i class="fas fa-table me-2" style="color:#60A5FA;"></i>Results ({{ page_obj.paginator.count }})</h5>
+    </div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover mb-0">
+          <thead>
+            <tr>
+              <th>Roll ID</th><th>Student</th><th>Class</th><th>Subject</th>
+              <th>Theory</th><th>Internal</th><th>Total</th><th>%</th><th>Grade</th><th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for r in results %}
+            <tr>
+              <td><code style="color:var(--teacher-accent);font-size:0.8rem;">{{ r.student.roll_id }}</code></td>
+              <td><strong style="color:var(--adm-text);font-size:0.9rem;">{{ r.student.name }}</strong></td>
+              <td style="color:var(--adm-text-secondary);font-size:0.85rem;">{{ r.student_class.class_name }}{% if r.student_class.section %} – {{ r.student_class.section }}{% endif %}</td>
+              <td style="color:var(--adm-text-secondary);font-size:0.85rem;">{{ r.subject.subject_name }}</td>
+              <td>{{ r.theory_marks }}</td>
+              <td>{{ r.internal_marks }}</td>
+              <td><strong style="color:var(--adm-text);">{{ r.total_obtained }}/{{ r.total_max }}</strong></td>
+              <td style="font-weight:600;{% if r.subject_percentage >= 60 %}color:var(--success);{% elif r.subject_percentage >= 40 %}color:var(--gold);{% else %}color:var(--danger);{% endif %}">{{ r.subject_percentage }}%</td>
+              <td><span class="badge" style="background:rgba(99,102,241,0.18);color:var(--info);">{{ r.nep_grade }}</span></td>
+              <td>
+                {% if r.is_subject_pass %}
+                  <span class="badge" style="background:rgba(52,211,153,0.15);color:var(--success);">PASS</span>
+                {% else %}
+                  <span class="badge" style="background:rgba(248,113,113,0.15);color:var(--danger);">FAIL</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="10" class="text-center py-5" style="color:var(--adm-text-muted);">
+              <i class="fas fa-inbox fa-2x mb-2" style="opacity:0.3;"></i><br>No results found for your assigned subjects.
+            </td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  {% include '_pagination.html' %}
+</div>
+{% endblock %}

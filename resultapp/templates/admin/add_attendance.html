@@ -1,0 +1,1200 @@
+{% extends 'admin_base.html' %}
+{% load static %}
+{% block title %}Mark Attendance — SRMS{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ── ATTENDANCE REDESIGN TOKENS & STYLES ──────────────────── */
+:root {
+  --att-header-bg: var(--adm-surface, #ffffff);
+  --att-row-hover: rgba(79, 70, 229, 0.03);
+  --att-row-alt: var(--adm-surface-muted, #f8fafc);
+  --att-border: var(--adm-border, #e2e8f0);
+}
+
+[data-theme="dark"] {
+  --att-header-bg: #1a1f2e;
+  --att-row-hover: rgba(240, 184, 74, 0.05);
+  --att-row-alt: rgba(255, 255, 255, 0.02);
+  --att-border: rgba(255, 255, 255, 0.08);
+}
+
+/* Step badges */
+.step-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px; height: 24px;
+  background: var(--adm-primary-light, rgba(79,70,229,0.12));
+  border: 1px solid var(--adm-primary, rgba(79,70,229,0.3));
+  border-radius: 50%;
+  color: var(--adm-primary, #4f46e5);
+  font-size: 0.75rem;
+  font-weight: 700;
+  margin-right: 0.4rem;
+  flex-shrink: 0;
+}
+.step-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--adm-text-secondary, #5c6480);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.45rem;
+}
+
+/* Working days chip */
+.badge-working-days {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  background: var(--adm-success-bg, rgba(23, 165, 107, 0.12));
+  color: var(--adm-success, #17a56b);
+  border: 1px solid var(--adm-success, rgba(23, 165, 107, 0.3));
+  transition: all 0.25s ease;
+}
+
+/* Bulk action sticky bar */
+.bulk-action-bar {
+  position: sticky;
+  top: 60px;
+  z-index: 20;
+  background: var(--adm-surface, #ffffff);
+  border: 1px solid var(--att-border);
+  border-radius: 12px;
+  padding: 0.65rem 1rem;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.05);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  margin-bottom: 1rem;
+}
+
+/* Live counter */
+.live-counter {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--adm-text, #1b2033);
+}
+.live-counter .badge {
+  font-size: 0.78rem;
+  padding: 0.3em 0.6em;
+  border-radius: 6px;
+}
+.live-counter .divider {
+  color: var(--adm-text-muted, #9aa1b8);
+}
+
+/* Search Box */
+.search-box-wrap {
+  position: relative;
+  min-width: 220px;
+  max-width: 320px;
+}
+.search-box-wrap i {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--adm-text-muted, #9aa1b8);
+  font-size: 0.8rem;
+  pointer-events: none;
+}
+.search-box-wrap input {
+  padding-left: 2rem !important;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  border-color: var(--att-border);
+  background: var(--adm-surface, #ffffff);
+  color: var(--adm-text, #1b2033);
+}
+.search-box-wrap input:focus {
+  border-color: var(--adm-primary, #4f46e5);
+  box-shadow: 0 0 0 3px var(--adm-primary-ring, rgba(79,70,229,0.18));
+}
+
+/* Table container & styling */
+.att-table-container {
+  border: 1px solid var(--att-border);
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--adm-surface, #ffffff);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.03);
+}
+.att-table {
+  margin-bottom: 0;
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+.att-table thead th {
+  position: sticky;
+  top: 122px;
+  z-index: 15;
+  background: var(--att-header-bg);
+  border-bottom: 2px solid var(--att-border);
+  font-size: 0.76rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--adm-text-secondary, #5c6480);
+  padding: 0.75rem 0.85rem;
+  white-space: nowrap;
+}
+.att-table tbody tr {
+  border-bottom: 1px solid var(--att-border);
+  transition: background 0.15s ease;
+}
+.att-table tbody tr:hover {
+  background: var(--att-row-hover);
+}
+.att-table tbody tr:nth-child(even) {
+  background-color: var(--att-row-alt);
+}
+.att-table tbody tr:nth-child(even):hover {
+  background-color: var(--att-row-hover);
+}
+.att-table tbody tr:last-child {
+  border-bottom: none;
+}
+.att-table td {
+  padding: 0.55rem 0.85rem;
+  vertical-align: middle;
+  border: none;
+  border-bottom: 1px solid var(--att-border);
+}
+
+/* Student name & avatar */
+.student-avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--adm-primary-light, rgba(79,70,229,0.12));
+  color: var(--adm-primary, #4f46e5);
+  font-weight: 700;
+  font-size: 0.75rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-right: 0.6rem;
+}
+.student-name-text {
+  font-weight: 600;
+  font-size: 0.88rem;
+  color: var(--adm-text, #1b2033);
+}
+.badge-roll {
+  font-family: monospace, system-ui;
+  font-size: 0.78rem;
+  background: var(--adm-surface-muted, #f1f5f9);
+  color: var(--adm-text-secondary, #475569);
+  border: 1px solid var(--att-border);
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+}
+
+/* Two-state pill status toggle */
+.status-pill-toggle {
+  display: inline-flex;
+  background: var(--adm-surface-muted, #f1f5f9);
+  border: 1px solid var(--att-border);
+  border-radius: 20px;
+  padding: 2px;
+  gap: 2px;
+}
+.status-pill-toggle button {
+  border: none;
+  background: transparent;
+  padding: 0.25rem 0.75rem;
+  border-radius: 16px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--adm-text-secondary, #5c6480);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  line-height: 1.2;
+}
+.status-pill-toggle button.active-present {
+  background: var(--adm-success, #17a56b) !important;
+  color: #ffffff !important;
+  box-shadow: 0 2px 8px rgba(23, 165, 107, 0.3);
+}
+.status-pill-toggle button.active-absent {
+  background: var(--adm-danger, #e33d5e) !important;
+  color: #ffffff !important;
+  box-shadow: 0 2px 8px rgba(227, 61, 94, 0.3);
+}
+
+/* Row indicator when absent */
+.att-row-absent {
+  background-color: var(--adm-danger-bg, rgba(227, 61, 94, 0.05)) !important;
+}
+
+/* Remarks toggle & inline field */
+.btn-icon-remarks {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 1px dashed var(--att-border);
+  background: transparent;
+  color: var(--adm-text-muted, #9aa1b8);
+  font-size: 0.75rem;
+  transition: all 0.2s ease;
+}
+.btn-icon-remarks:hover, .btn-icon-remarks.has-remarks {
+  border-style: solid;
+  border-color: var(--adm-primary, #4f46e5);
+  color: var(--adm-primary, #4f46e5);
+  background: var(--adm-primary-light, rgba(79,70,229,0.1));
+}
+.inline-remarks-box {
+  max-width: 380px;
+}
+.inline-remarks-box input {
+  font-size: 0.78rem;
+  border-radius: 6px;
+  background: var(--adm-surface, #ffffff);
+  color: var(--adm-text, #1b2033);
+}
+
+/* Modal styling */
+.modal-confirm-summary {
+  background: var(--adm-surface-muted, #f8fafc);
+  border: 1px solid var(--att-border);
+  border-radius: 10px;
+  padding: 1rem;
+}
+.modal-confirm-summary .stat-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.3rem 0;
+  font-size: 0.88rem;
+  border-bottom: 1px dashed var(--att-border);
+}
+.modal-confirm-summary .stat-item:last-child {
+  border-bottom: none;
+}
+
+/* Mobile responsive card collapse */
+@media (max-width: 767.98px) {
+  .bulk-action-bar {
+    top: 50px;
+  }
+  .att-table thead {
+    display: none;
+  }
+  .att-table, .att-table tbody, .att-table tr, .att-table td {
+    display: block;
+    width: 100%;
+  }
+  .att-table tbody tr {
+    padding: 0.75rem 0.5rem;
+    border-bottom: 1px solid var(--att-border);
+  }
+  .att-table td {
+    padding: 0.25rem 0;
+    border: none;
+  }
+  .att-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.4rem;
+  }
+  .att-card-body {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+  }
+  .search-box-wrap {
+    min-width: 100%;
+    max-width: 100%;
+  }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="p-3">
+
+  <!-- Header -->
+  <div class="d-flex align-items-center justify-content-between mb-3 gsap-left">
+    <div>
+      <h2 class="mb-0"><i class="fas fa-calendar-check me-2" style="color:var(--gold)"></i>Mark Attendance</h2>
+      <p class="text-muted small mb-0">Record daily or multi-day bulk attendance across classes and subjects</p>
+    </div>
+  </div>
+
+  <form method="post" id="attendanceForm">
+    {% csrf_token %}
+
+    <!-- ── Configuration Card ── -->
+    <div class="card mb-3 gsap-up">
+      <div class="card-header d-flex align-items-center justify-content-between py-2">
+        <span><i class="fas fa-sliders-h me-2" style="color:var(--gold)"></i>Attendance Configuration</span>
+        <span id="bulkWorkingDaysBadge" class="badge-working-days d-none">
+          <i class="fas fa-calendar-day"></i>
+          <span id="bulkWorkingDaysText">0 working day(s)</span>
+        </span>
+      </div>
+      <div class="card-body py-3">
+        <div class="row g-3">
+
+          <!-- 1. Select Class -->
+          <div class="col-md-4">
+            <label for="classSelect" class="step-label"><span class="step-badge">1</span>Select Class</label>
+            <select class="form-select" id="classSelect" name="class" required>
+              <option value="" disabled selected>— Select Class —</option>
+              {% for cls in classes %}
+              <option value="{{ cls.id }}" data-branch="{{ cls.branch.id|default:'' }}">
+                {% if cls.branch %}{{ cls.branch.branch_code }} · {% endif %}{{ cls.class_name }} – Section {{ cls.section }}
+              </option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <!-- 2. Semester (Cascaded & auto-populated) -->
+          <div class="col-md-4">
+            <label for="semesterSelect" class="step-label">
+              <span class="step-badge">2</span>Semester
+              <span class="ms-1 text-muted" style="font-weight:400;font-size:0.75rem">(Auto-Filtered)</span>
+            </label>
+            <select class="form-select" id="semesterSelect" name="semester">
+              <option value="">— Select Class First —</option>
+            </select>
+          </div>
+
+          <!-- 3. Subject (Cascaded & auto-populated) -->
+          <div class="col-md-4">
+            <label for="subjectSelect" class="step-label">
+              <span class="step-badge">3</span>Subject
+              <span class="ms-1 text-muted" style="font-weight:400;font-size:0.75rem">(Optional)</span>
+            </label>
+            <select class="form-select" id="subjectSelect" name="subject">
+              <option value="">— General / Any Subject —</option>
+            </select>
+          </div>
+
+          <!-- 4. Date Range Configuration (Unified Single & Bulk) -->
+          <div class="col-12 pt-1 border-top" style="border-color: var(--att-border) !important;">
+            <div class="row g-3 align-items-center">
+              <div class="col-md-3 col-sm-6">
+                <label for="fromDate" class="step-label mb-1"><span class="step-badge">4</span>From Date</label>
+                <input type="date" class="form-control form-control-sm" id="fromDate" name="from_date" required>
+              </div>
+              <div class="col-md-3 col-sm-6">
+                <label for="toDate" class="step-label mb-1"><span class="step-badge">→</span>To Date</label>
+                <input type="date" class="form-control form-control-sm" id="toDate" name="to_date" required>
+              </div>
+              <div class="col-md-6 col-sm-12 d-flex align-items-end">
+                <div class="small text-muted mb-1">
+                  <i class="fas fa-info-circle me-1 text-primary"></i>
+                  <span>Single day: From = To. Date range: automatically skips Sundays and configured exclusions.</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Exclusions Toggle / Section -->
+            <div class="mt-2 pt-2">
+              <a class="text-decoration-none small fw-semibold text-secondary d-inline-flex align-items-center gap-1"
+                 data-bs-toggle="collapse" href="#exclusionsCollapse" role="button" aria-expanded="false">
+                <i class="fas fa-chevron-right small transition-icon" id="exclChevron"></i>
+                <i class="fas fa-calendar-times text-warning me-1"></i>
+                <span>Exclude Holidays, Vacation & Emergency Closures</span>
+                <span class="badge bg-secondary ms-1" id="exclBadgeCount">0</span>
+              </a>
+
+              <div class="collapse mt-2" id="exclusionsCollapse">
+                <div class="p-3 border rounded" style="background: var(--adm-surface-muted, rgba(255,255,255,0.02)); border-color: var(--att-border);">
+                  <div id="holidayChipsContainer" class="d-flex flex-wrap gap-1 mb-2">
+                    <span class="text-muted small">No exclusions selected</span>
+                  </div>
+
+                  <input type="hidden" id="excludeDates" name="exclude_dates" value="">
+                  <input type="hidden" id="newHolidays" name="new_holidays" value="">
+
+                  <!-- Add Custom Exclusion Date -->
+                  <div class="row g-2 align-items-center pt-2 border-top" style="border-color: var(--att-border) !important; max-width: 650px;">
+                    <div class="col-sm-4">
+                      <input type="date" id="customDateInput" class="form-control form-control-sm" aria-label="Custom Date">
+                    </div>
+                    <div class="col-sm-5">
+                      <input type="text" id="customDateName" class="form-control form-control-sm" placeholder="e.g. Flood / Strike / Festival" aria-label="Custom Reason">
+                    </div>
+                    <div class="col-sm-3 d-flex align-items-center gap-2">
+                      <button type="button" class="btn btn-sm btn-outline-primary w-100" id="addCustomDateBtn">
+                        <i class="fas fa-plus me-1"></i>Add
+                      </button>
+                    </div>
+                    <div class="col-12 mt-1">
+                      <div class="form-check small">
+                        <input class="form-check-input" type="checkbox" id="saveToDbCheckbox">
+                        <label class="form-check-label text-muted" for="saveToDbCheckbox">
+                          Save this custom holiday to the database calendar
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Student Roster Area ── -->
+    <div id="studentsArea" style="display:none;">
+
+      <!-- Bulk Actions Sticky Bar -->
+      <div class="bulk-action-bar d-flex flex-wrap align-items-center justify-content-between gap-3">
+        <div class="d-flex flex-wrap align-items-center gap-2">
+          <button type="button" class="btn btn-sm btn-outline-success" id="btnMarkAllPresent">
+            <i class="fas fa-check-double me-1"></i>Mark All Present
+          </button>
+          <button type="button" class="btn btn-sm btn-outline-danger" id="btnMarkAllAbsent">
+            <i class="fas fa-times me-1"></i>Mark All Absent
+          </button>
+          <div class="live-counter ms-md-2" id="liveCounterContainer">
+            <span class="badge bg-success" id="presentBadge">0</span> Present
+            <span class="divider">·</span>
+            <span class="badge bg-danger" id="absentBadge">0</span> Absent
+            <span class="divider">·</span>
+            <span class="text-muted" id="totalBadge">0 students</span>
+          </div>
+        </div>
+
+        <div class="search-box-wrap">
+          <i class="fas fa-search"></i>
+          <input type="text" id="studentSearchInput" class="form-control form-control-sm" placeholder="Search student or roll no…">
+        </div>
+      </div>
+
+      <!-- Student Compact Table Container -->
+      <div class="att-table-container mb-3">
+        <table class="att-table" id="studentTable">
+          <thead>
+            <tr>
+              <th style="width: 45px; text-align: center;">#</th>
+              <th>Student Name</th>
+              <th style="width: 140px;">Roll No</th>
+              <th style="width: 180px; text-align: center;">Status</th>
+              <th style="width: 90px; text-align: center;">Remarks</th>
+            </tr>
+          </thead>
+          <tbody id="studentTableBody">
+            <!-- Dynamically injected rows -->
+          </tbody>
+        </table>
+        <div id="noMatchMessage" class="p-4 text-center text-muted d-none">
+          <i class="fas fa-user-slash me-2"></i>No students match the search filter.
+        </div>
+      </div>
+
+      <!-- Submit Section -->
+      <div class="card mb-4">
+        <div class="card-body d-flex flex-wrap align-items-center justify-content-between gap-3">
+          <div>
+            <div class="fw-bold" style="color:var(--adm-text);">Ready to record attendance?</div>
+            <div class="small text-muted" id="submitInfoSummary">Review present/absent statuses and click below to save.</div>
+          </div>
+          <button type="button" class="btn btn-lg" id="openConfirmBtn"
+                  style="background:var(--gold,#d9a441);color:#0a0a0a;font-weight:700;border-radius:10px;padding:0.6rem 2.2rem;box-shadow:0 4px 14px rgba(217,164,65,0.25);">
+            <i class="fas fa-check-circle me-2"></i>Save Attendance
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Placeholder prompt when no class is selected -->
+    <div id="emptyClassPrompt" class="card text-center p-5 mb-4">
+      <div class="card-body">
+        <i class="fas fa-users-class fa-3x mb-3" style="color:var(--gold,#d9a441);opacity:0.6;"></i>
+        <h5 class="fw-bold" style="color:var(--adm-text);">Select a Class to Load Roster</h5>
+        <p class="text-muted small mb-0">Choose a class from dropdown (1) above to automatically load students, subjects, and valid semesters.</p>
+      </div>
+    </div>
+
+    <!-- Hidden Submit Trigger -->
+    <button type="submit" id="realSubmitBtn" class="d-none"></button>
+  </form>
+
+</div>
+
+<!-- ── CONFIRMATION MODAL ── -->
+<div class="modal fade" id="attendanceConfirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content" style="border-radius:14px;border:1px solid var(--att-border);background:var(--adm-surface,#fff);">
+      <div class="modal-header">
+        <h5 class="modal-title fw-bold" id="confirmModalLabel" style="color:var(--adm-text);">
+          <i class="fas fa-clipboard-check me-2" style="color:var(--gold,#d9a441);"></i>Confirm Attendance Submission
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p class="small text-muted mb-3">
+          Please confirm the details below before saving. This will update the attendance records in a single atomic database operation.
+        </p>
+
+        <div class="modal-confirm-summary mb-3">
+          <div class="stat-item">
+            <span class="text-muted">Class:</span>
+            <span class="fw-semibold text-end" id="modalClassText">—</span>
+          </div>
+          <div class="stat-item">
+            <span class="text-muted">Subject:</span>
+            <span class="fw-semibold text-end" id="modalSubjectText">General / Daily Attendance</span>
+          </div>
+          <div class="stat-item">
+            <span class="text-muted">Semester:</span>
+            <span class="fw-semibold text-end" id="modalSemesterText">—</span>
+          </div>
+          <div class="stat-item">
+            <span class="text-muted">Date Range:</span>
+            <span class="fw-semibold text-end" id="modalDateRangeText">—</span>
+          </div>
+          <div class="stat-item">
+            <span class="text-muted">Working Days:</span>
+            <span class="fw-semibold text-end" id="modalWorkingDaysText">—</span>
+          </div>
+          <div class="stat-item">
+            <span class="text-muted">Roster Counts:</span>
+            <span class="fw-semibold text-end" id="modalRosterCountText">—</span>
+          </div>
+          <div class="stat-item pt-2 mt-1 border-top" style="border-color:var(--att-border) !important;">
+            <span class="fw-bold" style="color:var(--adm-text);">Total Records to Save:</span>
+            <span class="fw-bold text-primary" id="modalTotalRecordsText" style="font-size:1.05rem;">—</span>
+          </div>
+        </div>
+
+        <div class="alert alert-info py-2 px-3 small mb-0 d-flex align-items-center gap-2">
+          <i class="fas fa-info-circle fa-lg"></i>
+          <span>Parent alerts will be sent automatically for any newly recorded absences.</span>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-success btn-sm px-3" id="modalConfirmSubmitBtn">
+          <i class="fas fa-check me-1"></i>Confirm & Save
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── STATE & DOM ELEMENTS ────────────────────────────────────
+const classSelect       = document.getElementById('classSelect');
+const semesterSelect    = document.getElementById('semesterSelect');
+const subjectSelect     = document.getElementById('subjectSelect');
+const fromDateInput     = document.getElementById('fromDate');
+const toDateInput       = document.getElementById('toDate');
+const studentsArea      = document.getElementById('studentsArea');
+const emptyClassPrompt  = document.getElementById('emptyClassPrompt');
+const studentTableBody  = document.getElementById('studentTableBody');
+const noMatchMessage    = document.getElementById('noMatchMessage');
+const searchInput       = document.getElementById('studentSearchInput');
+
+const presentBadge      = document.getElementById('presentBadge');
+const absentBadge       = document.getElementById('absentBadge');
+const totalBadge        = document.getElementById('totalBadge');
+const workingDaysBadge  = document.getElementById('bulkWorkingDaysBadge');
+const workingDaysText   = document.getElementById('bulkWorkingDaysText');
+
+let currentStudents     = [];
+let currentSubjects     = [];
+let activeExclusions    = [];
+let calculatedWorkingDays = 1;
+
+// Initialize default dates to today
+const todayIso = new Date().toISOString().split('T')[0];
+fromDateInput.value = todayIso;
+toDateInput.value   = todayIso;
+
+// ── 1. CASCADING CLASS & SEMESTER / SUBJECT HANDLERS ───────
+classSelect.addEventListener('change', () => {
+  loadClassData(true);
+});
+
+semesterSelect.addEventListener('change', () => {
+  // When semester changes, filter subjects according to selected semester
+  filterSubjectsBySemester();
+  updateSubmitSummary();
+});
+
+subjectSelect.addEventListener('change', () => {
+  const chosenSubId = subjectSelect.value;
+  if (chosenSubId) {
+    const subObj = currentSubjects.find(s => String(s.id) === String(chosenSubId));
+    if (subObj && subObj.semester && (!semesterSelect.value || semesterSelect.value != subObj.semester)) {
+      // Auto-align semester dropdown to match subject
+      semesterSelect.value = subObj.semester;
+      filterSubjectsBySemester(chosenSubId);
+    }
+  }
+  updateSubmitSummary();
+});
+
+function loadClassData(resetSemester = false) {
+  const classId = classSelect.value;
+  if (!classId) {
+    studentsArea.style.display = 'none';
+    emptyClassPrompt.style.display = 'block';
+    semesterSelect.innerHTML = '<option value="">— Select Class First —</option>';
+    semesterSelect.disabled = true;
+    subjectSelect.innerHTML = '<option value="">— General / Any Subject —</option>';
+    currentStudents = [];
+    currentSubjects = [];
+    return;
+  }
+
+  // Fetch student roster, subjects, and valid semesters in one call
+  fetch(`/get_students_subjects/?class_id=${classId}`)
+    .then(res => res.json())
+    .then(data => {
+      currentStudents = data.students || [];
+      currentSubjects = data.subjects || [];
+      const validSems = data.semesters || [];
+
+      // A. Populate & Configure Semester Dropdown
+      populateSemesterDropdown(validSems, resetSemester);
+
+      // B. Populate Subject Dropdown
+      filterSubjectsBySemester();
+
+      // C. Render Student Roster
+      if (currentStudents.length === 0) {
+        studentTableBody.innerHTML = `
+          <tr>
+            <td colspan="5" class="text-center py-4 text-warning">
+              <i class="fas fa-exclamation-triangle me-2"></i>No active students found in this class.
+            </td>
+          </tr>
+        `;
+        studentsArea.style.display = 'block';
+        emptyClassPrompt.style.display = 'none';
+        updateCounters();
+        return;
+      }
+
+      renderStudentTable(currentStudents);
+      studentsArea.style.display = 'block';
+      emptyClassPrompt.style.display = 'none';
+      updateCounters();
+      recalculateDates();
+    })
+    .catch(err => {
+      console.error("Error loading class data:", err);
+      alert("Failed to load class details. Please try again.");
+    });
+}
+
+function populateSemesterDropdown(validSems, resetSelection) {
+  semesterSelect.innerHTML = '';
+  semesterSelect.disabled = false;
+
+  if (validSems.length === 0) {
+    // Non-semester class (e.g. Class 10 / general)
+    const opt = document.createElement('option');
+    opt.value = '';
+    opt.textContent = '— No Semesters (Annual) —';
+    semesterSelect.appendChild(opt);
+    semesterSelect.disabled = true;
+  } else if (validSems.length === 1) {
+    // Single semester tied to class — auto-select and lock
+    const opt = document.createElement('option');
+    opt.value = validSems[0];
+    opt.textContent = `Semester ${validSems[0]} (Class Semester)`;
+    opt.selected = true;
+    semesterSelect.appendChild(opt);
+  } else {
+    // Class spans multiple semesters (e.g. FYCS [1,2], SYCS [3,4], TYCS [5,6])
+    const defaultOpt = document.createElement('option');
+    defaultOpt.value = '';
+    defaultOpt.textContent = '— All Class Semesters —';
+    semesterSelect.appendChild(defaultOpt);
+
+    validSems.forEach(sem => {
+      const opt = document.createElement('option');
+      opt.value = sem;
+      opt.textContent = `Semester ${sem}`;
+      semesterSelect.appendChild(opt);
+    });
+  }
+}
+
+function filterSubjectsBySemester(keepSelectedSubId = null) {
+  const selectedSem = semesterSelect.value;
+  const currentVal  = keepSelectedSubId || subjectSelect.value;
+
+  subjectSelect.innerHTML = '<option value="">— General / Any Subject (Daily Attendance) —</option>';
+
+  let filtered = currentSubjects;
+  if (selectedSem) {
+    filtered = currentSubjects.filter(s => !s.semester || String(s.semester) === String(selectedSem));
+  }
+
+  filtered.forEach(sub => {
+    const opt = document.createElement('option');
+    opt.value = sub.id;
+    let label = `${sub.subject_code} · ${sub.subject_name}`;
+    if (sub.semester && !selectedSem) {
+      label += ` (Sem ${sub.semester})`;
+    }
+    opt.textContent = label;
+    if (String(sub.id) === String(currentVal)) {
+      opt.selected = true;
+    }
+    subjectSelect.appendChild(opt);
+  });
+}
+
+// ── 2. TABLE RENDERING & STATUS TOGGLES ─────────────────────
+function renderStudentTable(students) {
+  let html = '';
+  students.forEach((s, idx) => {
+    const initial = s.name ? s.name.charAt(0).toUpperCase() : '?';
+    html += `
+      <tr class="att-row" id="row_${s.id}" data-name="${s.name.toLowerCase()}" data-roll="${s.roll_id.toLowerCase()}">
+        <td class="text-center text-muted small fw-bold" style="width:45px;">${idx + 1}</td>
+        <td>
+          <div class="d-flex align-items-center">
+            <span class="student-avatar">${initial}</span>
+            <div>
+              <div class="student-name-text">${s.name}</div>
+            </div>
+          </div>
+        </td>
+        <td style="width: 140px;">
+          <span class="badge-roll">${s.roll_id}</span>
+        </td>
+        <td class="text-center" style="width: 180px;">
+          <div class="status-pill-toggle" data-student-id="${s.id}">
+            <button type="button" class="toggle-btn active-present" id="btnPresent_${s.id}" onclick="setStudentStatus('${s.id}', 'present')">
+              <i class="fas fa-check me-1"></i>Present
+            </button>
+            <button type="button" class="toggle-btn" id="btnAbsent_${s.id}" onclick="setStudentStatus('${s.id}', 'absent')">
+              <i class="fas fa-times me-1"></i>Absent
+            </button>
+            <input type="hidden" name="status_${s.id}" id="statusInput_${s.id}" value="present" class="student-status-val">
+          </div>
+        </td>
+        <td class="text-center" style="width: 90px;">
+          <button type="button" class="btn btn-icon-remarks" id="remarksToggle_${s.id}" onclick="toggleRemarks('${s.id}')" title="Add / View Remarks">
+            <i class="fas fa-plus" id="remarksIcon_${s.id}"></i>
+          </button>
+          <div class="inline-remarks-box d-none mt-1" id="remarksBox_${s.id}">
+            <div class="input-group input-group-sm">
+              <input type="text" name="remarks_${s.id}" id="remarksInput_${s.id}" class="form-control form-control-sm"
+                     placeholder="Remarks for ${s.name}…" oninput="onRemarksInput('${s.id}')">
+              <button class="btn btn-outline-secondary" type="button" onclick="toggleRemarks('${s.id}')" title="Close">
+                <i class="fas fa-check text-success"></i>
+              </button>
+            </div>
+          </div>
+        </td>
+      </tr>
+    `;
+  });
+
+  studentTableBody.innerHTML = html;
+  applySearchFilter();
+  updateCounters();
+}
+
+window.setStudentStatus = function(studentId, status) {
+  const hiddenInput = document.getElementById(`statusInput_${studentId}`);
+  const btnPres     = document.getElementById(`btnPresent_${studentId}`);
+  const btnAbs      = document.getElementById(`btnAbsent_${studentId}`);
+  const row         = document.getElementById(`row_${studentId}`);
+
+  if (!hiddenInput) return;
+  hiddenInput.value = status;
+
+  if (status === 'present') {
+    btnPres.className = 'toggle-btn active-present';
+    btnAbs.className  = 'toggle-btn';
+    if (row) row.classList.remove('att-row-absent');
+  } else {
+    btnPres.className = 'toggle-btn';
+    btnAbs.className  = 'toggle-btn active-absent';
+    if (row) row.classList.add('att-row-absent');
+  }
+
+  updateCounters();
+};
+
+window.toggleRemarks = function(studentId) {
+  const box = document.getElementById(`remarksBox_${studentId}`);
+  if (!box) return;
+  const isHidden = box.classList.contains('d-none');
+  if (isHidden) {
+    box.classList.remove('d-none');
+    const input = document.getElementById(`remarksInput_${studentId}`);
+    if (input) input.focus();
+  } else {
+    box.classList.add('d-none');
+  }
+};
+
+window.onRemarksInput = function(studentId) {
+  const input = document.getElementById(`remarksInput_${studentId}`);
+  const btn   = document.getElementById(`remarksToggle_${studentId}`);
+  const icon  = document.getElementById(`remarksIcon_${studentId}`);
+  if (!input || !btn || !icon) return;
+
+  if (input.value.trim().length > 0) {
+    btn.classList.add('has-remarks');
+    icon.className = 'fas fa-pen';
+  } else {
+    btn.classList.remove('has-remarks');
+    icon.className = 'fas fa-plus';
+  }
+};
+
+// ── 3. BULK ACTIONS & LIVE COUNTERS ────────────────────────
+document.getElementById('btnMarkAllPresent').addEventListener('click', () => {
+  currentStudents.forEach(s => {
+    setStudentStatus(s.id, 'present');
+  });
+});
+
+document.getElementById('btnMarkAllAbsent').addEventListener('click', () => {
+  currentStudents.forEach(s => {
+    setStudentStatus(s.id, 'absent');
+  });
+});
+
+function updateCounters() {
+  const statusInputs = document.querySelectorAll('.student-status-val');
+  let presentCount = 0;
+  let absentCount  = 0;
+
+  statusInputs.forEach(inp => {
+    if (inp.value === 'present') presentCount++;
+    else absentCount++;
+  });
+
+  const total = statusInputs.length;
+  presentBadge.textContent = presentCount;
+  absentBadge.textContent  = absentCount;
+  totalBadge.textContent   = `${total} student${total !== 1 ? 's' : ''}`;
+
+  updateSubmitSummary();
+}
+
+function updateSubmitSummary() {
+  const submitInfo = document.getElementById('submitInfoSummary');
+  if (!submitInfo) return;
+
+  const totalStudents = currentStudents.length;
+  const totalRecords  = totalStudents * calculatedWorkingDays;
+
+  let text = `Will record ${totalRecords} entries (${totalStudents} students × ${calculatedWorkingDays} working day(s)).`;
+  submitInfo.textContent = text;
+}
+
+// ── 4. CLIENT-SIDE SEARCH FILTER ───────────────────────────
+searchInput.addEventListener('input', applySearchFilter);
+
+function applySearchFilter() {
+  const q = searchInput.value.trim().toLowerCase();
+  const rows = document.querySelectorAll('.att-row');
+  let visibleCount = 0;
+
+  rows.forEach(r => {
+    const name = r.getAttribute('data-name') || '';
+    const roll = r.getAttribute('data-roll') || '';
+    if (!q || name.includes(q) || roll.includes(q)) {
+      r.style.display = '';
+      visibleCount++;
+    } else {
+      r.style.display = 'none';
+    }
+  });
+
+  if (visibleCount === 0 && rows.length > 0) {
+    noMatchMessage.classList.remove('d-none');
+  } else {
+    noMatchMessage.classList.add('d-none');
+  }
+}
+
+// ── 5. DATE CALCULATIONS & EXCLUSIONS ──────────────────────
+fromDateInput.addEventListener('change', () => {
+  fetchHolidaysInRange();
+  recalculateDates();
+});
+
+toDateInput.addEventListener('change', () => {
+  fetchHolidaysInRange();
+  recalculateDates();
+});
+
+function fetchHolidaysInRange() {
+  const from = fromDateInput.value;
+  const to   = toDateInput.value;
+  if (!from || !to) return;
+
+  fetch(`/get-holidays/?from_date=${from}&to_date=${to}`)
+    .then(r => r.json())
+    .then(data => {
+      const customExclusions = activeExclusions.filter(e => e.isCustom);
+      const dbExclusions = (data.holidays || []).map(h => ({
+        date: h.date,
+        name: h.name,
+        isCustom: false,
+        saveToDb: false
+      }));
+
+      const combined = [...dbExclusions];
+      customExclusions.forEach(cust => {
+        if (!combined.some(c => c.date === cust.date)) {
+          combined.push(cust);
+        }
+      });
+
+      activeExclusions = combined;
+      renderExclusionChips();
+      recalculateDates();
+    })
+    .catch(() => {});
+}
+
+function recalculateDates() {
+  const fromStr = fromDateInput.value;
+  const toStr   = toDateInput.value;
+
+  if (!fromStr || !toStr) {
+    workingDaysBadge.classList.add('d-none');
+    calculatedWorkingDays = 1;
+    updateSubmitSummary();
+    return;
+  }
+
+  const f = new Date(fromStr);
+  const t = new Date(toStr);
+
+  if (f > t) {
+    workingDaysBadge.classList.remove('d-none');
+    workingDaysBadge.className = 'badge-working-days text-danger border-danger';
+    workingDaysText.textContent = '⚠ Start date must be before end date';
+    calculatedWorkingDays = 0;
+    updateSubmitSummary();
+    return;
+  }
+
+  const excludeSet = new Set(activeExclusions.map(ex => ex.date));
+  let working = 0;
+  let excludedCount = 0;
+  const cur = new Date(f.getTime());
+
+  while (cur <= t) {
+    if (cur.getDay() !== 0) { // skip Sundays (0 = Sunday)
+      const yyyy = cur.getFullYear();
+      const mm = String(cur.getMonth() + 1).padStart(2, '0');
+      const dd = String(cur.getDate()).padStart(2, '0');
+      const curDateStr = `${yyyy}-${mm}-${dd}`;
+
+      if (excludeSet.has(curDateStr)) {
+        excludedCount++;
+      } else {
+        working++;
+      }
+    }
+    cur.setDate(cur.getDate() + 1);
+  }
+
+  const totalCalendar = Math.round((t - f) / 86400000) + 1;
+  calculatedWorkingDays = working;
+
+  workingDaysBadge.className = 'badge-working-days';
+  workingDaysBadge.classList.remove('d-none');
+  let label = `📅 ${totalCalendar} cal. day${totalCalendar !== 1 ? 's' : ''} → ${working} working day${working !== 1 ? 's' : ''} (Sundays skipped)`;
+  if (excludedCount > 0) {
+    label += ` · ${excludedCount} excluded`;
+  }
+  workingDaysText.textContent = label;
+
+  updateSubmitSummary();
+}
+
+function renderExclusionChips() {
+  const container = document.getElementById('holidayChipsContainer');
+  const badgeCount = document.getElementById('exclBadgeCount');
+  if (!container) return;
+
+  container.innerHTML = '';
+  badgeCount.textContent = activeExclusions.length;
+
+  if (activeExclusions.length === 0) {
+    container.innerHTML = '<span class="text-muted small">No exclusions selected</span>';
+    document.getElementById('excludeDates').value = '';
+    document.getElementById('newHolidays').value = '';
+    return;
+  }
+
+  activeExclusions.forEach((ex, idx) => {
+    const chip = document.createElement('div');
+    chip.className = 'badge d-inline-flex align-items-center gap-1 p-2';
+    chip.style.borderRadius = '16px';
+    chip.style.fontSize = '0.76rem';
+
+    if (ex.isCustom) {
+      chip.style.background = 'rgba(251,191,36,0.15)';
+      chip.style.color = '#FBBF24';
+      chip.style.border = '1px solid rgba(251,191,36,0.3)';
+    } else {
+      chip.style.background = 'rgba(99,102,241,0.15)';
+      chip.style.color = '#818CF8';
+      chip.style.border = '1px solid rgba(99,102,241,0.3)';
+    }
+
+    let title = `${ex.name} (${ex.date})`;
+    if (ex.isCustom && ex.saveToDb) title += ' 💾';
+
+    chip.innerHTML = `
+      <span>${title}</span>
+      <button type="button" class="btn-close btn-close-white" style="font-size:0.5rem;padding:0;border:none;background:none;color:inherit;"
+              aria-label="Remove exclusion" onclick="removeExclusion(${idx})">×</button>
+    `;
+    container.appendChild(chip);
+  });
+
+  document.getElementById('excludeDates').value = activeExclusions.map(e => e.date).join(',');
+  const customToSave = activeExclusions.filter(e => e.isCustom && e.saveToDb).map(e => ({
+    date: e.date,
+    name: e.name
+  }));
+  document.getElementById('newHolidays').value = JSON.stringify(customToSave);
+}
+
+window.removeExclusion = function(idx) {
+  activeExclusions.splice(idx, 1);
+  renderExclusionChips();
+  recalculateDates();
+};
+
+document.getElementById('addCustomDateBtn')?.addEventListener('click', () => {
+  const dateVal = document.getElementById('customDateInput').value;
+  const nameVal = document.getElementById('customDateName').value.trim() || 'Custom Exclusion';
+  const saveDb  = document.getElementById('saveToDbCheckbox').checked;
+
+  if (!dateVal) {
+    alert('Please select a valid date for exclusion.');
+    return;
+  }
+  if (activeExclusions.some(e => e.date === dateVal)) {
+    alert('This date is already excluded.');
+    return;
+  }
+
+  activeExclusions.push({
+    date: dateVal,
+    name: nameVal,
+    isCustom: true,
+    saveToDb: saveDb
+  });
+
+  document.getElementById('customDateInput').value = '';
+  document.getElementById('customDateName').value  = '';
+  document.getElementById('saveToDbCheckbox').checked = false;
+
+  renderExclusionChips();
+  recalculateDates();
+});
+
+// Chevron toggle animation for exclusions
+const exclCollapse = document.getElementById('exclusionsCollapse');
+exclCollapse?.addEventListener('show.bs.collapse', () => {
+  const icon = document.getElementById('exclChevron');
+  if (icon) icon.style.transform = 'rotate(90deg)';
+});
+exclCollapse?.addEventListener('hide.bs.collapse', () => {
+  const icon = document.getElementById('exclChevron');
+  if (icon) icon.style.transform = 'rotate(0deg)';
+});
+
+// ── 6. SUBMIT CONFIRMATION FLOW ────────────────────────────
+const confirmModalEl = document.getElementById('attendanceConfirmModal');
+let confirmModalInstance = null;
+
+document.getElementById('openConfirmBtn').addEventListener('click', () => {
+  if (!classSelect.value) {
+    alert("Please select a class first.");
+    return;
+  }
+  if (currentStudents.length === 0) {
+    alert("No students in the selected class.");
+    return;
+  }
+  if (calculatedWorkingDays <= 0) {
+    alert("Please configure a valid date range with at least 1 working day.");
+    return;
+  }
+
+  // Populate Modal Summary
+  const classText = classSelect.options[classSelect.selectedIndex].text;
+  const subText   = subjectSelect.value ? subjectSelect.options[subjectSelect.selectedIndex].text : 'General / Daily Attendance (No specific subject)';
+  const semText   = semesterSelect.value ? `Semester ${semesterSelect.value}` : (semesterSelect.disabled ? 'Annual / N/A' : 'All Semesters / General');
+  const dateRange = fromDateInput.value === toDateInput.value
+    ? fromDateInput.value
+    : `${fromDateInput.value} to ${toDateInput.value}`;
+
+  const presentCount = parseInt(presentBadge.textContent, 10) || 0;
+  const absentCount  = parseInt(absentBadge.textContent, 10) || 0;
+  const totalCount   = currentStudents.length;
+  const totalRecords = totalCount * calculatedWorkingDays;
+
+  document.getElementById('modalClassText').textContent        = classText;
+  document.getElementById('modalSubjectText').textContent      = subText;
+  document.getElementById('modalSemesterText').textContent     = semText;
+  document.getElementById('modalDateRangeText').textContent    = dateRange;
+  document.getElementById('modalWorkingDaysText').textContent  = `${calculatedWorkingDays} day${calculatedWorkingDays !== 1 ? 's' : ''}`;
+  document.getElementById('modalRosterCountText').textContent   = `${presentCount} Present · ${absentCount} Absent (${totalCount} students)`;
+  document.getElementById('modalTotalRecordsText').textContent  = `${totalRecords} Attendance Records`;
+
+  if (!confirmModalInstance && typeof bootstrap !== 'undefined') {
+    confirmModalInstance = new bootstrap.Modal(confirmModalEl);
+  }
+  if (confirmModalInstance) {
+    confirmModalInstance.show();
+  }
+});
+
+document.getElementById('modalConfirmSubmitBtn').addEventListener('click', () => {
+  if (confirmModalInstance) {
+    confirmModalInstance.hide();
+  }
+  // Trigger form submission
+  document.getElementById('realSubmitBtn').click();
+});
+
+// Run initial holiday check
+fetchHolidaysInRange();
+</script>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function() {
+  if (typeof gsap === 'undefined') return;
+  gsap.fromTo('h2', { opacity: 0, x: -20 }, { opacity: 1, x: 0, duration: 0.45, ease: 'power2.out' });
+  gsap.fromTo('.card', { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.5, stagger: 0.08, ease: 'power2.out', delay: 0.1 });
+})();
+</script>
+{% endblock %}

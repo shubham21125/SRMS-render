@@ -1,0 +1,309 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Sign In — SRMS{% endblock %}
+{% block body_class %}login-page unified-login-page{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-5 unified-login-wrap">
+  <div class="row justify-content-center align-items-center g-0" style="min-height:82vh;">
+
+    <!-- ───────────────── LEFT — ANIMATED CHARACTER PANEL ───────────────── -->
+    <div class="col-lg-6 d-none d-lg-flex" id="charPanel">
+      <div class="char-panel-inner">
+
+        <svg viewBox="0 0 560 560" id="charScene" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <defs>
+            <radialGradient id="glowGrad" cx="50%" cy="45%" r="55%">
+              <stop offset="0%" stop-color="#D9A441" stop-opacity="0.35"/>
+              <stop offset="100%" stop-color="#D9A441" stop-opacity="0"/>
+            </radialGradient>
+            <linearGradient id="deskGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#F0B84A"/>
+              <stop offset="100%" stop-color="#B88A30"/>
+            </linearGradient>
+          </defs>
+
+          <!-- ambient glow -->
+          <circle cx="280" cy="240" r="230" fill="url(#glowGrad)" id="ambGlow"/>
+
+          <!-- floating rings -->
+          <circle cx="280" cy="240" r="175" fill="none" stroke="rgba(217,164,65,0.25)" stroke-width="1.5" stroke-dasharray="4 8" id="ringOuter"/>
+          <circle cx="280" cy="240" r="140" fill="none" stroke="rgba(245,242,237,0.15)" stroke-width="1" id="ringInner"/>
+
+          <!-- floating decor: graduation cap -->
+          <g id="floatCap" transform="translate(110,120)">
+            <path d="M0 10 L40 0 L80 10 L40 20 Z" fill="#F5F2ED" opacity="0.9"/>
+            <path d="M40 20 L40 34" stroke="#F5F2ED" stroke-width="2" opacity="0.9"/>
+            <circle cx="40" cy="34" r="3" fill="#D9A441"/>
+          </g>
+
+          <!-- floating decor: book -->
+          <g id="floatBook" transform="translate(400,150)">
+            <rect x="0" y="0" width="46" height="34" rx="3" fill="#D9A441" opacity="0.9"/>
+            <rect x="4" y="5" width="38" height="3" rx="1.5" fill="#121212" opacity="0.35"/>
+            <rect x="4" y="12" width="30" height="3" rx="1.5" fill="#121212" opacity="0.25"/>
+          </g>
+
+          <!-- floating decor: star -->
+          <g id="floatStar" transform="translate(420,340)">
+            <path d="M10 0 L12.5 7.5 L20 7.5 L14 12 L16 20 L10 15 L4 20 L6 12 L0 7.5 L7.5 7.5 Z" fill="#F0B84A" opacity="0.85"/>
+          </g>
+
+          <!-- desk / stack of books the character rests on -->
+          <g id="bookStack" transform="translate(190,392)">
+            <rect x="0" y="18" width="180" height="20" rx="4" fill="var(--charcoal-soft, #2a2a2a)"/>
+            <rect x="12" y="0" width="156" height="20" rx="4" fill="url(#deskGrad)"/>
+          </g>
+
+          <!-- ── LEAN WRAPPER FOR ANIME.JS NUDGE ── -->
+          <g id="charLeanWrapper">
+            <!-- ── CHARACTER (idle-bobbing group) ── -->
+            <g id="charBody" transform="translate(280,300)">
+              <!-- shadow -->
+              <ellipse cx="0" cy="112" rx="70" ry="12" fill="#000" opacity="0.18" id="charShadow"/>
+
+              <!-- legs -->
+              <rect x="-34" y="55" width="22" height="55" rx="10" fill="#2a2a2a"/>
+              <rect x="12" y="55" width="22" height="55" rx="10" fill="#2a2a2a"/>
+
+              <!-- torso -->
+              <rect x="-46" y="-10" width="92" height="75" rx="26" fill="#D9A441"/>
+
+              <!-- left arm (static, resting on book) -->
+              <g id="armLeft">
+                <rect x="-70" y="4" width="26" height="16" rx="8" fill="#D9A441"/>
+                <circle cx="-72" cy="16" r="11" fill="#F0D9A3"/>
+              </g>
+
+              <!-- right arm (waving) -->
+              <g id="armRight" transform="translate(48,0)">
+                <rect x="0" y="-4" width="24" height="15" rx="7.5" fill="#D9A441" transform="rotate(-25)"/>
+                <circle cx="18" cy="-24" r="11" fill="#F0D9A3"/>
+              </g>
+
+              <!-- head -->
+              <g id="charHead" transform="translate(0,-42)">
+                <circle cx="0" cy="0" r="34" fill="#F0D9A3"/>
+                <!-- hair -->
+                <path d="M-32 -6 A32 32 0 0 1 32 -6 L28 -16 A30 26 0 0 0 -28 -16 Z" fill="#2a2a2a"/>
+                <!-- eyes -->
+                <g id="charEyes">
+                  <circle cx="-11" cy="2" r="3.4" fill="#121212"/>
+                  <circle cx="11" cy="2" r="3.4" fill="#121212"/>
+                </g>
+                <!-- smile -->
+                <path d="M-10 14 Q0 21 10 14" stroke="#121212" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+                <!-- blush -->
+                <circle cx="-20" cy="10" r="4" fill="#D9A441" opacity="0.35"/>
+                <circle cx="20" cy="10" r="4" fill="#D9A441" opacity="0.35"/>
+                <!-- grad cap on head -->
+                <g id="headCap" transform="translate(0,-30)">
+                  <path d="M-30 0 L0 -12 L30 0 L0 12 Z" fill="#121212"/>
+                  <rect x="-6" y="0" width="12" height="10" fill="#121212"/>
+                  <path d="M22 3 L30 0 L30 16" stroke="#D9A441" stroke-width="2" fill="none"/>
+                  <circle cx="30" cy="17" r="3" fill="#D9A441"/>
+                </g>
+              </g>
+
+              <!-- open book in front -->
+              <g id="charBookHeld" transform="translate(-2,26)">
+                <path d="M-30 0 Q0 -10 30 0 L30 14 Q0 4 -30 14 Z" fill="#F5F2ED"/>
+                <path d="M0 -10 L0 4" stroke="#B88A30" stroke-width="1.5"/>
+              </g>
+            </g>
+          </g>
+        </svg>
+
+        <div class="char-panel-copy">
+          <h2>Welcome to SRMS</h2>
+          <p>One secure sign-in for the entire portal — results, attendance and progress reports, all in one place.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ───────────────── RIGHT — LOGIN CARD ───────────────── -->
+    <div class="col-lg-5 col-md-7 col-11">
+      <div class="card" id="loginCard" style="opacity:0;">
+        <div class="card-header text-center py-4" style="border-bottom:1px solid rgba(245,242,237,0.18);">
+          <div id="markWrap" style="display:inline-flex;align-items:center;justify-content:center;
+                width:64px;height:64px;border-radius:50%;
+                background:rgba(217,164,65,0.18);border:2px solid rgba(217,164,65,0.5);
+                margin-bottom:1rem;position:relative;">
+            <i class="fas fa-graduation-cap" style="font-size:1.6rem;color:var(--gold);"></i>
+            <span id="pulseRing" style="position:absolute;inset:-6px;border-radius:50%;
+                  border:2px solid var(--gold);opacity:0;"></span>
+          </div>
+          <h4 class="mb-1" style="font-family:'Playfair Display',serif;letter-spacing:0.06em;">Sign In</h4>
+          <small style="color:var(--text-dim);">Access your SRMS portal</small>
+        </div>
+
+        <div class="card-body p-4">
+          {% if error %}
+          <div class="alert alert-danger" id="errAlert">
+            <i class="fas fa-exclamation-circle me-2"></i>{{ error }}
+          </div>
+          {% endif %}
+
+          <!-- Google Sign-In is intentionally the primary, unbranded entry point:
+               the destination (admin dashboard vs parent portal) is decided
+               automatically server-side from the signed-in Google account, so no
+               "admin" choice is ever shown to parent/student users. -->
+          <a href="{% url 'admin_google_login' %}" id="googleBtn"
+             style="display:flex;align-items:center;justify-content:center;gap:0.65rem;
+                    width:100%;padding:0.8rem 1rem;border-radius:6px;
+                    background:#fff;color:#3c4043;font-size:0.9rem;font-weight:600;
+                    text-decoration:none;border:1px solid #dadce0;
+                    transition:box-shadow 0.2s,background 0.2s;">
+            <svg width="19" height="19" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+              <path fill="#4285F4" d="M47.5 24.6c0-1.6-.1-3.1-.4-4.6H24v8.7h13.2c-.6 3-2.4 5.6-5 7.3v6h8.1c4.7-4.4 7.2-10.8 7.2-17.4z"/>
+              <path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-8.1-6c-2.1 1.4-4.7 2.2-7.7 2.2-5.9 0-10.9-4-12.7-9.3H3v6.2C6.9 42.8 15 48 24 48z"/>
+              <path fill="#FBBC05" d="M11.3 29.1c-.5-1.4-.7-2.9-.7-4.4s.3-3 .7-4.4V14H3C1.1 17.7 0 21.7 0 26s1.1 8.3 3 12l8.3-6.2-.3-2.7z"/>
+              <path fill="#EA4335" d="M24 9.5c3.3 0 6.3 1.1 8.6 3.4l6.4-6.4C35 2.4 29.9 0 24 0 14.9 0 7 5.2 3 12.9l8.3 6.2C13.1 13.5 18.1 9.5 24 9.5z"/>
+            </svg>
+            Sign in with Google
+          </a>
+
+          <div class="d-flex align-items-center my-3" id="orDivider">
+            <hr style="flex:1;border-color:rgba(245,242,237,0.15);">
+            <span style="margin:0 0.75rem;font-size:0.75rem;color:var(--text-dim);letter-spacing:0.08em;">OR</span>
+            <hr style="flex:1;border-color:rgba(245,242,237,0.15);">
+          </div>
+
+          <form method="post" id="loginForm">
+            {% csrf_token %}
+            <div class="mb-3" id="fgUser">
+              <label class="form-label"><i class="fas fa-user me-1"></i>Username</label>
+              <input type="text" class="form-control" name="username"
+                     placeholder="Enter username" required>
+            </div>
+            <div class="mb-4" id="fgPass">
+              <label class="form-label"><i class="fas fa-lock me-1"></i>Password</label>
+              <div style="position:relative;">
+                <input type="password" class="form-control" name="password"
+                       id="passInput" placeholder="Enter password" required>
+                <button type="button" id="togglePass"
+                        style="position:absolute;right:0.75rem;top:50%;transform:translateY(-50%);
+                               background:none;border:none;color:var(--text-dim);cursor:pointer;padding:0;">
+                  <i class="fas fa-eye" id="eyeIcon"></i>
+                </button>
+              </div>
+              <div class="text-end mt-2" id="fgForgotLink">
+                <a href="{% url 'admin_forgot_password' %}"
+                   style="font-size:0.78rem;color:var(--gold-dim);text-decoration:none;">
+                  Forgot Password?
+                </a>
+              </div>
+            </div>
+            <button type="submit" class="btn btn-primary w-100 py-3" id="loginBtn"
+                    style="font-family:'Playfair Display',serif;letter-spacing:0.08em;font-size:0.9rem;">
+              <i class="fas fa-sign-in-alt me-2"></i>LOGIN
+            </button>
+          </form>
+
+          <div class="text-center mt-3">
+            <a href="{% url 'home' %}" style="font-size:0.78rem;color:var(--text-dim);text-decoration:none;">
+              <i class="fas fa-arrow-left me-1"></i>Back to Home
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // ── Card entrance ─────────────────────────────────
+  gsap.fromTo('#loginCard',
+    { opacity: 0, y: 60, scale: 0.93 },
+    { opacity: 1, y: 0, scale: 1, duration: 0.8, ease: 'back.out(1.5)', delay: 0.1 }
+  );
+
+  gsap.fromTo('#markWrap', { scale: 0, rotate: -180 }, { scale: 1, rotate: 0, duration: 0.75, ease: 'back.out(1.8)', delay: 0.5 });
+  gsap.to('#pulseRing', { opacity: 0.6, scale: 1.35, duration: 1.2, ease: 'power1.out', repeat: -1, yoyo: true });
+
+  gsap.fromTo('#orDivider', { opacity: 0 }, { opacity: 1, duration: 0.4, delay: 0.5 });
+  gsap.fromTo('#googleBtn', { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.4, ease: 'power3.out', delay: 0.35 });
+
+  gsap.fromTo(['#fgUser', '#fgPass'],
+    { opacity: 0, x: -22 },
+    { opacity: 1, x: 0, duration: 0.5, stagger: 0.14, ease: 'power3.out', delay: 0.85 }
+  );
+  gsap.fromTo('#loginBtn', { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.45, ease: 'power3.out', delay: 1.1 });
+
+  const err = document.getElementById('errAlert');
+  if (err) {
+    gsap.fromTo(err, { opacity: 0, x: 24 }, { opacity: 1, x: 0, duration: 0.5, delay: 0.3 });
+    gsap.to(err, { x: 6, duration: 0.08, repeat: 5, yoyo: true, ease: 'none', delay: 0.5 });
+  }
+
+  const btn = document.getElementById('loginBtn');
+  btn.addEventListener('mouseenter', () => gsap.to(btn, { scale: 1.03, duration: 0.18 }));
+  btn.addEventListener('mouseleave', () => gsap.to(btn, { scale: 1, duration: 0.22 }));
+
+  document.getElementById('togglePass').addEventListener('click', function () {
+    const inp = document.getElementById('passInput');
+    const icon = document.getElementById('eyeIcon');
+    if (inp.type === 'password') { inp.type = 'text'; icon.className = 'fas fa-eye-slash'; }
+    else { inp.type = 'password'; icon.className = 'fas fa-eye'; }
+    gsap.from(icon, { scale: 0.6, duration: 0.25, ease: 'back.out(2)' });
+  });
+
+  document.querySelectorAll('.form-control').forEach(inp => {
+    inp.addEventListener('focus', () => gsap.to(inp, { boxShadow: '0 0 0 3px rgba(217,164,65,0.20)', duration: 0.2 }));
+    inp.addEventListener('blur', () => gsap.to(inp, { boxShadow: 'none', duration: 0.2 }));
+  });
+
+  document.getElementById('loginForm').addEventListener('submit', function () {
+    const b = document.getElementById('loginBtn');
+    b.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Verifying…';
+    gsap.to(b, { opacity: 0.75, scale: 0.98, duration: 0.2 });
+  });
+
+  const gBtn = document.getElementById('googleBtn');
+  gBtn.addEventListener('mouseenter', () => { gBtn.style.boxShadow = '0 2px 12px rgba(66,133,244,0.35)'; gBtn.style.background = '#f8f9fa'; });
+  gBtn.addEventListener('mouseleave', () => { gBtn.style.boxShadow = 'none'; gBtn.style.background = '#fff'; });
+  gBtn.addEventListener('click', () => {
+    gBtn.innerHTML = '<i class="fas fa-spinner fa-spin" style="color:#4285F4;"></i>&nbsp; Redirecting to Google…';
+    gBtn.style.pointerEvents = 'none';
+    gBtn.style.opacity = '0.8';
+  });
+
+  // ── ANIMATED CHARACTER (left panel) ──────────────────────────────────────
+  if (document.getElementById('charScene')) {
+    // Panel + scene entrance
+    gsap.fromTo('#charPanel', { opacity: 0, x: -40 }, { opacity: 1, x: 0, duration: 0.9, ease: 'power3.out' });
+    gsap.fromTo('.char-panel-copy', { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.7, delay: 0.5, ease: 'power3.out' });
+
+    // Ambient glow pulse
+    gsap.to('#ambGlow', { opacity: 0.55, scale: 1.08, duration: 3, ease: 'sine.inOut', repeat: -1, yoyo: true, transformOrigin: '50% 50%' });
+
+    // Slow-rotating rings
+    gsap.to('#ringOuter', { rotate: 360, duration: 40, repeat: -1, ease: 'none', transformOrigin: '280px 240px' });
+    gsap.to('#ringInner', { rotate: -360, duration: 30, repeat: -1, ease: 'none', transformOrigin: '280px 240px' });
+
+    // Idle bob for the whole character
+    gsap.to('#charBody', { y: '-=12', duration: 2, ease: 'sine.inOut', repeat: -1, yoyo: true });
+    gsap.to('#charShadow', { scaleX: 0.9, opacity: 0.12, duration: 2, ease: 'sine.inOut', repeat: -1, yoyo: true, transformOrigin: '50% 50%' });
+
+    // Gentle head tilt
+    gsap.to('#charHead', { rotate: 3, duration: 2.4, ease: 'sine.inOut', repeat: -1, yoyo: true, transformOrigin: '0px -42px' });
+
+    // Waving arm
+    gsap.to('#armRight', { rotate: -18, duration: 0.45, ease: 'sine.inOut', repeat: -1, yoyo: true, repeatDelay: 1.6, transformOrigin: '48px 0px' });
+
+    // Blink
+    gsap.to('#charEyes', { scaleY: 0.1, duration: 0.09, repeat: -1, repeatDelay: 2.8, yoyo: true, transformOrigin: '0px 2px' });
+
+    // Floating decorative icons
+    gsap.to('#floatCap', { y: '-=16', rotate: -6, duration: 2.6, ease: 'sine.inOut', repeat: -1, yoyo: true });
+    gsap.to('#floatBook', { y: '-=14', rotate: 5, duration: 2.2, ease: 'sine.inOut', repeat: -1, yoyo: true, delay: 0.4 });
+    gsap.to('#floatStar', { y: '-=18', rotate: 20, duration: 2.8, ease: 'sine.inOut', repeat: -1, yoyo: true, delay: 0.8 });
+
+    // Book stack subtle sheen breathing
+    gsap.to('#bookStack', { y: '-=2', duration: 2, ease: 'sine.inOut', repeat: -1, yoyo: true });
+  }
+</script>
+{% endblock %}

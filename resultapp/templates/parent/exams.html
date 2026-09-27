@@ -1,0 +1,179 @@
+{% extends 'parent/parent_base.html' %}
+{% load static %}
+{% block title %}Upcoming Exams — Parent Portal{% endblock %}
+
+{% block content %}
+<div class="p-3">
+  <!-- Header -->
+  <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4 gsap-left">
+    <div>
+      <h2 class="mb-1">
+        <i class="fas fa-calendar-alt me-2 text-gold" style="color:var(--gold);"></i>Exam Schedule
+      </h2>
+      <p class="text-muted mb-0 small">
+        Examination timetable and schedule for <strong>{{ student.name }}</strong> ({{ student.student_class.class_name }})
+      </p>
+    </div>
+    <div class="d-flex gap-2">
+      <a href="{% url 'parent_dashboard' %}" class="btn btn-sm btn-outline-warning">
+        <i class="fas fa-arrow-left me-1"></i>Back to Dashboard
+      </a>
+    </div>
+  </div>
+
+  <!-- Key Metrics Row -->
+  <div class="row g-3 mb-4 gsap-up">
+    <div class="col-sm-6 col-lg-4">
+      <div class="stat-card">
+        <div class="stat-icon" style="background:rgba(217,164,65,0.15)">
+          <i class="fas fa-hourglass-half" style="color:var(--gold)"></i>
+        </div>
+        <h3>{{ upcoming_exams|length }}</h3>
+        <p class="text-muted mb-0">UPCOMING EXAMINATIONS</p>
+      </div>
+    </div>
+    <div class="col-sm-6 col-lg-4">
+      <div class="stat-card">
+        <div class="stat-icon" style="background:rgba(34,197,94,0.15)">
+          <i class="fas fa-check-double" style="color:#22c55e"></i>
+        </div>
+        <h3>{{ past_exams|length }}</h3>
+        <p class="text-muted mb-0">COMPLETED EXAMS</p>
+      </div>
+    </div>
+    <div class="col-sm-12 col-lg-4">
+      <div class="stat-card">
+        <div class="stat-icon" style="background:rgba(99,102,241,0.15)">
+          <i class="fas fa-graduation-cap" style="color:#6366f1"></i>
+        </div>
+        <h3 style="font-size:1.35rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+          {% if upcoming_exams %}
+            {{ upcoming_exams.0.exam_date|date:"d M Y" }}
+          {% else %}
+            None Pending
+          {% endif %}
+        </h3>
+        <p class="text-muted mb-0">NEXT EXAM DATE</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Upcoming Exams Section -->
+  <div class="card mb-4 gsap-up">
+    <div class="card-header d-flex align-items-center justify-content-between">
+      <div class="d-flex align-items-center gap-2">
+        <i class="fas fa-clock" style="color:var(--gold)"></i>
+        <span class="fw-bold">Upcoming Examinations</span>
+      </div>
+      <span class="badge" style="background:rgba(217,164,65,0.15);color:var(--gold);border:1px solid rgba(217,164,65,0.3);">
+        {{ upcoming_exams|length }} Scheduled
+      </span>
+    </div>
+    <div class="card-body p-0">
+      {% if upcoming_exams %}
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead>
+            <tr style="border-bottom:1px solid var(--border);">
+              <th style="padding:0.9rem 1.25rem;font-size:0.75rem;letter-spacing:0.05em;color:var(--text-dim);font-weight:700;">EXAM DATE</th>
+              <th style="padding:0.9rem 1.25rem;font-size:0.75rem;letter-spacing:0.05em;color:var(--text-dim);font-weight:700;">COUNTDOWN</th>
+              <th style="padding:0.9rem 1.25rem;font-size:0.75rem;letter-spacing:0.05em;color:var(--text-dim);font-weight:700;">SUBJECT</th>
+              <th style="padding:0.9rem 1.25rem;font-size:0.75rem;letter-spacing:0.05em;color:var(--text-dim);font-weight:700;">EXAM TITLE / DESCRIPTION</th>
+              <th style="padding:0.9rem 1.25rem;font-size:0.75rem;letter-spacing:0.05em;color:var(--text-dim);font-weight:700;">CREDITS</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for ex in upcoming_exams %}
+            <tr style="border-bottom:1px solid var(--border);">
+              <td style="padding:1rem 1.25rem;">
+                <div class="d-flex align-items-center gap-3">
+                  <div class="text-center px-2 py-1 rounded" style="background:rgba(217,164,65,0.1);border:1px solid rgba(217,164,65,0.25);min-width:54px;">
+                    <div style="font-size:0.7rem;font-weight:700;color:var(--gold);text-transform:uppercase;">{{ ex.exam_date|date:"M" }}</div>
+                    <div style="font-size:1.25rem;font-weight:800;color:var(--text-primary);line-height:1;">{{ ex.exam_date|date:"d" }}</div>
+                  </div>
+                  <div>
+                    <div class="fw-bold" style="color:var(--text-primary);">{{ ex.exam_date|date:"l" }}</div>
+                    <small class="text-muted">{{ ex.exam_date|date:"Y" }}</small>
+                  </div>
+                </div>
+              </td>
+              <td style="padding:1rem 1.25rem;">
+                {% if ex.days_left == 0 %}
+                  <span class="badge bg-danger text-white px-2 py-1">TODAY</span>
+                {% elif ex.days_left == 1 %}
+                  <span class="badge bg-warning text-dark px-2 py-1">TOMORROW</span>
+                {% elif ex.days_left <= 7 %}
+                  <span class="badge px-2 py-1" style="background:rgba(234,179,8,0.15);color:#eab308;border:1px solid rgba(234,179,8,0.3);">In {{ ex.days_left }} days</span>
+                {% else %}
+                  <span class="badge px-2 py-1" style="background:rgba(99,102,241,0.12);color:#818cf8;border:1px solid rgba(99,102,241,0.25);">In {{ ex.days_left }} days</span>
+                {% endif %}
+              </td>
+              <td style="padding:1rem 1.25rem;">
+                <div class="fw-bold" style="color:var(--text-primary);">{{ ex.subject.subject_name }}</div>
+                <span class="badge" style="background:rgba(217,164,65,0.12);color:var(--gold);font-family:monospace;font-size:0.72rem;">
+                  {{ ex.subject.subject_code }}
+                </span>
+              </td>
+              <td style="padding:1rem 1.25rem;">
+                <span style="color:var(--text-secondary);">{{ ex.title|default:"Mid-Term Examination" }}</span>
+              </td>
+              <td style="padding:1rem 1.25rem;">
+                <span class="badge" style="background:rgba(255,255,255,0.08);color:var(--text-secondary);">
+                  {{ ex.subject.credits|default:4 }} Credits
+                </span>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="text-center py-5">
+        <i class="fas fa-calendar-check fa-3x mb-3 text-muted" style="opacity:0.4;"></i>
+        <h5 class="text-muted">No upcoming exams scheduled</h5>
+        <p class="small text-muted mb-0">Check back closer to mid-term or semester-end evaluation dates.</p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Past Exams Section (if any) -->
+  {% if past_exams %}
+  <div class="card gsap-up">
+    <div class="card-header d-flex align-items-center gap-2">
+      <i class="fas fa-history" style="color:var(--text-dim)"></i>
+      <span class="fw-bold">Previous / Concluded Examinations</span>
+    </div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead>
+            <tr style="border-bottom:1px solid var(--border);">
+              <th style="padding:0.75rem 1.25rem;font-size:0.75rem;color:var(--text-dim);">DATE</th>
+              <th style="padding:0.75rem 1.25rem;font-size:0.75rem;color:var(--text-dim);">SUBJECT</th>
+              <th style="padding:0.75rem 1.25rem;font-size:0.75rem;color:var(--text-dim);">TITLE</th>
+              <th style="padding:0.75rem 1.25rem;font-size:0.75rem;color:var(--text-dim);">STATUS</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for ex in past_exams %}
+            <tr style="border-bottom:1px solid var(--border);">
+              <td style="padding:0.75rem 1.25rem;" class="text-muted small">{{ ex.exam_date|date:"d M Y" }}</td>
+              <td style="padding:0.75rem 1.25rem;">
+                <span class="fw-semibold" style="color:var(--text-primary);">{{ ex.subject.subject_name }}</span>
+                <span class="text-muted small">({{ ex.subject.subject_code }})</span>
+              </td>
+              <td style="padding:0.75rem 1.25rem;" class="text-muted small">{{ ex.title }}</td>
+              <td style="padding:0.75rem 1.25rem;">
+                <span class="badge" style="background:rgba(34,197,94,0.12);color:#22c55e;">Concluded</span>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,41 @@
+# Django SRMS Gitignore
+
+# Environment variables / Secrets
+.env
+
+# Databases
+db.sqlite3
+db.sqlite3-journal
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Media / Uploaded files
+media/
+resultapp/media/
+
+# IDEs and OS files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+
+# Node modules / static builds (if any)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+.coverage
+django_errors.log

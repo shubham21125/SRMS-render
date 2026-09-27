@@ -1,0 +1,136 @@
+{% extends 'admin_base.html' %}
+{% load static %}
+{% block title %}Manage Branches — SRMS{% endblock %}
+{% block content %}
+<div class="p-3">
+
+  <!-- Header -->
+  <div class="d-flex justify-content-between align-items-center mb-4 gsap-left">
+    <div>
+      <h2 class="mb-0"><i class="fas fa-sitemap me-2"></i>Manage Branches</h2>
+      <small style="color:var(--text-secondary);">{{ page_obj.paginator.count }} branch(es) &middot; NEP 2020 programmes</small>
+    </div>
+    <a href="{% url 'create_branch' %}" class="btn btn-primary">
+      <i class="fas fa-plus me-1"></i>Add New Branch
+    </a>
+  </div>
+
+  <!-- Search Bar (server-side; works correctly with pagination) -->
+  <div class="card mb-3 gsap-up">
+    <div class="card-body py-2 px-3">
+      <form method="get" class="input-group">
+        <span class="input-group-text" style="background:transparent;border-color:var(--rim);">
+          <i class="fas fa-search" style="color:var(--text-dim);"></i>
+        </span>
+        <input type="text" name="q" id="branchSearch" class="form-control"
+               placeholder="Search by name or code…" value="{{ q }}"
+               style="border-color:var(--rim);background:transparent;color:var(--text-primary);">
+        {% if q %}
+          <a href="{% url 'manage_branches' %}" class="btn" style="border-color:var(--rim);color:var(--text-dim);" title="Clear search">
+            <i class="fas fa-times"></i>
+          </a>
+        {% endif %}
+        <button type="submit" class="btn btn-outline-warning">Search</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Table Card -->
+  <div class="card gsap-up">
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover mb-0">
+          <thead>
+            <tr>
+              <th style="width:50px;">#</th>
+              <th>Branch Name</th>
+              <th>Code</th>
+              <th>Description</th>
+              <th>Created</th>
+              <th style="width:140px;">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for b in branches %}
+            <tr class="branch-row">
+              <td style="color:var(--text-dim);">{{ forloop.counter0|add:page_obj.start_index }}</td>
+              <td class="fw-bold" style="color:var(--gold);">{{ b.branch_name }}</td>
+              <td><code style="color:var(--text-secondary);background:var(--surface-mid);padding:2px 7px;border-radius:4px;">{{ b.branch_code }}</code></td>
+              <td style="color:var(--text-secondary);">{{ b.description|default:"—"|truncatechars:60 }}</td>
+              <td>{{ b.creation_date|date:"d M Y" }}</td>
+              <td>
+                <div class="d-flex gap-1">
+                  <a href="{% url 'edit_branch' b.id %}" class="btn btn-sm"
+                     style="background:rgba(245,197,24,0.1);border:1px solid var(--gold-border);color:var(--gold);padding:4px 9px;">
+                    <i class="fas fa-edit"></i>
+                  </a>
+                  <button type="button" class="btn btn-sm delete-btn"
+                          data-id="{{ b.id }}" data-label="{{ b.branch_name }}"
+                          style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);color:#ef4444;padding:4px 9px;">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="6">
+                <div class="srms-empty-state">
+                  <i class="fas fa-sitemap srms-empty-icon"></i>
+                  {% if q %}
+                    No branches match "{{ q }}". <a href="{% url 'manage_branches' %}">Clear search.</a>
+                  {% else %}
+                    No branches found. <a href="{% url 'create_branch' %}">Add one now</a> (e.g., BSc Computer Science).
+                  {% endif %}
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  {% include '_pagination.html' %}
+
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content" style="background:var(--surface);border:1px solid var(--rim);">
+      <div class="modal-header" style="border-color:var(--rim);">
+        <h5 class="modal-title" style="color:var(--gold);">
+          <i class="fas fa-exclamation-triangle me-2" style="color:#ef4444;"></i>Delete Branch
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" style="color:var(--text-secondary);">
+        Are you sure you want to delete <strong id="deleteLabel" style="color:var(--text-primary);"></strong>?
+        <br><small style="color:#ef4444;">Classes linked to it will be kept but unassigned. This action cannot be undone.</small>
+      </div>
+      <div class="modal-footer" style="border-color:var(--rim);">
+        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+        <form method="post" action="{% url 'manage_branches' %}" style="display:inline;">
+          {% csrf_token %}
+          <input type="hidden" name="delete" id="deleteId">
+          <button type="submit" class="btn btn-sm" style="background:#F04848;color:#fff;border:none;">
+            <i class="fas fa-trash me-1"></i>Yes, Delete
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  window.SRMSList.initServerSearch('branchSearch', { wait: 400, focusEnd: true });
+  window.SRMSList.initDeleteModal({
+    modalId: 'deleteModal', idFieldId: 'deleteId', labelFieldId: 'deleteLabel',
+    buttonSelector: '.delete-btn'
+  });
+</script>
+{% endblock %}

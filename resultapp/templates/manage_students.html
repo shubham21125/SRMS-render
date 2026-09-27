@@ -1,0 +1,333 @@
+{% extends 'admin_base.html' %}
+{% block title %}Manage Students — SRMS{% endblock %}
+{% block content %}
+<div class="p-3">
+
+  <!-- Header -->
+  <div class="d-flex justify-content-between align-items-center mb-4 gsap-left">
+    <div>
+      <h2 class="mb-0"><i class="fas fa-users me-2"></i>Manage Students</h2>
+      <small style="color:var(--text-secondary);">{{ page_obj.paginator.count }} student(s) enrolled</small>
+    </div>
+    <a href="{% url 'add_student' %}" class="btn btn-primary">
+      <i class="fas fa-plus me-1"></i>Add Student
+    </a>
+  </div>
+
+  <!-- Search and Advanced Filters Form -->
+  <div class="card mb-3 gsap-up">
+    <div class="card-body py-3 px-3">
+      <form method="get" class="row g-2 align-items-center">
+        <!-- Status filter -->
+        <div class="col-md-3">
+          <label class="form-label small text-muted mb-1">Status</label>
+          <select name="status" class="form-select form-select-sm" onchange="this.form.submit()" style="background:var(--surface);border-color:var(--rim);color:var(--text-primary);">
+            <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Active Only</option>
+            <option value="inactive" {% if status_filter == 'inactive' %}selected{% endif %}>Inactive Only</option>
+            <option value="all" {% if status_filter == 'all' %}selected{% endif %}>All Students</option>
+          </select>
+        </div>
+        
+        <!-- Branch filter -->
+        <div class="col-md-3">
+          <label class="form-label small text-muted mb-1">Branch</label>
+          <select name="branch" class="form-select form-select-sm" onchange="this.form.submit()" style="background:var(--surface);border-color:var(--rim);color:var(--text-primary);">
+            <option value="">— All Branches —</option>
+            {% for br in branches %}
+            <option value="{{ br.id }}" {% if selected_branch_id == br.id|stringformat:"i" %}selected{% endif %}>{{ br.branch_name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        
+        <!-- Attendance filter -->
+        <div class="col-md-3">
+          <label class="form-label small text-muted mb-1">Attendance Risk</label>
+          <select name="attendance_filter" class="form-select form-select-sm" onchange="this.form.submit()" style="background:var(--surface);border-color:var(--rim);color:var(--text-primary);">
+            <option value="">— All Attendance —</option>
+            <option value="at_risk" {% if attendance_filter == 'at_risk' %}selected{% endif %}>At Risk (&lt; 75%)</option>
+            <option value="excellent" {% if attendance_filter == 'excellent' %}selected{% endif %}>Excellent (&gt;= 90%)</option>
+          </select>
+        </div>
+        
+        <!-- Search query -->
+        <div class="col-md-3">
+          <label class="form-label small text-muted mb-1">Search</label>
+          <div class="input-group input-group-sm">
+            <input type="text" name="q" id="studentSearch" class="form-control"
+                   placeholder="Name, roll no..." value="{{ q }}"
+                   style="border-color:var(--rim);background:transparent;color:var(--text-primary);">
+            {% if q or status_filter != 'active' or selected_branch_id or attendance_filter %}
+              <a href="{% url 'manage_students' %}" class="btn btn-outline-secondary btn-sm" title="Clear all filters" style="border-color:var(--rim);">
+                <i class="fas fa-sync-alt"></i>
+              </a>
+            {% endif %}
+            <button type="submit" class="btn btn-outline-warning">Search</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Table Card -->
+  <div class="card gsap-up">
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover mb-0" id="studentsTable">
+          <thead>
+            <tr>
+              <th style="width:50px;">#</th>
+              <th>Name</th>
+              <th>Roll No</th>
+              <th>Class</th>
+              <th>Gender</th>
+              <th>Attendance (30d)</th>
+              <th>Status</th>
+              <th style="width:160px;">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for student in students %}
+            <tr class="student-row">
+              <td style="color:var(--text-dim);">{{ forloop.counter0|add:page_obj.start_index }}</td>
+              <td>
+                <div class="d-flex align-items-center gap-2">
+                  {% if student.photo %}
+                    <img src="{{ student.photo.url }}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;border:1px solid var(--gold-border);flex-shrink:0;" alt="{{ student.name }}">
+                  {% else %}
+                    <div style="width:32px;height:32px;border-radius:50%;
+                                background:linear-gradient(135deg,var(--gold-subtle),rgba(245,197,24,0.08));
+                                border:1px solid var(--gold-border);
+                                display:flex;align-items:center;justify-content:center;
+                                font-size:0.75rem;font-weight:700;color:var(--gold);flex-shrink:0;">
+                      {{ student.name|slice:":1"|upper }}
+                    </div>
+                  {% endif %}
+                  <span class="fw-bold" style="color:var(--gold);">{{ student.name }}</span>
+                </div>
+              </td>
+              <td><code style="color:var(--text-secondary);background:var(--surface-hover);padding:2px 7px;border-radius:4px;">{{ student.roll_id }}</code></td>
+              <td>{{ student.student_class }}</td>
+              <td>
+                {% if student.gender == 'male' or student.gender == 'Male' %}
+                  <span class="badge" style="background:rgba(59,130,246,0.18);color:#93C5FD;border:1px solid rgba(59,130,246,0.3);">
+                    <i class="fas fa-mars me-1"></i>Male
+                  </span>
+                {% elif student.gender == 'female' or student.gender == 'Female' %}
+                  <span class="badge" style="background:rgba(236,72,153,0.18);color:#F9A8D4;border:1px solid rgba(236,72,153,0.3);">
+                    <i class="fas fa-venus me-1"></i>Female
+                  </span>
+                {% else %}
+                  <span class="badge bg-secondary">{{ student.gender }}</span>
+                {% endif %}
+              </td>
+              <td>
+                {% with stats=student.attendance_stats_30d %}
+                  {% if stats.total_days > 0 %}
+                    <span class="fw-bold {% if stats.percentage < 75 %}text-danger{% else %}text-success{% endif %}">
+                      {{ stats.percentage }}%
+                    </span>
+                    <br><small class="text-muted">({{ stats.attended_days }}/{{ stats.total_days }}d)</small>
+                  {% else %}
+                    <span class="text-muted">—</span>
+                  {% endif %}
+                {% endwith %}
+              </td>
+              <td>
+                {% if student.status == 1 %}
+                  <span class="badge" style="background:rgba(34,197,94,0.15);color:#22c55e;border:1px solid rgba(34,197,94,0.3);">
+                    <i class="fas fa-circle me-1" style="font-size:0.5rem;vertical-align:middle;"></i>Active
+                  </span>
+                {% else %}
+                  <span class="badge" style="background:rgba(156,163,175,0.15);color:#9CA3AF;border:1px solid rgba(156,163,175,0.3);">
+                    <i class="fas fa-circle me-1" style="font-size:0.5rem;vertical-align:middle;"></i>Inactive
+                  </span>
+                {% endif %}
+              </td>
+              <td>
+                <div class="d-flex gap-1">
+                  <a href="{% url 'edit_student' student.id %}"
+                     class="btn btn-sm"
+                     title="Edit Student"
+                     style="background:rgba(245,197,24,0.1);border:1px solid var(--gold-border);color:var(--gold);padding:4px 9px;">
+                    <i class="fas fa-edit"></i>
+                  </a>
+                  
+                  {% if student.status == 1 %}
+                    <button type="button"
+                            class="btn btn-sm deactivate-btn"
+                            title="Deactivate Student"
+                            data-student-id="{{ student.id }}"
+                            data-student-name="{{ student.name }}"
+                            style="background:rgba(249,115,22,0.1);border:1px solid rgba(249,115,22,0.3);color:#f97316;padding:4px 9px;">
+                      <i class="fas fa-user-slash"></i>
+                    </button>
+                  {% else %}
+                    <button type="button"
+                            class="btn btn-sm activate-btn"
+                            title="Activate Student"
+                            data-student-id="{{ student.id }}"
+                            data-student-name="{{ student.name }}"
+                            style="background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.3);color:#22c55e;padding:4px 9px;">
+                      <i class="fas fa-user-check"></i>
+                    </button>
+                  {% endif %}
+
+                  <button type="button"
+                          class="btn btn-sm delete-btn"
+                          title="Delete Student"
+                          data-student-id="{{ student.id }}"
+                          data-student-name="{{ student.name }}"
+                          style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);color:#ef4444;padding:4px 9px;">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="7" class="text-center py-5" style="color:var(--text-dim);">
+                <i class="fas fa-user-slash" style="font-size:2rem;margin-bottom:0.5rem;display:block;"></i>
+                {% if q %}
+                  No students match "{{ q }}". <a href="{% url 'manage_students' %}" style="color:var(--gold);">Clear search.</a>
+                {% else %}
+                  No students found. <a href="{% url 'add_student' %}" style="color:var(--gold);">Add one now.</a>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  {% include '_pagination.html' %}
+
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content" style="background:var(--surface);border:1px solid var(--rim);">
+      <div class="modal-header" style="border-color:var(--rim);">
+        <h5 class="modal-title" style="color:var(--gold);">
+          <i class="fas fa-exclamation-triangle me-2" style="color:#ef4444;"></i>Delete Student
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" style="color:var(--text-secondary);">
+        Are you sure you want to permanently delete <strong id="deleteStudentName" style="color:var(--text-primary);"></strong>?
+        <br><small style="color:#ef4444; font-weight: bold;"><i class="fas fa-exclamation-triangle me-1"></i>WARNING: This action is permanent and will cascade-delete all of this student's results, marks, and attendance history. To preserve their data, close this and use the "Deactivate" option instead.</small>
+      </div>
+      <div class="modal-footer" style="border-color:var(--rim);">
+        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+        <form method="post" action="{% url 'manage_students' %}" id="deleteForm" style="display:inline;">
+          {% csrf_token %}
+          <input type="hidden" name="delete" id="deleteStudentId">
+          <button type="submit" class="btn btn-sm" style="background:#F04848;color:#fff;border:none;">
+            <i class="fas fa-trash me-1"></i>Yes, Delete
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- Deactivate Confirmation Modal -->
+<div class="modal fade" id="deactivateModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content" style="background:var(--surface);border:1px solid var(--rim);">
+      <div class="modal-header" style="border-color:var(--rim);">
+        <h5 class="modal-title" style="color:var(--gold);">
+          <i class="fas fa-user-slash me-2" style="color:#f97316;"></i>Deactivate Student
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" style="color:var(--text-secondary);">
+        Are you sure you want to deactivate <strong id="deactivateStudentName" style="color:var(--text-primary);"></strong>?
+        <br><small class="text-muted">Deactivating will exclude this student from marking lists, but all of their history and records will remain safely preserved.</small>
+      </div>
+      <div class="modal-footer" style="border-color:var(--rim);">
+        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+        <form method="post" action="{% url 'manage_students' %}" style="display:inline;">
+          {% csrf_token %}
+          <input type="hidden" name="deactivate" id="deactivateStudentId">
+          <button type="submit" class="btn btn-sm" style="background:#f97316;color:#fff;border:none;">
+            <i class="fas fa-user-slash me-1"></i>Yes, Deactivate
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Activate Confirmation Modal -->
+<div class="modal fade" id="activateModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content" style="background:var(--surface);border:1px solid var(--rim);">
+      <div class="modal-header" style="border-color:var(--rim);">
+        <h5 class="modal-title" style="color:var(--gold);">
+          <i class="fas fa-user-check me-2" style="color:#22c55e;"></i>Activate Student
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" style="color:var(--text-secondary);">
+        Are you sure you want to reactivate <strong id="activateStudentName" style="color:var(--text-primary);"></strong>?
+      </div>
+      <div class="modal-footer" style="border-color:var(--rim);">
+        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+        <form method="post" action="{% url 'manage_students' %}" style="display:inline;">
+          {% csrf_token %}
+          <input type="hidden" name="activate" id="activateStudentId">
+          <button type="submit" class="btn btn-sm" style="background:#22c55e;color:#fff;border:none;">
+            <i class="fas fa-user-check me-1"></i>Yes, Activate
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// ── Delete modal wiring ────────────────────────────────────────────
+document.querySelectorAll('.delete-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.getElementById('deleteStudentId').value   = btn.dataset.studentId;
+    document.getElementById('deleteStudentName').textContent = btn.dataset.studentName;
+    new bootstrap.Modal(document.getElementById('deleteModal')).show();
+  });
+});
+
+// ── Deactivate/Activate modal wiring ──────────────────────────────────
+document.querySelectorAll('.deactivate-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.getElementById('deactivateStudentId').value = btn.dataset.studentId;
+    document.getElementById('deactivateStudentName').textContent = btn.dataset.studentName;
+    new bootstrap.Modal(document.getElementById('deactivateModal')).show();
+  });
+});
+
+document.querySelectorAll('.activate-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.getElementById('activateStudentId').value = btn.dataset.studentId;
+    document.getElementById('activateStudentName').textContent = btn.dataset.studentName;
+    new bootstrap.Modal(document.getElementById('activateModal')).show();
+  });
+});
+
+// ── Live search (debounced, server-side — correct with pagination) ──
+window.SRMSList.initServerSearch('studentSearch', { wait: 400, focusEnd: true });
+
+// ── GSAP row stagger ──────────────────────────────────────────────
+if (typeof gsap !== 'undefined') {
+  gsap.fromTo('.student-row',
+    { opacity: 0, x: -16 },
+    { opacity: 1, x: 0, duration: 0.4, stagger: 0.045, ease: 'power2.out', delay: 0.3 }
+  );
+}
+</script>
+{% endblock %}

@@ -1,0 +1,241 @@
+{% extends 'parent/parent_base.html' %}
+{% load static %}
+{% block title %}Consolidated Marksheet — Parent Portal{% endblock %}
+
+{% block extra_css %}
+<style>
+  @media print {
+    .no-print, .sidebar-wrapper, .navbar-public, footer, #page-loader, #site-bg-video { display:none !important; }
+    body, main { background:#fff !important; color:#000 !important; }
+    .print-card { background:#fff !important; color:#000 !important; box-shadow:none !important; border:1px solid #ccc !important; max-width:100% !important; }
+    .print-card * { color:#000 !important; background:transparent !important; }
+    .col-md-9, .col-lg-10 { width:100% !important; max-width:100% !important; }
+    .container-fluid { padding:0 !important; }
+  }
+
+  .marksheet-stat-card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 10px;
+    padding: 1rem;
+    text-align: center;
+  }
+  .marksheet-stat-val {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--text-primary);
+  }
+  .marksheet-stat-lbl {
+    font-size: 0.72rem;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 600;
+    margin-top: 0.25rem;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="p-3">
+
+  <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4 gsap-left no-print">
+    <div>
+      <h2 class="mb-1"><i class="fas fa-file-invoice me-2" style="color:var(--gold)"></i>Consolidated Marksheet</h2>
+      <small class="text-muted">NEP 2020 multi-subject academic marksheet &mdash; Semester {{ marksheet.semester }}</small>
+    </div>
+
+    <div class="d-flex flex-wrap gap-2 align-items-center">
+      <!-- Semester Selector -->
+      {% if available_semesters %}
+      <form method="get" class="d-flex align-items-center gap-1">
+        <label for="semSelect" class="small text-muted me-1">Semester:</label>
+        <select name="semester" id="semSelect" class="form-select form-select-sm" onchange="this.form.submit()" style="width:130px;background:var(--surface);color:var(--text-primary);">
+          {% for s in available_semesters %}
+          <option value="{{ s }}" {% if s == selected_semester %}selected{% endif %}>Semester {{ s }}</option>
+          {% endfor %}
+        </select>
+      </form>
+      {% endif %}
+
+      <a href="{% url 'parent_download_consolidated_marksheet_pdf' %}?semester={{ selected_semester }}" class="btn btn-sm" style="background:var(--gold);color:var(--void);font-weight:700;">
+        <i class="fas fa-file-pdf me-1"></i>Download PDF
+      </a>
+      <button onclick="window.print()" class="btn btn-sm" style="background:var(--surface);color:var(--text-secondary);border:1px solid var(--border);">
+        <i class="fas fa-print me-1"></i>Print
+      </button>
+      <a href="{% url 'parent_dashboard' %}" class="btn btn-sm" style="background:var(--surface);color:var(--text-secondary);border:1px solid var(--border);">
+        <i class="fas fa-arrow-left me-1"></i>Back
+      </a>
+    </div>
+  </div>
+
+  <!-- Summary Metric Strip -->
+  <div class="row g-3 mb-4 no-print gsap-up">
+    <div class="col-6 col-md-3">
+      <div class="marksheet-stat-card">
+        <div class="marksheet-stat-val" style="color:var(--gold);">{{ marksheet.sgpa|floatformat:2 }}</div>
+        <div class="marksheet-stat-lbl">SGPA (Credit Weighted)</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="marksheet-stat-card">
+        <div class="marksheet-stat-val">{{ marksheet.overall_percentage }}%</div>
+        <div class="marksheet-stat-lbl">Overall Percentage</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="marksheet-stat-card">
+        <div class="marksheet-stat-val">{{ marksheet.total_credits }}</div>
+        <div class="marksheet-stat-lbl">Total NEP Credits</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="marksheet-stat-card">
+        <div class="marksheet-stat-val {% if marksheet.is_pass %}text-success{% else %}text-danger{% endif %}">
+          {{ marksheet.status }}
+        </div>
+        <div class="marksheet-stat-lbl">Semester Declaration</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- The printable marksheet card -->
+  <div class="card print-card gsap-up" style="max-width:920px;margin:0 auto;border:1px solid rgba(217,164,65,0.25);">
+
+    <!-- Header Banner -->
+    <div style="background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);padding:2rem;text-align:center;border-radius:var(--radius) var(--radius) 0 0;border-bottom:3px solid var(--gold);">
+      <h3 style="font-family:'Playfair Display',serif;color:var(--gold);letter-spacing:.12em;margin-bottom:.25rem;">STUDENT RESULT MANAGEMENT SYSTEM</h3>
+      <p style="color:rgba(255,255,255,.8);font-size:.9rem;margin-bottom:.35rem;letter-spacing:.08em;font-weight:700;">CONSOLIDATED SEMESTER MARKSHEET</p>
+      <p style="color:rgba(255,255,255,.5);font-size:.78rem;margin:0;">NEP 2020 &middot; Credit Based Semester and Grading System &middot; Semester {{ marksheet.semester }}</p>
+    </div>
+
+    <div class="card-body p-4">
+
+      <!-- Student Credentials Table -->
+      <div class="row g-3 mb-4 pb-3" style="border-bottom:1px solid var(--border);">
+        <div class="col-md-6">
+          <table style="width:100%;border-collapse:separate;border-spacing:0 .35rem;font-size:.85rem;">
+            <tr>
+              <td style="color:var(--text-dim);width:38%;">Student Name</td>
+              <td style="color:var(--text-primary);font-weight:700;">{{ student.name }}</td>
+            </tr>
+            <tr>
+              <td style="color:var(--text-dim);">Roll / Student ID</td>
+              <td style="color:var(--text-primary);font-weight:600;">{{ student.roll_id }}</td>
+            </tr>
+            <tr>
+              <td style="color:var(--text-dim);">Programme / Branch</td>
+              <td style="color:var(--text-primary);">
+                {% if student.student_class.branch %}{{ student.student_class.branch.branch_name }} ({{ student.student_class.branch.branch_code }}){% else %}&mdash;{% endif %}
+              </td>
+            </tr>
+          </table>
+        </div>
+        <div class="col-md-6">
+          <table style="width:100%;border-collapse:separate;border-spacing:0 .35rem;font-size:.85rem;">
+            <tr>
+              <td style="color:var(--text-dim);width:38%;">Class & Section</td>
+              <td style="color:var(--text-primary);">{{ student.student_class.class_name }} &mdash; Section {{ student.student_class.section }}</td>
+            </tr>
+            <tr>
+              <td style="color:var(--text-dim);">Date of Birth</td>
+              <td style="color:var(--text-primary);">{{ student.dob|default:"—" }}</td>
+            </tr>
+            <tr>
+              <td style="color:var(--text-dim);">Issued Date</td>
+              <td style="color:var(--text-primary);">{% now "d M Y" %}</td>
+            </tr>
+          </table>
+        </div>
+      </div>
+
+      <!-- Subject-Wise Consolidated Table -->
+      <div class="table-responsive mb-4">
+        <table class="table align-middle" style="font-size:0.83rem;">
+          <thead>
+            <tr>
+              <th style="width:5%;text-align:center;">#</th>
+              <th style="width:28%;">Subject Name</th>
+              <th style="width:7%;text-align:center;">Credits</th>
+              <th style="width:8%;text-align:center;">TH<br><small class="text-muted">/30</small></th>
+              <th style="width:8%;text-align:center;">IA<br><small class="text-muted">/20</small></th>
+              <th style="width:8%;text-align:center;">PR<br><small class="text-muted">/25</small></th>
+              <th style="width:8%;text-align:center;">OR<br><small class="text-muted">/25</small></th>
+              <th style="width:10%;text-align:center;">Total</th>
+              <th style="width:8%;text-align:center;">%</th>
+              <th style="width:8%;text-align:center;">Grade</th>
+              <th style="width:5%;text-align:center;">GP</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for sub in marksheet.subjects %}
+            <tr>
+              <td class="text-center text-muted">{{ forloop.counter }}</td>
+              <td>
+                <div class="fw-bold" style="color:var(--text-primary);">{{ sub.subject_name }}</div>
+                <small class="text-muted">{{ sub.subject_code }}</small>
+              </td>
+              <td class="text-center fw-bold">{{ sub.credits }}</td>
+              <td class="text-center">{{ sub.theory_marks }}</td>
+              <td class="text-center">{{ sub.internal_marks }}</td>
+              <td class="text-center">{{ sub.practical_marks|default:"&mdash;" }}</td>
+              <td class="text-center">{{ sub.oral_marks|default:"&mdash;" }}</td>
+              <td class="text-center fw-bold" style="color:var(--text-primary);">
+                {{ sub.total_obtained }}/{{ sub.total_max }}
+              </td>
+              <td class="text-center">{{ sub.percentage }}%</td>
+              <td class="text-center">
+                <span class="badge {% if sub.nep_grade == 'F' %}bg-danger{% else %}bg-success{% endif %}">
+                  {{ sub.nep_grade }}
+                </span>
+              </td>
+              <td class="text-center fw-bold">{{ sub.grade_point }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="11" class="text-center py-4 text-muted">
+                No subjects recorded for Semester {{ marksheet.semester }}.
+              </td>
+            </tr>
+            {% endfor %}
+
+            <!-- Footer Summary Row -->
+            {% if marksheet.subjects %}
+            <tr style="background:rgba(217,164,65,0.08);border-top:2px solid var(--gold);font-weight:700;">
+              <td colspan="2" class="text-uppercase" style="color:var(--gold);letter-spacing:0.06em;">Overall Summary</td>
+              <td class="text-center fw-bold">{{ marksheet.total_credits }}</td>
+              <td colspan="4" class="text-center text-muted small">&mdash;</td>
+              <td class="text-center" style="color:var(--gold);">
+                {{ marksheet.total_obtained }} / {{ marksheet.total_max }}
+              </td>
+              <td class="text-center">{{ marksheet.overall_percentage }}%</td>
+              <td colspan="2" class="text-center">
+                <span class="badge {% if marksheet.is_pass %}bg-success{% else %}bg-danger{% endif %} px-3 py-1">
+                  {{ marksheet.status }} &middot; SGPA {{ marksheet.sgpa|floatformat:2 }}
+                </span>
+              </td>
+            </tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Institutional Footer Note and Signatures -->
+      <div class="row pt-4 mt-2" style="border-top:1px solid var(--border);font-size:0.75rem;color:var(--text-dim);">
+        <div class="col-md-7">
+          <p class="mb-1"><strong>Grading Scale:</strong> O (80-100%, GP 10), A+ (70-79%, GP 9), A (60-69%, GP 8), B+ (55-59%, GP 7), B (50-54%, GP 6), C (45-49%, GP 5), D (40-44%, GP 4), F (Below 40% or Fail in component, GP 0).</p>
+          <p class="mb-0"><strong>Credit-Weighted SGPA Formula:</strong> SGPA = &Sigma;(Credit &times; Grade Point) / &Sigma;(Credit).</p>
+        </div>
+        <div class="col-md-5 d-flex justify-content-end align-items-end text-center mt-3 mt-md-0">
+          <div style="width:140px;border-top:1px solid rgba(255,255,255,0.3);padding-top:4px;">
+            Controller of Examinations
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+{% endblock %}

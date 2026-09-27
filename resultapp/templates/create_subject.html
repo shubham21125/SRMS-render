@@ -1,0 +1,228 @@
+{% extends 'admin_base.html' %}
+{% load static %}
+{% block title %}Create Subject — SRMS{% endblock %}
+{% block content %}
+
+<div class="p-3">
+  <div class="d-flex align-items-center justify-content-between mb-4 gsap-left">
+    <div>
+      <h2 class="mb-0"><i class="fas fa-book me-2" style="color:var(--gold)"></i>Create Subject</h2>
+      <small class="text-muted">Add a new subject and optionally assign it to a branch & semester</small>
+    </div>
+    <a href="{% url 'manage_subject' %}" class="btn btn-sm btn-outline-secondary">
+      <i class="fas fa-list me-1"></i>Manage Subjects
+    </a>
+  </div>
+
+
+
+  <div class="row g-4">
+    <!-- Main Form -->
+    <div class="col-lg-7">
+      <div class="card gsap-up">
+        <div class="card-header">
+          <i class="fas fa-pen me-2" style="color:var(--gold)"></i>Subject Details
+        </div>
+        <div class="card-body">
+          <form method="post" id="createSubjectForm">
+            {% csrf_token %}
+
+            <div class="mb-4">
+              <label for="subjectname" class="form-label" style="color:var(--adm-text-secondary);font-size:.85rem;font-weight:600">
+                <i class="fas fa-tag me-1" style="color:var(--gold)"></i>Subject Name <span style="color:#ef4444">*</span>
+              </label>
+              <input type="text" class="form-control" id="subjectname" name="subjectname"
+                     placeholder="e.g. Data Structures, Java, Python" required>
+            </div>
+
+            <div class="mb-4">
+              <label for="subjectcode" class="form-label" style="color:var(--adm-text-secondary);font-size:.85rem;font-weight:600">
+                <i class="fas fa-code me-1" style="color:var(--gold)"></i>Subject Code <span style="color:#ef4444">*</span>
+              </label>
+              <input type="text" class="form-control" id="subjectcode" name="subjectcode"
+                     placeholder="e.g. USCS204, USCS305, USCS202" required>
+            </div>
+
+            <div class="mb-4">
+              <label for="credits" class="form-label" style="color:var(--adm-text-secondary);font-size:.85rem;font-weight:600">
+                <i class="fas fa-star me-1" style="color:var(--gold)"></i>NEP 2020 Credits <span style="color:#ef4444">*</span>
+              </label>
+              <input type="number" class="form-control" id="credits" name="credits"
+                     placeholder="e.g. 2, 3, 4" min="1" max="8" required style="max-width:180px">
+              <small class="text-muted" style="font-size:.78rem; display:block; margin-top:4px;">Used for credit-weighted SGPA/CGPA under NEP 2020.</small>
+            </div>
+
+            <!-- Divider -->
+            <hr style="border-color:var(--adm-border);margin:1.5rem 0">
+
+            <p style="color:var(--adm-text-muted);font-size:.82rem;margin-bottom:1rem">
+              <i class="fas fa-link me-1" style="color:var(--gold,#d9a441)"></i>
+              <strong style="color:var(--adm-text-secondary)">Optional:</strong>
+              Assign this subject to a Branch &amp; Semester right now. You can also do this later via
+              <a href="{% url 'add_branch_subject' %}" style="color:var(--gold,#d9a441)">Branch Subjects</a>.
+            </p>
+
+            <div class="row g-3 mb-4">
+              <div class="col-md-6">
+                <label for="branch" class="form-label" style="color:var(--adm-text-secondary);font-size:.85rem;font-weight:600">
+                  <i class="fas fa-sitemap me-1" style="color:var(--gold)"></i>Branch / Programme
+                </label>
+                <select class="form-select" id="branch" name="branch">
+                  <option value="">— Skip (assign later) —</option>
+                  {% for b in branches %}
+                  <option value="{{ b.id }}">{{ b.branch_name }} ({{ b.branch_code }})</option>
+                  {% endfor %}
+                </select>
+              </div>
+
+              <div class="col-md-6">
+                <label for="semester" class="form-label" style="color:var(--adm-text-secondary);font-size:.85rem;font-weight:600">
+                  <i class="fas fa-layer-group me-1" style="color:var(--gold)"></i>Semester
+                </label>
+                <select class="form-select" id="semester" name="semester">
+                  <option value="">— Skip —</option>
+                  {% for num, label in semester_choices %}
+                  <option value="{{ num }}">{{ label }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+            </div>
+
+            <!-- Assignment preview chip -->
+            <div id="assignPreview" style="display:none;margin-bottom:1.5rem;">
+              <div style="display:inline-flex;align-items:center;gap:.5rem;padding:.4rem .9rem;background:var(--gold-subtle);border:1px solid var(--gold-border);border-radius:20px;font-size:.82rem;color:var(--gold,#d9a441)">
+                <i class="fas fa-link"></i>
+                Will be assigned to: <strong id="assignPreviewText"></strong>
+              </div>
+            </div>
+
+            <div class="d-flex gap-2">
+              <button type="submit" class="btn" id="submitBtn"
+                      style="background:var(--gold,#d9a441);color:#0a0a0a;font-weight:700;border-radius:10px;padding:.6rem 1.8rem">
+                <i class="fas fa-check-circle me-2"></i>Create Subject
+              </button>
+              <button type="reset" class="btn btn-outline-secondary" style="border-radius:10px">
+                <i class="fas fa-undo me-1"></i>Reset
+              </button>
+            </div>
+
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Info Panel -->
+    <div class="col-lg-5">
+      <div class="card gsap-up" style="border-color:var(--gold-border)">
+        <div class="card-header">
+          <i class="fas fa-info-circle me-2" style="color:var(--gold)"></i>Branch Assignment Info
+        </div>
+        <div class="card-body">
+          <p style="color:var(--adm-text-secondary);font-size:.85rem;line-height:1.7">
+            Assigning a subject to a <strong style="color:var(--adm-text)">Branch &amp; Semester</strong>
+            creates a <code style="color:var(--gold,#d9a441);font-size:.8rem">BranchSubject</code> record — this
+            defines the curriculum for that branch in that semester under NEP 2020.
+          </p>
+          <hr style="border-color:var(--adm-border)">
+          <div class="mb-3">
+            <div class="d-flex align-items-center gap-2 mb-1">
+              <i class="fas fa-check" style="color:#22c55e;width:16px"></i>
+              <span style="color:var(--adm-text-secondary);font-size:.83rem">Subjects are shared across branches — one subject can belong to multiple branches</span>
+            </div>
+            <div class="d-flex align-items-center gap-2 mb-1">
+              <i class="fas fa-check" style="color:#22c55e;width:16px"></i>
+              <span style="color:var(--adm-text-secondary);font-size:.83rem">Semesters 1–6 supported (NEP 2020 6-semester structure)</span>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+              <i class="fas fa-check" style="color:#22c55e;width:16px"></i>
+              <span style="color:var(--adm-text-secondary);font-size:.83rem">You can manage assignments anytime via Branch Subjects</span>
+            </div>
+          </div>
+          <a href="{% url 'manage_branch_subjects' %}" class="btn btn-sm w-100 mt-2"
+             style="background:var(--gold-subtle);color:var(--gold,#d9a441);border:1px solid var(--gold-border);border-radius:10px">
+            <i class="fas fa-external-link-alt me-1"></i>View Branch Subject Assignments
+          </a>
+        </div>
+      </div>
+
+      {% if branches %}
+      <div class="card mt-3 gsap-up">
+        <div class="card-header"><i class="fas fa-sitemap me-2" style="color:var(--gold)"></i>Available Branches</div>
+        <div class="card-body p-0">
+          {% for b in branches %}
+          <div style="padding:.65rem 1rem;border-bottom:1px solid var(--adm-border);display:flex;align-items:center;gap:.6rem">
+            <span style="width:8px;height:8px;border-radius:50%;background:var(--gold,#d9a441);flex-shrink:0;"></span>
+            <span style="font-weight:600;color:var(--adm-text);font-size:.85rem">{{ b.branch_name }}</span>
+            <code style="margin-left:auto;font-size:.75rem;color:var(--gold-dim);background:var(--gold-subtle);padding:2px 7px;border-radius:5px">{{ b.branch_code }}</code>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function() {
+  if (typeof gsap === 'undefined') return;
+
+  // Page header slide-in
+  gsap.fromTo('h2', { opacity: 0, x: -30 }, { opacity: 1, x: 0, duration: 0.6, ease: 'power3.out', delay: 0.1 });
+
+  // Card(s) entrance
+  gsap.fromTo('.card',
+    { opacity: 0, y: 40, scale: 0.97 },
+    { opacity: 1, y: 0, scale: 1, duration: 0.65, ease: 'back.out(1.4)', delay: 0.2, stagger: 0.08 }
+  );
+
+  // Form fields stagger
+  gsap.fromTo('.form-control, .form-select',
+    { opacity: 0, x: -16 },
+    { opacity: 1, x: 0, duration: 0.45, stagger: 0.06, ease: 'power3.out', delay: 0.45 }
+  );
+
+  // Buttons entrance
+  gsap.fromTo('.btn', { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.4, stagger: 0.07, ease: 'power3.out', delay: 0.75 });
+
+  // Focus glow on inputs
+  document.querySelectorAll('.form-control, .form-select').forEach(function(inp) {
+    inp.addEventListener('focus', function() {
+      gsap.to(inp, { boxShadow: '0 0 0 3px rgba(245,197,24,0.18)', duration: 0.2 });
+    });
+    inp.addEventListener('blur', function() {
+      gsap.to(inp, { boxShadow: 'none', duration: 0.2 });
+    });
+  });
+
+  // Assignment preview chip
+  const branchSel = document.getElementById('branch');
+  const semSel    = document.getElementById('semester');
+  const preview   = document.getElementById('assignPreview');
+  const previewTx = document.getElementById('assignPreviewText');
+
+  function updatePreview() {
+    const bOpt = branchSel.options[branchSel.selectedIndex];
+    const sOpt = semSel.options[semSel.selectedIndex];
+    if (branchSel.value && semSel.value) {
+      previewTx.textContent = `${bOpt.textContent.trim()} · ${sOpt.textContent.trim()}`;
+      if (preview.style.display === 'none') {
+        preview.style.display = 'block';
+        gsap.fromTo(preview, { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.3 });
+      }
+    } else {
+      preview.style.display = 'none';
+    }
+  }
+  branchSel.addEventListener('change', updatePreview);
+  semSel.addEventListener('change', updatePreview);
+
+  // Alert slide-in
+  document.querySelectorAll('.alert').forEach(function(el) {
+    gsap.fromTo(el, { opacity: 0, x: 24 }, { opacity: 1, x: 0, duration: 0.5, ease: 'power3.out' });
+  });
+})();
+</script>
+{% endblock %}

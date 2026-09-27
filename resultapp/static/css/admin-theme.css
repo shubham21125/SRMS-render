@@ -1,0 +1,940 @@
+/* ====================================================================
+   SRMS ADMIN CONSOLE — PROFESSIONAL THEME
+   Scoped entirely to body.admin-page so the public/marketing site and
+   the parent portal keep their existing "Brutalist Heritage" look.
+   Loads AFTER style.css + mobile-performance.css and overrides both.
+   ==================================================================== */
+
+body.admin-page {
+  --adm-bg:            #F3F5FA;
+  --adm-surface:       #FFFFFF;
+  --adm-surface-muted: #F6F7FB;
+  --adm-border:        #E7E9F2;
+  --adm-border-strong: #D7DAE8;
+
+  --adm-text:          #1B2033;
+  --adm-text-secondary:#5C6480;
+  --adm-text-muted:    #9AA1B8;
+
+  --adm-primary:       #4F46E5;
+  --adm-primary-dark:  #4338CA;
+  --adm-primary-light: #EEEDFD;
+  --adm-primary-ring:  rgba(79,70,229,0.18);
+
+  --adm-success:       #17A56B;
+  --adm-success-bg:    #E7F9F1;
+  --adm-danger:        #E33D5E;
+  --adm-danger-bg:     #FDEAEE;
+  --adm-warning:       #DB8A17;
+  --adm-warning-bg:    #FDF3E2;
+  --adm-info:          #1786C7;
+  --adm-info-bg:       #E7F5FC;
+
+  --adm-sidebar-bg:      #FFFFFF;
+  --adm-sidebar-bg-alt:  #F8FAFC;
+  --adm-sidebar-text:    #475569;
+  --adm-sidebar-text-hi: #0F172A;
+  --adm-sidebar-border:  #E2E8F0;
+  --adm-sidebar-active:  rgba(79, 70, 229, 0.08);
+  --adm-sidebar-hover-bg: rgba(79, 70, 229, 0.04);
+  --adm-sidebar-active-text: var(--adm-primary);
+  --adm-sidebar-scrollbar-thumb: rgba(0, 0, 0, 0.12);
+
+
+  --adm-radius-sm: 8px;
+  --adm-radius-md: 12px;
+  --adm-radius-lg: 16px;
+
+  --adm-shadow-sm: 0 1px 2px rgba(20,24,45,0.05);
+  --adm-shadow-md: 0 6px 20px rgba(20,24,45,0.08);
+  --adm-shadow-lg: 0 16px 40px rgba(20,24,45,0.14);
+
+  --adm-ease: cubic-bezier(0.22,1,0.36,1);
+
+  font-family: 'Inter', 'Source Sans 3', system-ui, sans-serif;
+  background: var(--adm-bg) !important;
+  color: var(--adm-text);
+}
+
+/* ─── kill the ambient video + brutalist paper bg for admin ────── */
+body.admin-page #site-bg-video { display: none !important; }
+body.admin-page::before { display: none !important; }
+body.admin-page {
+  background-image:
+    radial-gradient(circle at 12% 8%, rgba(79,70,229,0.06), transparent 42%),
+    radial-gradient(circle at 92% 0%, rgba(23,165,107,0.05), transparent 38%) !important;
+  background-attachment: fixed !important;
+}
+
+body.admin-page h1, body.admin-page h2, body.admin-page h3,
+body.admin-page h4, body.admin-page h5, body.admin-page h6 {
+  font-family: 'Inter', 'Source Sans 3', system-ui, sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--adm-text);
+}
+
+body.admin-page ::-webkit-scrollbar { width: 8px; height: 8px; }
+body.admin-page ::-webkit-scrollbar-track { background: var(--adm-bg); }
+body.admin-page ::-webkit-scrollbar-thumb { background: var(--adm-border-strong); border-radius: 8px; }
+body.admin-page ::-webkit-scrollbar-thumb:hover { background: var(--adm-primary); }
+
+/* ─── PAGE LOADER — admin variant ───────────────────────────────── */
+body.admin-page #page-loader { background: var(--adm-sidebar-bg); }
+body.admin-page .loader-logo { width: 96px; height: auto; margin-bottom: 0.4rem; animation: admLoaderPulse 1.6s ease-in-out infinite; }
+@keyframes admLoaderPulse { 0%,100% { opacity: 0.85; transform: scale(1); } 50% { opacity: 1; transform: scale(1.05); } }
+body.admin-page .loader-monogram { color: #FFFFFF; font-family: 'Inter', sans-serif; font-weight: 800; }
+body.admin-page .loader-monogram span { color: var(--adm-primary); opacity: 1; }
+body.admin-page .loader-label { color: var(--adm-sidebar-text); letter-spacing: 0.3em; }
+body.admin-page .loader-track { background: rgba(255,255,255,0.12); border-radius: 4px; overflow: hidden; }
+body.admin-page .loader-fill { background: linear-gradient(90deg, var(--adm-primary), #818CF8); border-radius: 4px; }
+
+/* ─── TOPBAR ─────────────────────────────────────────────────────── */
+body.admin-page .navbar-public {
+  background: rgba(255,255,255,0.85) !important;
+  backdrop-filter: blur(14px) saturate(160%);
+  -webkit-backdrop-filter: blur(14px) saturate(160%);
+  border-bottom: 1px solid var(--adm-border) !important;
+  box-shadow: none;
+  transition: box-shadow 0.25s var(--adm-ease), background 0.25s var(--adm-ease);
+  padding: 0.6rem 0;
+}
+body.admin-page .navbar-public.scrolled {
+  background: rgba(255,255,255,0.97) !important;
+  box-shadow: var(--adm-shadow-sm);
+  border-bottom-color: var(--adm-border-strong) !important;
+}
+body.admin-page .navbar-public .navbar-brand {
+  font-family: 'Inter', sans-serif;
+  font-weight: 800;
+  font-size: 1.25rem;
+  color: var(--adm-text) !important;
+  letter-spacing: -0.02em;
+  text-transform: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+body.admin-page .navbar-public .navbar-brand::before {
+  display: none;
+}
+body.admin-page .navbar-public .brand-logo-mark {
+  height: 34px;
+  width: auto;
+  display: inline-block;
+  filter: drop-shadow(0 1px 2px rgba(20,24,45,0.15));
+  transition: transform 0.35s cubic-bezier(.65,0,.35,1);
+}
+body.admin-page .navbar-public .navbar-brand:hover .brand-logo-mark {
+  transform: rotate(-6deg) scale(1.06);
+}
+body.admin-page .navbar-public .brand-wordmark {
+  line-height: 1;
+}
+body.admin-page .navbar-public .brand-accent,
+body.admin-page .navbar-public .navbar-brand .brand-accent {
+  color: var(--adm-primary) !important;
+}
+body.admin-page .navbar-toggler i,
+body.admin-page .navbar-public .navbar-toggler i { color: var(--adm-text) !important; }
+
+body.admin-page .navbar-public .btn {
+  position: relative;
+  z-index: 0;
+  overflow: hidden;
+  border-radius: var(--adm-radius-sm);
+  font-weight: 600;
+  font-size: 0.82rem;
+  letter-spacing: 0;
+  text-transform: none;
+  padding: 0.42rem 0.9rem;
+  border-width: 1px;
+  transition: transform 0.15s var(--adm-ease), box-shadow 0.15s var(--adm-ease), background 0.15s var(--adm-ease);
+}
+body.admin-page .navbar-public .btn:hover { transform: translateY(-1px); }
+
+/* ── Sheryians-style topbar link animation ──────────────────────────
+   A soft colour wipe slides in from the left behind the label, and a
+   thin underline grows from the centre. Both reverse cleanly on
+   mouse-out so rapid hovering never looks glitchy. */
+body.admin-page .navbar-public .btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: currentColor;
+  opacity: 0.1;
+  transform: translateX(-100%);
+  transition: transform 0.35s cubic-bezier(.65,0,.35,1);
+  z-index: -1;
+}
+body.admin-page .navbar-public .btn::after {
+  content: '';
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  bottom: 3px;
+  height: 2px;
+  background: currentColor;
+  border-radius: 2px;
+  transform: scaleX(0);
+  transform-origin: center;
+  transition: transform 0.3s cubic-bezier(.65,0,.35,1);
+  z-index: -1;
+}
+body.admin-page .navbar-public .btn:hover::before { transform: translateX(0); }
+body.admin-page .navbar-public .btn:hover::after { transform: scaleX(1); }
+body.admin-page .navbar-public .btn i {
+  display: inline-block;
+  transition: transform 0.3s cubic-bezier(.65,0,.35,1);
+}
+body.admin-page .navbar-public .btn:hover i {
+  transform: translateX(2px) scale(1.08);
+}
+body.admin-page .navbar-public .btn.dropdown-toggle:hover i {
+  transform: scale(1.08) rotate(-4deg);
+}
+@media (prefers-reduced-motion: reduce) {
+  body.admin-page .navbar-public .btn::before,
+  body.admin-page .navbar-public .btn::after,
+  body.admin-page .navbar-public .btn i { transition: none !important; }
+}
+body.admin-page .navbar-public .btn-outline-warning {
+  color: var(--adm-primary) !important;
+  border-color: var(--adm-border-strong) !important;
+  background: var(--adm-surface) !important;
+}
+body.admin-page .navbar-public .btn-outline-warning:hover {
+  background: var(--adm-primary-light) !important;
+  border-color: var(--adm-primary) !important;
+  box-shadow: var(--adm-shadow-sm);
+}
+body.admin-page .navbar-public .btn-outline-info {
+  color: var(--adm-info) !important;
+  border-color: var(--adm-border-strong) !important;
+  background: var(--adm-surface) !important;
+}
+body.admin-page .navbar-public .btn-outline-info:hover {
+  background: var(--adm-info-bg) !important;
+  border-color: var(--adm-info) !important;
+}
+body.admin-page .navbar-public .btn-outline-danger {
+  color: var(--adm-danger) !important;
+  border-color: var(--adm-border-strong) !important;
+  background: var(--adm-surface) !important;
+}
+body.admin-page .navbar-public .btn-outline-danger:hover {
+  background: var(--adm-danger-bg) !important;
+  border-color: var(--adm-danger) !important;
+}
+body.admin-page .navbar-public .dropdown-menu {
+  border: 1px solid var(--adm-border);
+  border-radius: var(--adm-radius-md);
+  box-shadow: var(--adm-shadow-lg);
+  padding: 0.4rem;
+  background: var(--adm-surface);
+  animation: admDropIn 0.16s var(--adm-ease) both;
+}
+@keyframes admDropIn { from { opacity:0; transform: translateY(-6px) scale(0.98);} to { opacity:1; transform: translateY(0) scale(1);} }
+body.admin-page .navbar-public .dropdown-item {
+  border-radius: var(--adm-radius-sm);
+  padding: 0.55rem 0.75rem;
+  font-size: 0.86rem;
+  color: var(--adm-text-secondary);
+  transition: background 0.15s ease, color 0.15s ease, padding-left 0.15s ease;
+}
+body.admin-page .navbar-public .dropdown-item:hover {
+  background: var(--adm-primary-light);
+  color: var(--adm-primary-dark);
+  padding-left: 1rem;
+}
+body.admin-page .navbar-public .dropdown-divider { border-color: var(--adm-border); }
+
+/* ─── SIDEBAR ────────────────────────────────────────────────────── */
+body.admin-page .sidebar-wrapper {
+  background: var(--adm-sidebar-bg) !important;
+  border-right: 1px solid var(--adm-sidebar-border);
+  position: fixed !important;
+  top: 60px;
+  bottom: 0;
+  left: 0;
+  width: 16.666667%;
+  z-index: 100;
+  overflow-y: auto !important;
+  min-height: 0 !important;
+  height: auto !important;
+  align-self: stretch;
+}
+body.admin-page main {
+  margin-left: 16.666667% !important;
+}
+
+@media (max-width: 991.98px) {
+  body.admin-page .sidebar-wrapper {
+    width: 25%;
+  }
+  body.admin-page main {
+    margin-left: 25% !important;
+  }
+}
+
+@media (max-width: 767.98px) {
+  body.admin-page .sidebar-wrapper {
+    position: fixed !important;
+    width: 82vw;
+    margin-left: 0 !important;
+  }
+  body.admin-page main {
+    margin-left: 0 !important;
+  }
+}
+
+body.admin-page .sidebar {
+  background: transparent !important;
+  padding: 0.5rem 0.85rem 2rem !important;
+}
+body.admin-page .admin-avatar-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.6rem;
+  padding: 1.4rem 0.5rem 1.3rem;
+  margin-bottom: 0.6rem;
+  border-bottom: 1px solid var(--adm-sidebar-border);
+}
+body.admin-page .admin-avatar-section img {
+  width: 56px; height: 56px;
+  border-radius: 50%;
+  border: 2px solid var(--adm-primary);
+  box-shadow: 0 0 0 4px rgba(99,102,241,0.15);
+  object-fit: cover;
+}
+body.admin-page .admin-avatar-section h6 {
+  color: var(--adm-sidebar-text-hi);
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  font-size: 0.82rem;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  letter-spacing: 0.01em;
+}
+body.admin-page .admin-avatar-section h6 i { color: var(--adm-primary); }
+
+body.admin-page .sidebar .nav-link {
+  color: var(--adm-sidebar-text) !important;
+  font-family: 'Inter', 'Source Sans 3', sans-serif;
+  font-weight: 500;
+  font-size: 0.855rem;
+  border-radius: var(--adm-radius-sm);
+  padding: 0.62rem 0.7rem;
+  margin: 0.12rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  border: none !important;
+  background: transparent !important;
+  position: relative;
+  transition: background 0.18s var(--adm-ease), color 0.18s var(--adm-ease), padding-left 0.18s var(--adm-ease);
+}
+body.admin-page .sidebar .nav-link::after { display: none !important; }
+body.admin-page .sidebar .nav-link i:first-child {
+  width: 18px;
+  text-align: center;
+  font-size: 0.92rem;
+  color: var(--adm-sidebar-text);
+  transition: color 0.18s var(--adm-ease);
+}
+body.admin-page .sidebar .nav-link:hover {
+  background: var(--adm-sidebar-hover-bg) !important;
+  color: var(--adm-sidebar-text-hi) !important;
+  padding-left: 0.9rem;
+}
+body.admin-page .sidebar .nav-link:hover i:first-child { color: var(--adm-sidebar-text-hi); }
+body.admin-page .sidebar .nav-link.active {
+  background: var(--adm-sidebar-active) !important;
+  color: var(--adm-sidebar-active-text) !important;
+}
+body.admin-page .sidebar .nav-link.active i:first-child { color: var(--adm-sidebar-active-text); }
+body.admin-page .sidebar .nav-link.active::before {
+  content: '';
+  position: absolute;
+  left: -0.85rem; top: 8%;
+  height: 84%; width: 3px;
+  background: var(--adm-primary);
+  border-radius: 0 3px 3px 0;
+}
+body.admin-page .sidebar .nav-link .fa-chevron-down {
+  margin-left: auto;
+  font-size: 0.68rem;
+  opacity: 0.6;
+  transition: transform 0.25s var(--adm-ease);
+}
+body.admin-page .sidebar .nav-link[aria-expanded="true"] .fa-chevron-down {
+  transform: rotate(180deg);
+}
+body.admin-page .sidebar .collapse .nav-link {
+  padding-left: 2.35rem;
+  font-size: 0.82rem;
+  font-weight: 400;
+}
+body.admin-page .sidebar .collapse .nav-link:hover { padding-left: 2.55rem; }
+body.admin-page .sidebar .collapse .nav-link i:first-child { font-size: 0.72rem; }
+body.admin-page .y-divider { background: var(--adm-sidebar-border) !important; opacity: 1; }
+
+body.admin-page .sidebar-wrapper::-webkit-scrollbar-track { background: var(--adm-sidebar-bg); }
+body.admin-page .sidebar-wrapper::-webkit-scrollbar-thumb { background: var(--adm-sidebar-scrollbar-thumb); }
+
+/* Mobile drawer toggle — restyle to match */
+body.admin-page .sidebar-mobile-toggle {
+  border-color: var(--adm-border-strong);
+  color: var(--adm-text);
+  border-radius: var(--adm-radius-sm);
+}
+
+/* ─── MAIN / CARDS ───────────────────────────────────────────────── */
+body.admin-page main { padding: 1.5rem 1.75rem 3rem; }
+
+body.admin-page .card {
+  background: var(--adm-surface) !important;
+  border: 1px solid var(--adm-border) !important;
+  border-radius: var(--adm-radius-lg) !important;
+  box-shadow: var(--adm-shadow-sm) !important;
+  transition: box-shadow 0.22s var(--adm-ease), transform 0.22s var(--adm-ease), border-color 0.22s var(--adm-ease);
+  overflow: hidden;
+}
+body.admin-page .card:hover {
+  box-shadow: var(--adm-shadow-md) !important;
+  border-color: var(--adm-border-strong) !important;
+}
+body.admin-page .card-header {
+  background: var(--adm-surface) !important;
+  border-bottom: 1px solid var(--adm-border) !important;
+  padding: 1.05rem 1.35rem;
+  color: var(--adm-text);
+}
+body.admin-page .card-header h3, body.admin-page .card-header h4, body.admin-page .card-header h5 {
+  font-size: 1rem; font-weight: 700; color: var(--adm-text);
+}
+body.admin-page .card-body { padding: 1.35rem; color: var(--adm-text-secondary); }
+body.admin-page .text-gold { color: var(--adm-primary) !important; }
+
+/* Page heading area */
+body.admin-page main h2 {
+  font-size: 1.5rem;
+  display: flex;
+  align-items: center;
+}
+body.admin-page main h2 i { color: var(--adm-primary); background: var(--adm-primary-light); width: 40px; height: 40px; border-radius: var(--adm-radius-sm); display: inline-flex; align-items: center; justify-content: center; font-size: 1.05rem; margin-right: 0.7rem !important; }
+body.admin-page main small.text-muted { color: var(--adm-text-muted) !important; }
+
+/* ─── STAT CARDS ─────────────────────────────────────────────────── */
+body.admin-page .stat-card {
+  background: var(--adm-surface);
+  border: 1px solid var(--adm-border);
+  border-radius: var(--adm-radius-lg);
+  box-shadow: var(--adm-shadow-sm);
+  padding: 1.25rem 1.35rem;
+  position: relative;
+  overflow: hidden;
+  transition: box-shadow 0.25s var(--adm-ease), transform 0.25s var(--adm-ease);
+}
+body.admin-page .stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  border-radius: var(--adm-radius-lg) var(--adm-radius-lg) 0 0;
+}
+body.admin-page .stat-card.primary::before { background: linear-gradient(90deg, var(--adm-primary), #818CF8); }
+body.admin-page .stat-card.danger::before  { background: linear-gradient(90deg, var(--adm-danger), #F17A93); }
+body.admin-page .stat-card.warning::before { background: linear-gradient(90deg, var(--adm-warning), #F3B65C); }
+body.admin-page .stat-card.success::before { background: linear-gradient(90deg, var(--adm-success), #5FD69B); }
+body.admin-page .stat-card:hover {
+  box-shadow: var(--adm-shadow-md);
+  transform: translateY(-3px);
+}
+body.admin-page .stat-card .stat-icon {
+  width: 44px; height: 44px;
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.05rem;
+  margin-bottom: 0.9rem;
+  border: none !important;
+}
+body.admin-page .stat-card.primary .stat-icon { color: var(--adm-primary); background: var(--adm-primary-light); }
+body.admin-page .stat-card.danger .stat-icon  { color: var(--adm-danger);  background: var(--adm-danger-bg); }
+body.admin-page .stat-card.warning .stat-icon { color: var(--adm-warning); background: var(--adm-warning-bg); }
+body.admin-page .stat-card.success .stat-icon { color: var(--adm-success); background: var(--adm-success-bg); }
+body.admin-page .stat-card h3 {
+  font-family: 'Inter', sans-serif;
+  font-size: 1.85rem;
+  font-weight: 800;
+  color: var(--adm-text);
+  margin-bottom: 0.15rem;
+}
+body.admin-page .stat-card p {
+  color: var(--adm-text-secondary);
+  font-size: 0.82rem;
+  font-weight: 500;
+  margin: 0;
+}
+
+/* ─── BUTTONS ────────────────────────────────────────────────────── */
+body.admin-page .btn {
+  border-radius: var(--adm-radius-sm);
+  font-weight: 600;
+  font-size: 0.86rem;
+  letter-spacing: 0;
+  text-transform: none;
+  padding: 0.5rem 1.05rem;
+  border-width: 1px;
+  transition: transform 0.15s var(--adm-ease), box-shadow 0.15s var(--adm-ease), background 0.15s var(--adm-ease), border-color 0.15s var(--adm-ease);
+}
+body.admin-page .btn:active { transform: scale(0.97); }
+body.admin-page .btn-primary,
+body.admin-page .btn-warning {
+  background: var(--adm-primary) !important;
+  border-color: var(--adm-primary) !important;
+  color: #fff !important;
+  box-shadow: 0 2px 8px rgba(79,70,229,0.28);
+}
+body.admin-page .btn-primary:hover,
+body.admin-page .btn-warning:hover {
+  background: var(--adm-primary-dark) !important;
+  border-color: var(--adm-primary-dark) !important;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(79,70,229,0.34);
+}
+body.admin-page .btn-outline-warning {
+  background: var(--adm-surface) !important;
+  border-color: var(--adm-border-strong) !important;
+  color: var(--adm-primary) !important;
+}
+body.admin-page .btn-outline-warning:hover {
+  background: var(--adm-primary-light) !important;
+  border-color: var(--adm-primary) !important;
+  transform: translateY(-1px);
+}
+body.admin-page .btn-success {
+  background: var(--adm-success) !important;
+  border-color: var(--adm-success) !important;
+  color: #fff !important;
+}
+body.admin-page .btn-success:hover { background: #128F5C !important; border-color: #128F5C !important; transform: translateY(-1px); }
+body.admin-page .btn-danger {
+  background: var(--adm-danger) !important;
+  border-color: var(--adm-danger) !important;
+  color: #fff !important;
+}
+body.admin-page .btn-danger:hover { background: #C82C4B !important; border-color: #C82C4B !important; transform: translateY(-1px); }
+body.admin-page .btn-secondary {
+  background: var(--adm-surface-muted) !important;
+  border-color: var(--adm-border-strong) !important;
+  color: var(--adm-text-secondary) !important;
+}
+body.admin-page .btn-secondary:hover { background: var(--adm-border) !important; color: var(--adm-text) !important; }
+body.admin-page .btn-sm { padding: 0.34rem 0.75rem; font-size: 0.78rem; }
+
+/* ─── FORMS ──────────────────────────────────────────────────────── */
+body.admin-page .form-control,
+body.admin-page .form-select {
+  background: var(--adm-surface) !important;
+  border: 1px solid var(--adm-border-strong) !important;
+  border-radius: var(--adm-radius-sm) !important;
+  color: var(--adm-text) !important;
+  padding: 0.55rem 0.85rem;
+  font-size: 0.9rem;
+  transition: border-color 0.18s var(--adm-ease), box-shadow 0.18s var(--adm-ease);
+}
+body.admin-page .form-control:focus,
+body.admin-page .form-select:focus {
+  border-color: var(--adm-primary) !important;
+  box-shadow: 0 0 0 3px var(--adm-primary-ring) !important;
+}
+body.admin-page .form-control::placeholder { color: var(--adm-text-muted); }
+body.admin-page label, body.admin-page .form-label {
+  font-weight: 600;
+  font-size: 0.82rem;
+  color: var(--adm-text-secondary);
+  margin-bottom: 0.35rem;
+}
+body.admin-page .form-check-input:checked {
+  background-color: var(--adm-primary);
+  border-color: var(--adm-primary);
+}
+body.admin-page .form-check-input:focus {
+  box-shadow: 0 0 0 3px var(--adm-primary-ring);
+}
+
+/* ─── TABLES ─────────────────────────────────────────────────────── */
+body.admin-page .table {
+  color: var(--adm-text);
+  border-color: var(--adm-border);
+  margin-bottom: 0;
+}
+body.admin-page .table thead th {
+  background: var(--adm-surface-muted);
+  color: var(--adm-text-secondary);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  border-bottom: 1px solid var(--adm-border);
+  padding: 0.85rem 1rem;
+}
+body.admin-page .table tbody tr {
+  transition: background 0.15s ease;
+}
+body.admin-page .table tbody tr:hover { background: var(--adm-primary-light) !important; }
+body.admin-page .table td {
+  padding: 0.8rem 1rem;
+  border-bottom: 1px solid var(--adm-border);
+  font-size: 0.87rem;
+  vertical-align: middle;
+}
+body.admin-page .table-responsive { border-radius: var(--adm-radius-lg); }
+
+/* ─── BADGES / ALERTS ────────────────────────────────────────────── */
+body.admin-page .badge { border-radius: 6px; font-weight: 600; letter-spacing: 0.01em; }
+body.admin-page .alert {
+  border-radius: var(--adm-radius-md);
+  border: 1px solid transparent;
+  font-size: 0.87rem;
+}
+body.admin-page .alert-success { background: var(--adm-success-bg); color: #0E7A4C; border-color: rgba(23,165,107,0.25); }
+body.admin-page .alert-danger  { background: var(--adm-danger-bg);  color: #B22C48; border-color: rgba(227,61,94,0.25); }
+body.admin-page .alert-warning { background: var(--adm-warning-bg); color: #A56A0E; border-color: rgba(219,138,23,0.25); }
+body.admin-page .alert-info    { background: var(--adm-info-bg);    color: #106190; border-color: rgba(23,134,199,0.25); }
+
+/* ─── FOOTER ─────────────────────────────────────────────────────── */
+body.admin-page .site-footer {
+  background: transparent;
+  border-top: 1px solid var(--adm-border);
+  color: var(--adm-text-muted);
+  font-size: 0.78rem;
+  padding: 1.1rem 0;
+}
+body.admin-page .site-footer .accent { color: var(--adm-primary); font-weight: 600; }
+
+/* ─── UNIVERSITY BANNER (dashboard) — soften to fit theme ───────── */
+body.admin-page .stat-card, body.admin-page .card { will-change: transform; }
+
+/* ─── MICRO-INTERACTIONS ─────────────────────────────────────────── */
+body.admin-page main .gsap-up,
+body.admin-page main .gsap-scale,
+body.admin-page main .gsap-left { will-change: transform, opacity; }
+
+body.admin-page .qa-item .btn {
+  border-radius: var(--adm-radius-md) !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.admin-page * { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
+}
+
+/* ─── RESPONSIVE ─────────────────────────────────────────────────── */
+@media (max-width: 767.98px) {
+  body.admin-page main { padding: 1.1rem 0.9rem 2.5rem; }
+  body.admin-page .stat-card h3 { font-size: 1.5rem; }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   FORCE WHITE / LIGHT BACKGROUNDS EVERYWHERE IN ADMIN
+   Overrides Bootstrap table-dark, dark variants, and any
+   template inline dark styles so every section is light-themed.
+   ════════════════════════════════════════════════════════════════ */
+
+/* ── Tables ────────────────────────────────────────────────────── */
+body.admin-page .table,
+body.admin-page .table-dark,
+body.admin-page .table-dark thead,
+body.admin-page .table-dark tbody,
+body.admin-page .table-dark tfoot,
+body.admin-page .table-dark tr,
+body.admin-page .table-dark td,
+body.admin-page .table-dark th {
+  background-color: var(--adm-surface) !important;
+  border-color: var(--adm-border) !important;
+}
+
+body.admin-page .table thead,
+body.admin-page .table thead th,
+body.admin-page .table thead tr {
+  background-color: var(--adm-surface-muted) !important;
+  color: var(--adm-text-secondary) !important;
+  border-color: var(--adm-border) !important;
+}
+
+body.admin-page .table tbody td,
+body.admin-page .table tbody th,
+body.admin-page .table-dark tbody td,
+body.admin-page .table-dark tbody th {
+  background-color: var(--adm-surface) !important;
+}
+
+body.admin-page .table tbody tr:nth-child(even) td,
+body.admin-page .table tbody tr:nth-child(even) th,
+body.admin-page .table-dark tbody tr:nth-child(even) td,
+body.admin-page .table-dark tbody tr:nth-child(even) th {
+  background-color: var(--adm-surface-muted) !important;
+}
+
+body.admin-page .table tbody tr:hover td,
+body.admin-page .table tbody tr:hover th,
+body.admin-page .table-dark tbody tr:hover td,
+body.admin-page .table-dark tbody tr:hover th {
+  background-color: var(--adm-primary-light) !important;
+}
+
+/* ── Bootstrap dark/black utility classes ──────────────────────── */
+body.admin-page .bg-dark,
+body.admin-page .bg-black,
+body.admin-page [class*="bg-dark"],
+body.admin-page .text-bg-dark {
+  background-color: var(--adm-surface) !important;
+  color: var(--adm-text) !important;
+}
+
+/* ── Wrappers / containers with inline or class-based dark bg ──── */
+body.admin-page .table-wrapper,
+body.admin-page .table-container,
+body.admin-page .data-table-wrapper {
+  background-color: var(--adm-surface) !important;
+  border-radius: var(--adm-radius-lg);
+  overflow: hidden;
+}
+
+/* ── Modal backdrops & bodies ───────────────────────────────────── */
+body.admin-page .modal-content {
+  background-color: var(--adm-surface) !important;
+  color: var(--adm-text) !important;
+  border: 1px solid var(--adm-border) !important;
+  border-radius: var(--adm-radius-lg) !important;
+}
+body.admin-page .modal-header {
+  background-color: var(--adm-surface-muted) !important;
+  border-bottom: 1px solid var(--adm-border) !important;
+  color: var(--adm-text) !important;
+}
+body.admin-page .modal-footer {
+  background-color: var(--adm-surface-muted) !important;
+  border-top: 1px solid var(--adm-border) !important;
+}
+
+/* ── Input groups, code, pre ────────────────────────────────────── */
+body.admin-page .input-group-text {
+  background-color: var(--adm-surface-muted) !important;
+  border-color: var(--adm-border-strong) !important;
+  color: var(--adm-text-secondary) !important;
+}
+body.admin-page code,
+body.admin-page pre {
+  background-color: var(--adm-surface-muted) !important;
+  color: var(--adm-primary-dark) !important;
+  border: 1px solid var(--adm-border) !important;
+  border-radius: var(--adm-radius-sm) !important;
+}
+
+/* ── Dropdowns ─────────────────────────────────────────────────── */
+body.admin-page .dropdown-menu {
+  background-color: var(--adm-surface) !important;
+  border-color: var(--adm-border) !important;
+  color: var(--adm-text) !important;
+}
+body.admin-page .dropdown-item {
+  color: var(--adm-text-secondary) !important;
+}
+body.admin-page .dropdown-item:hover,
+body.admin-page .dropdown-item:focus {
+  background-color: var(--adm-primary-light) !important;
+  color: var(--adm-primary-dark) !important;
+}
+body.admin-page .dropdown-divider {
+  border-color: var(--adm-border) !important;
+}
+
+/* ── Pagination ─────────────────────────────────────────────────── */
+body.admin-page .page-link {
+  background-color: var(--adm-surface) !important;
+  border-color: var(--adm-border) !important;
+  color: var(--adm-primary) !important;
+}
+body.admin-page .page-item.active .page-link {
+  background-color: var(--adm-primary) !important;
+  border-color: var(--adm-primary) !important;
+  color: #fff !important;
+}
+body.admin-page .page-item.disabled .page-link {
+  color: var(--adm-text-muted) !important;
+  background-color: var(--adm-surface-muted) !important;
+}
+
+/* ── List groups ────────────────────────────────────────────────── */
+body.admin-page .list-group-item {
+  background-color: var(--adm-surface) !important;
+  border-color: var(--adm-border) !important;
+  color: var(--adm-text) !important;
+}
+body.admin-page .list-group-item.active {
+  background-color: var(--adm-primary) !important;
+  border-color: var(--adm-primary) !important;
+  color: #fff !important;
+}
+
+/* ── Tabs / nav-pills ───────────────────────────────────────────── */
+body.admin-page .nav-tabs .nav-link {
+  color: var(--adm-text-secondary) !important;
+  border-color: transparent !important;
+}
+body.admin-page .nav-tabs .nav-link.active {
+  color: var(--adm-primary) !important;
+  background-color: var(--adm-surface) !important;
+  border-color: var(--adm-border) var(--adm-border) var(--adm-surface) !important;
+}
+body.admin-page .nav-pills .nav-link {
+  color: var(--adm-text-secondary) !important;
+}
+body.admin-page .nav-pills .nav-link.active {
+  background-color: var(--adm-primary) !important;
+  color: #fff !important;
+}
+
+/* ── Ensure all text in admin stays readable ────────────────────── */
+body.admin-page p,
+body.admin-page span,
+body.admin-page li,
+body.admin-page td,
+body.admin-page th {
+  color: inherit;
+}
+
+/* ── Catch-all: any element with inline black/dark background ───── */
+body.admin-page [style*="background: #000"],
+body.admin-page [style*="background:#000"],
+body.admin-page [style*="background-color: #000"],
+body.admin-page [style*="background-color:#000"],
+body.admin-page [style*="background: black"],
+body.admin-page [style*="background:black"] {
+  background: var(--adm-surface) !important;
+  color: var(--adm-text) !important;
+}
+
+/* =====================================================
+   SRMS ANIMATED ICONS SYSTEM — ADMIN SPECIALISATION
+   Premium hover animations tailored for Admin panel
+   ===================================================== */
+
+/* ──────────────── ADMIN SIDEBAR NAV LINK TRIGGERS ──────────────── */
+body.admin-page .sidebar .nav-link:hover i.fa-tachometer-alt {
+  animation: srms-gauge-wiggle 1.2s ease-in-out infinite;
+}
+body.admin-page .sidebar .nav-link:hover i.fa-sitemap {
+  animation: srms-pulse-scale 1.2s ease-in-out infinite;
+}
+body.admin-page .sidebar .nav-link:hover i.fa-chalkboard {
+  animation: srms-wiggle-soft 1s ease-in-out infinite;
+}
+body.admin-page .sidebar .nav-link:hover i.fa-book {
+  animation: srms-book-flip 1.4s ease-in-out infinite;
+}
+body.admin-page .sidebar .nav-link:hover i.fa-user-graduate {
+  animation: srms-cap-bounce 1s ease-in-out infinite;
+}
+body.admin-page .sidebar .nav-link:hover i.fa-calendar-check {
+  animation: srms-pulse-scale 1.2s ease-in-out infinite;
+}
+body.admin-page .sidebar .nav-link:hover i.fa-clipboard-list,
+body.admin-page .sidebar .nav-link:hover i.fa-list {
+  animation: srms-wiggle-soft 1s ease-in-out infinite;
+}
+body.admin-page .sidebar .nav-link:hover i.fa-bullhorn {
+  animation: srms-alert-shake 0.5s ease-in-out infinite;
+}
+body.admin-page .sidebar .nav-link:hover i.fa-user-shield {
+  animation: srms-pulse-scale 1.2s ease-in-out infinite;
+}
+body.admin-page .sidebar .nav-link:hover i.fa-key {
+  animation: srms-key-rotate 1.2s ease-in-out infinite;
+}
+body.admin-page .sidebar .nav-link:hover i.fa-chart-bar {
+  animation: srms-chart-grow 1s ease-in-out infinite;
+}
+
+/* Sidebar Collapse Submenu Links */
+body.admin-page .sidebar .collapse .nav-link:hover i.fa-plus {
+  animation: srms-spin-once 0.6s ease-out;
+}
+body.admin-page .sidebar .collapse .nav-link:hover i.fa-table {
+  animation: srms-pulse-scale 1.2s ease-in-out infinite;
+}
+body.admin-page .sidebar .collapse .nav-link:hover i.fa-layer-group {
+  animation: srms-pulse-scale 1.2s ease-in-out infinite;
+}
+
+/* ──────────────── ADMIN TOPBAR LINK & BUTTON TRIGGERS ──────────────── */
+.navbar-nav .nav-item .btn:hover i.fa-home {
+  animation: srms-bounce-y 1s ease-in-out infinite;
+}
+.navbar-nav .nav-item .btn:hover i.fa-users {
+  animation: srms-pulse-scale 1.2s ease-in-out infinite;
+}
+.navbar-nav .nav-item .btn:hover i.fa-ellipsis-h {
+  animation: srms-wiggle-soft 1.2s ease-in-out infinite;
+}
+.navbar-nav .nav-item .btn:hover i.fa-sign-out-alt {
+  animation: srms-slide-right 0.8s ease-in-out infinite;
+}
+
+/* Dropdown Menu Items */
+.dropdown-menu .dropdown-item:hover i.fa-user-plus {
+  animation: srms-cap-bounce 1s ease-in-out infinite;
+}
+.dropdown-menu .dropdown-item:hover i.fa-users-cog {
+  animation: srms-spin-cogs 2.5s linear infinite;
+}
+.dropdown-menu .dropdown-item:hover i.fa-calendar-alt {
+  animation: srms-pulse-scale 1.2s ease-in-out infinite;
+}
+.dropdown-menu .dropdown-item:hover i.fa-chart-line {
+  animation: srms-chart-grow 1s ease-in-out infinite;
+}
+.dropdown-menu .dropdown-item:hover i.fa-chalkboard-teacher {
+  animation: srms-wiggle-soft 1.2s ease-in-out infinite;
+}
+.dropdown-menu .dropdown-item:hover i.fa-exchange-alt {
+  animation: srms-spin-exchange 1.2s ease-in-out infinite;
+}
+.dropdown-menu .dropdown-item:hover i.fa-chart-bar {
+  animation: srms-chart-grow 1s ease-in-out infinite;
+}
+.dropdown-menu .dropdown-item:hover i.fa-user-shield {
+  animation: srms-pulse-scale 1.2s ease-in-out infinite;
+}
+
+/* ──────────────── ADMIN STAT CARD HOVER TRIGGERS ──────────────── */
+body.admin-page .stat-card:hover .stat-icon i.fa-users {
+  animation: srms-pulse-scale 1.2s ease-in-out infinite;
+}
+body.admin-page .stat-card:hover .stat-icon i.fa-book-open {
+  animation: srms-book-flip 1.4s ease-in-out infinite;
+}
+body.admin-page .stat-card:hover .stat-icon i.fa-school {
+  animation: srms-wiggle-soft 1.2s ease-in-out infinite;
+}
+body.admin-page .stat-card:hover .stat-icon i.fa-clipboard-check {
+  animation: srms-pulse-scale 1.2s ease-in-out infinite;
+}
+body.admin-page .stat-card:hover .stat-icon i.fa-percentage {
+  animation: srms-gauge-wiggle 1.2s ease-in-out infinite;
+}
+body.admin-page .stat-card:hover .stat-icon i.fa-calendar-check {
+  animation: srms-pulse-scale 1.2s ease-in-out infinite;
+}
+body.admin-page .stat-card:hover .stat-icon i.fa-trophy {
+  animation: srms-cap-bounce 1s ease-in-out infinite;
+}
+body.admin-page .stat-card:hover .stat-icon i.fa-exclamation-triangle {
+  animation: srms-alert-shake 0.5s ease-in-out infinite;
+}

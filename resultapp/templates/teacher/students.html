@@ -1,0 +1,75 @@
+{% extends 'teacher/teacher_base.html' %}
+{% load static %}
+
+{% block title %}My Students — Teacher Portal{% endblock %}
+
+{% block content %}
+<div class="p-4">
+  <div class="d-flex align-items-center gap-3 mb-4">
+    <div style="width:46px;height:46px;border-radius:var(--adm-radius-md);background:var(--teacher-accent-dim);display:flex;align-items:center;justify-content:center;">
+      <i class="fas fa-users" style="color:var(--teacher-accent);font-size:1.15rem;"></i>
+    </div>
+    <div>
+      <h2 class="mb-0" style="font-size:1.45rem;font-weight:700;">My Students</h2>
+      <small style="color:var(--adm-text-muted);">Students in your assigned classes</small>
+    </div>
+  </div>
+
+  <!-- Search -->
+  <div class="card mb-3">
+    <div class="card-body py-2 px-3">
+      <form method="get" class="d-flex gap-2 align-items-center" data-no-loading>
+        <i class="fas fa-search" style="color:var(--adm-text-muted);"></i>
+        <input type="text" name="q" id="searchInput" value="{{ q }}" class="form-control form-control-sm border-0 shadow-none" placeholder="Search by name, roll ID or email…" style="background:transparent;color:var(--adm-text);">
+        {% if q %}<a href="{% url 'teacher_students' %}" class="btn btn-sm btn-outline-secondary">Clear</a>{% endif %}
+      </form>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header d-flex align-items-center justify-content-between">
+      <h5 class="mb-0"><i class="fas fa-list me-2" style="color:var(--teacher-accent);"></i>Students ({{ page_obj.paginator.count }})</h5>
+      <div class="d-flex gap-1 flex-wrap">
+        {% for cls in assigned_classes %}
+        <span class="badge" style="background:var(--teacher-accent-dim);color:var(--teacher-accent);font-size:0.72rem;">{{ cls.class_name }}{% if cls.section %} – {{ cls.section }}{% endif %}</span>
+        {% endfor %}
+      </div>
+    </div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover mb-0">
+          <thead>
+            <tr>
+              <th>Roll ID</th><th>Name</th><th>Email</th><th>Class</th><th>Gender</th><th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for student in students %}
+            <tr>
+              <td><code style="color:var(--teacher-accent);background:var(--teacher-accent-dim);padding:0.2rem 0.5rem;border-radius:4px;font-size:0.82rem;">{{ student.roll_id }}</code></td>
+              <td><strong style="color:var(--adm-text);">{{ student.name }}</strong></td>
+              <td style="color:var(--adm-text-secondary);font-size:0.85rem;">{{ student.email|default:"—" }}</td>
+              <td style="color:var(--adm-text-secondary);">{{ student.student_class }}{% if student.student_class.section %} – {{ student.student_class.section }}{% endif %}</td>
+              <td style="color:var(--adm-text-secondary);">{{ student.gender|default:"—" }}</td>
+              <td>
+                {% if student.status %}
+                  <span class="badge" style="background:rgba(52,211,153,0.15);color:var(--success);">Active</span>
+                {% else %}
+                  <span class="badge" style="background:rgba(248,113,113,0.15);color:var(--danger);">Inactive</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="6" class="text-center py-5" style="color:var(--adm-text-muted);">
+              <i class="fas fa-user-slash fa-2x mb-2" style="opacity:0.3;"></i><br>No students found.
+            </td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  {% include '_pagination.html' %}
+</div>
+{% endblock %}

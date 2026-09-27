@@ -1,0 +1,151 @@
+{% extends 'teacher/teacher_base.html' %}
+{% load static %}
+
+{% block title %}Teacher Dashboard — SRMS{% endblock %}
+
+{% block content %}
+<div class="p-4">
+  <!-- Page header -->
+  <div class="d-flex align-items-center gap-3 mb-4">
+    <div style="width:46px;height:46px;border-radius:var(--adm-radius-md);background:var(--teacher-accent-dim);display:flex;align-items:center;justify-content:center;">
+      <i class="fas fa-tachometer-alt" style="color:var(--teacher-accent);font-size:1.15rem;"></i>
+    </div>
+    <div>
+      <h2 class="mb-0" style="font-size:1.45rem;font-weight:700;color:var(--adm-text);">Welcome back, {{ teacher.user.get_full_name|default:teacher.user.username }}!</h2>
+      <small style="color:var(--adm-text-muted);">Teacher Dashboard — {{ teacher.department|default:"SRMS" }}</small>
+    </div>
+  </div>
+
+  <!-- Stat cards -->
+  <div class="row g-3 mb-4">
+    <div class="col-sm-6 col-xl-3">
+      <div class="stat-card d-flex align-items-center gap-3 p-3" style="border-radius:var(--adm-radius-lg);border:1px solid var(--adm-border);background:var(--adm-surface);box-shadow:var(--adm-shadow-sm);">
+        <div style="width:48px;height:48px;border-radius:var(--adm-radius-md);background:var(--teacher-accent-dim);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+          <i class="fas fa-users" style="color:var(--teacher-accent);font-size:1.2rem;"></i>
+        </div>
+        <div>
+          <div style="font-size:1.75rem;font-weight:800;color:var(--adm-text);line-height:1;"><span class="counter" data-target="{{ student_count }}">0</span></div>
+          <div style="font-size:0.78rem;color:var(--adm-text-muted);font-weight:600;letter-spacing:0.04em;text-transform:uppercase;">My Students</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+      <div class="stat-card d-flex align-items-center gap-3 p-3" style="border-radius:var(--adm-radius-lg);border:1px solid var(--adm-border);background:var(--adm-surface);box-shadow:var(--adm-shadow-sm);">
+        <div style="width:48px;height:48px;border-radius:var(--adm-radius-md);background:rgba(96,165,250,0.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+          <i class="fas fa-poll-h" style="color:var(--info);font-size:1.2rem;"></i>
+        </div>
+        <div>
+          <div style="font-size:1.75rem;font-weight:800;color:var(--adm-text);line-height:1;"><span class="counter" data-target="{{ result_count }}">0</span></div>
+          <div style="font-size:0.78rem;color:var(--adm-text-muted);font-weight:600;letter-spacing:0.04em;text-transform:uppercase;">Results</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+      <div class="stat-card d-flex align-items-center gap-3 p-3" style="border-radius:var(--adm-radius-lg);border:1px solid var(--adm-border);background:var(--adm-surface);box-shadow:var(--adm-shadow-sm);">
+        <div style="width:48px;height:48px;border-radius:var(--adm-radius-md);background:rgba(251,191,36,0.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+          <i class="fas fa-chalkboard" style="color:var(--gold-bright);font-size:1.2rem;"></i>
+        </div>
+        <div>
+          <div style="font-size:1.75rem;font-weight:800;color:var(--adm-text);line-height:1;"><span class="counter" data-target="{{ assigned_classes.count }}">0</span></div>
+          <div style="font-size:0.78rem;color:var(--adm-text-muted);font-weight:600;letter-spacing:0.04em;text-transform:uppercase;">Assigned Classes</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+      <div class="stat-card d-flex align-items-center gap-3 p-3" style="border-radius:var(--adm-radius-lg);border:1px solid var(--adm-border);background:var(--adm-surface);box-shadow:var(--adm-shadow-sm);">
+        <div style="width:48px;height:48px;border-radius:var(--adm-radius-md);background:rgba(167,139,250,0.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+          <i class="fas fa-book-open" style="color:var(--teacher-accent);font-size:1.2rem;"></i>
+        </div>
+        <div>
+          <div style="font-size:1.75rem;font-weight:800;color:var(--adm-text);line-height:1;"><span class="counter" data-target="{{ assigned_subjects.count }}">0</span></div>
+          <div style="font-size:0.78rem;color:var(--adm-text-muted);font-weight:600;letter-spacing:0.04em;text-transform:uppercase;">Subjects</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-3">
+    <!-- Recent Results -->
+    <div class="col-lg-8">
+      <div class="card">
+        <div class="card-header d-flex align-items-center gap-2">
+          <i class="fas fa-history" style="color:var(--teacher-accent);"></i>
+          <h5 class="mb-0">Recent Results</h5>
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-hover mb-0">
+              <thead>
+                <tr>
+                  <th>Student</th><th>Subject</th><th>Marks</th><th>Grade</th><th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for r in recent_results %}
+                <tr>
+                  <td>
+                    <strong style="color:var(--adm-text);">{{ r.student.name }}</strong><br>
+                    <small style="color:var(--adm-text-muted);">{{ r.student.roll_id }}</small>
+                  </td>
+                  <td style="color:var(--adm-text-secondary);">{{ r.subject.subject_name }}</td>
+                  <td><span style="font-weight:700;color:var(--adm-text);">{{ r.total_obtained }}</span><span style="color:var(--adm-text-muted);">/{{ r.total_max }}</span></td>
+                  <td><span class="badge" style="background:rgba(99,102,241,0.18);color:var(--info);font-size:0.78rem;">{{ r.nep_grade }}</span></td>
+                  <td>
+                    {% if r.is_subject_pass %}
+                      <span class="badge" style="background:rgba(52,211,153,0.15);color:var(--success);">PASS</span>
+                    {% else %}
+                      <span class="badge" style="background:rgba(248,113,113,0.15);color:var(--danger);">FAIL</span>
+                    {% endif %}
+                  </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5" class="text-center py-4" style="color:var(--adm-text-muted);">No results yet for your classes.</td></tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Assigned Classes & Subjects -->
+    <div class="col-lg-4">
+      <div class="card mb-3">
+        <div class="card-header"><h5 class="mb-0"><i class="fas fa-chalkboard me-2" style="color:var(--teacher-accent);"></i>My Classes</h5></div>
+        <div class="card-body">
+          {% for cls in assigned_classes %}
+          <div class="d-flex align-items-center gap-2 mb-2">
+            <span style="width:8px;height:8px;border-radius:50%;background:var(--teacher-accent);flex-shrink:0;"></span>
+            <span style="color:var(--adm-text);font-size:0.9rem;">{{ cls.class_name }}{% if cls.section %} — {{ cls.section }}{% endif %}</span>
+          </div>
+          {% empty %}
+          <p class="mb-0" style="color:var(--adm-text-muted);font-size:0.85rem;">No classes assigned yet.</p>
+          {% endfor %}
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><h5 class="mb-0"><i class="fas fa-book-open me-2" style="color:var(--teacher-accent);"></i>My Subjects</h5></div>
+        <div class="card-body">
+          {% for subj in assigned_subjects %}
+          <div class="d-flex align-items-center gap-2 mb-2">
+            <span style="width:8px;height:8px;border-radius:50%;background:var(--teacher-accent);flex-shrink:0;"></span>
+            <span style="color:var(--adm-text);font-size:0.9rem;">{{ subj.subject_name }}</span>
+            <span style="color:var(--adm-text-muted);font-size:0.78rem;">{{ subj.subject_code }}</span>
+          </div>
+          {% empty %}
+          <p class="mb-0" style="color:var(--adm-text-muted);font-size:0.85rem;">No subjects assigned yet.</p>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  if (window.SRMSList) window.SRMSList.initCounters({ scrollTrigger: false });
+});
+</script>
+{% endblock %}

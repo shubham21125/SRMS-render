@@ -1,0 +1,194 @@
+{% extends 'admin_base.html' %}
+{% load static %}
+{% block title %}Monthly Attendance Reports — Admin Console{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-3">
+
+  <!-- Header -->
+  <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4 gsap-left">
+    <div>
+      <h2 class="mb-1"><i class="fas fa-chart-pie me-2" style="color:var(--gold);"></i>Attendance Reports</h2>
+      <p style="color:var(--text-dim);font-size:0.85rem;margin:0;">
+        Monthly Attendance Summary &amp; Consolidated Report &mdash; {{ month_name }} {{ selected_year }}
+      </p>
+    </div>
+    <div class="d-flex gap-2">
+      <a href="{% url 'export_attendance_reports_csv' %}?month={{ selected_month }}&year={{ selected_year }}&class={{ selected_class_id }}&branch={{ selected_branch_id }}&q={{ q }}"
+         class="btn btn-success btn-sm">
+        <i class="fas fa-file-csv me-1"></i>Export CSV
+      </a>
+      <a href="{% url 'add_attendance' %}" class="btn btn-outline-warning btn-sm">
+        <i class="fas fa-calendar-plus me-1"></i>Bulk Attendance Entry
+      </a>
+    </div>
+  </div>
+
+  <!-- Filter Card -->
+  <div class="card p-3 mb-4 shadow-sm gsap-up">
+    <form method="get" class="row g-3 align-items-end">
+      <!-- Month -->
+      <div class="col-md-2 col-sm-6">
+        <label class="form-label small text-muted">Month</label>
+        <select name="month" class="form-select form-select-sm">
+          {% for m in month_choices %}
+          <option value="{{ m.0 }}" {% if selected_month == m.0|stringformat:"s" %}selected{% endif %}>{{ m.1 }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <!-- Year -->
+      <div class="col-md-2 col-sm-6">
+        <label class="form-label small text-muted">Year</label>
+        <select name="year" class="form-select form-select-sm">
+          {% for y in year_choices %}
+          <option value="{{ y }}" {% if selected_year == y|stringformat:"s" %}selected{% endif %}>{{ y }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <!-- Class -->
+      <div class="col-md-3 col-sm-6">
+        <label class="form-label small text-muted">Class</label>
+        <select name="class" class="form-select form-select-sm">
+          <option value="">All Classes (Consolidated)</option>
+          {% for c in classes %}
+          <option value="{{ c.id }}" {% if selected_class_id == c.id|stringformat:"s" %}selected{% endif %}>
+            {% if c.branch %}[{{ c.branch.branch_code }}] {% endif %}{{ c.class_name }} - Sec {{ c.section }}
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <!-- Search -->
+      <div class="col-md-3 col-sm-6">
+        <label class="form-label small text-muted">Search Student</label>
+        <div class="input-group input-group-sm">
+          <span class="input-group-text"><i class="fas fa-search"></i></span>
+          <input type="text" name="q" value="{{ q }}" class="form-control" placeholder="Name or Roll ID...">
+        </div>
+      </div>
+
+      <!-- Submit / Reset -->
+      <div class="col-md-2 d-flex gap-2">
+        <button type="submit" class="btn btn-primary btn-sm flex-grow-1">
+          <i class="fas fa-filter me-1"></i>Filter
+        </button>
+        <a href="{% url 'admin_attendance_reports' %}" class="btn btn-outline-secondary btn-sm" title="Reset Filters">
+          <i class="fas fa-sync-alt"></i>
+        </a>
+      </div>
+    </form>
+  </div>
+
+  <!-- Metric Strip -->
+  <div class="row g-3 mb-4 gsap-up">
+    <div class="col-md-4 col-sm-6">
+      <div class="card p-3 d-flex flex-row align-items-center gap-3">
+        <div style="width:48px;height:48px;border-radius:12px;background:rgba(217,164,65,0.15);display:flex;align-items:center;justify-content:center;">
+          <i class="fas fa-calendar-alt fa-lg" style="color:var(--gold);"></i>
+        </div>
+        <div>
+          <div class="fw-bold fs-5" style="color:var(--text-primary);">{{ working_days_count }} Day(s)</div>
+          <small class="text-muted text-uppercase" style="font-size:0.7rem;letter-spacing:0.06em;">Working Days Recorded</small>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4 col-sm-6">
+      <div class="card p-3 d-flex flex-row align-items-center gap-3">
+        <div style="width:48px;height:48px;border-radius:12px;background:rgba(34,197,94,0.15);display:flex;align-items:center;justify-content:center;">
+          <i class="fas fa-user-graduate fa-lg text-success"></i>
+        </div>
+        <div>
+          <div class="fw-bold fs-5" style="color:var(--text-primary);">{{ page_obj.paginator.count }} Student(s)</div>
+          <small class="text-muted text-uppercase" style="font-size:0.7rem;letter-spacing:0.06em;">Enrolled in Scope</small>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4 col-sm-12">
+      <div class="card p-3 d-flex flex-row align-items-center gap-3">
+        <div style="width:48px;height:48px;border-radius:12px;background:rgba(99,102,241,0.15);display:flex;align-items:center;justify-content:center;">
+          <i class="fas fa-chalkboard fa-lg" style="color:#818cf8;"></i>
+        </div>
+        <div>
+          <div class="fw-bold fs-5" style="color:var(--text-primary);">
+            {% if selected_class_id %}Single Class Filter{% else %}All Classes (Consolidated){% endif %}
+          </div>
+          <small class="text-muted text-uppercase" style="font-size:0.7rem;letter-spacing:0.06em;">Report Scope</small>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Consolidated Table -->
+  <div class="card shadow-sm gsap-up">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <h6 class="mb-0 fw-bold" style="color:var(--text-primary);">
+        <i class="fas fa-table me-2" style="color:var(--gold);"></i>
+        Monthly Attendance Summary Table &mdash; {{ month_name }} {{ selected_year }}
+      </h6>
+      <small class="text-muted">Showing {{ page_obj.start_index }}–{{ page_obj.end_index }} of {{ page_obj.paginator.count }}</small>
+    </div>
+
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0" style="font-size:0.86rem;">
+        <thead>
+          <tr>
+            <th style="width:4%;text-align:center;">#</th>
+            <th style="width:12%;">Roll ID</th>
+            <th style="width:24%;">Student Name</th>
+            <th style="width:18%;">Class &amp; Section</th>
+            <th style="width:10%;text-align:center;">Working Days</th>
+            <th style="width:10%;text-align:center;">Present</th>
+            <th style="width:10%;text-align:center;">Absent</th>
+            <th style="width:12%;text-align:center;">Attendance %</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in reports_data %}
+          <tr>
+            <td class="text-center text-muted">{{ forloop.counter0|add:page_obj.start_index }}</td>
+            <td class="fw-bold" style="color:var(--gold);">{{ r.student.roll_id }}</td>
+            <td>
+              <div class="fw-bold" style="color:var(--text-primary);">{{ r.student.name }}</div>
+              <small class="text-muted">{{ r.student.email }}</small>
+            </td>
+            <td>
+              <div>{{ r.student.student_class.class_name }} &mdash; Sec {{ r.student.student_class.section }}</div>
+              {% if r.student.student_class.branch %}
+              <small class="text-muted">[{{ r.student.student_class.branch.branch_code }}]</small>
+              {% endif %}
+            </td>
+            <td class="text-center fw-bold">{{ r.working_days }}</td>
+            <td class="text-center text-success fw-bold">{{ r.present_count }}</td>
+            <td class="text-center text-danger fw-bold">{{ r.absent_count }}</td>
+            <td class="text-center">
+              <div class="d-flex align-items-center justify-content-center gap-2">
+                <span class="badge {% if r.attendance_pct >= 75 %}bg-success{% elif r.attendance_pct >= 60 %}bg-warning text-dark{% else %}bg-danger{% endif %} px-2 py-1">
+                  {{ r.attendance_pct }}%
+                </span>
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="8" class="text-center text-muted py-4">
+              <i class="fas fa-inbox fa-2x mb-2 d-block opacity-50"></i>
+              No students or attendance records found matching the active filters.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    {% if page_obj.paginator.num_pages > 1 %}
+    <div class="card-footer bg-transparent py-3">
+      {% include '_pagination.html' %}
+    </div>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}

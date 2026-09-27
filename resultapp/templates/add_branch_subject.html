@@ -1,0 +1,109 @@
+{% extends 'admin_base.html' %} 
+{% load static %}
+{% block content %}
+
+<div class="container">
+    <h2 class="mb-4 gsap-left"><i class="fas fa-layer-group"></i> Add Branch Subject</h2>
+    <p class="text-muted mb-4">Assign a subject (with its NEP 2020 credit value) to a branch and semester. This defines the curriculum used for credit-weighted SGPA/CGPA calculation.</p>
+    {% if not branches %}
+        <div class="alert alert-warning">
+            No branches found yet. <a href="{% url 'create_branch' %}">Add a branch</a> first (e.g., BSc Computer Science).
+        </div>
+    {% endif %}
+
+    <form method="post">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label for="branch" class="form-label">Select Branch</label>
+            <select class="form-select" id="branch" name="branch" required>
+                    <option value="">--Select Branch--</option>
+                    {% for b in branches %}
+                        <option value="{{ b.id }}">{{ b.branch_name }} ({{ b.branch_code }})</option>
+                    {% endfor %}
+            </select>
+        </div>
+
+        <div class="mb-3">
+            <label for="subject" class="form-label">Select Subject</label>
+            <select class="form-select" id="subject" name="subject" required>
+                    <option value="">--Select Subject--</option>
+                    {% for i in subjects %}
+                        <option value="{{ i.id }}">{{ i.subject_name }} - {{ i.subject_code }} ({{ i.credits }} credits)</option>
+                    {% endfor %}
+            </select>
+            <small class="text-muted">Credit value comes from the subject's own record — <a href="{% url 'manage_subject' %}">manage subjects here</a>.</small>
+        </div>
+
+        <div class="mb-3">
+            <label for="semester" class="form-label">Semester</label>
+            <select class="form-select" id="semester" name="semester" required>
+                <option value="1">Semester 1</option>
+                <option value="2">Semester 2</option>
+                <option value="3">Semester 3</option>
+                <option value="4">Semester 4</option>
+                <option value="5">Semester 5</option>
+                <option value="6">Semester 6</option>
+            </select>
+        </div>
+
+        <button type="submit" class="btn btn-success">
+            <i class="fas fa-check-circle me-1"></i>Submit
+        </button>
+    </form>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function() {
+  if (typeof gsap === 'undefined') return;
+
+  // Page header slide-in
+  gsap.fromTo('h2',
+    { opacity: 0, x: -30 },
+    { opacity: 1, x: 0, duration: 0.6, ease: 'power3.out', delay: 0.1 }
+  );
+
+  // Card(s) entrance
+  gsap.fromTo('.card',
+    { opacity: 0, y: 40, scale: 0.97 },
+    { opacity: 1, y: 0, scale: 1, duration: 0.65, ease: 'back.out(1.4)', delay: 0.2, stagger: 0.08 }
+  );
+
+  // Form fields stagger
+  gsap.fromTo('.form-control, .form-select, .form-check',
+    { opacity: 0, x: -16 },
+    { opacity: 1, x: 0, duration: 0.45, stagger: 0.06, ease: 'power3.out', delay: 0.45 }
+  );
+
+  // Buttons entrance
+  gsap.fromTo('.btn',
+    { opacity: 0, y: 12 },
+    { opacity: 1, y: 0, duration: 0.4, stagger: 0.07, ease: 'power3.out', delay: 0.75 }
+  );
+
+  // Alert slide-in
+  document.querySelectorAll('.alert').forEach(function(el) {
+    gsap.fromTo(el, { opacity: 0, x: 24 }, { opacity: 1, x: 0, duration: 0.5, ease: 'power3.out' });
+  });
+
+  // Focus glow on inputs
+  document.querySelectorAll('.form-control, .form-select').forEach(function(inp) {
+    inp.addEventListener('focus', function() {
+      gsap.to(inp, { boxShadow: '0 0 0 3px rgba(245,197,24,0.18)', duration: 0.2 });
+    });
+    inp.addEventListener('blur', function() {
+      gsap.to(inp, { boxShadow: 'none', duration: 0.2 });
+    });
+  });
+
+  // Table row stagger (if any)
+  gsap.fromTo('tbody tr',
+    { opacity: 0, x: -10 },
+    { opacity: 1, x: 0, duration: 0.15, stagger: 0.008, ease: 'power2.out', delay: 0.08 }
+  );
+  
+})();
+</script>
+{% endblock %}

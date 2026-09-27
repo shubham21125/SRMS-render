@@ -1,0 +1,75 @@
+{% extends 'parent/parent_base.html' %}
+{% load static %}
+{% block title %}Progress Reports — Parent Portal{% endblock %}
+
+{% block content %}
+<div class="p-3">
+
+  <div class="d-flex align-items-center justify-content-between mb-4 gsap-left">
+    <div>
+      <h2 class="mb-0"><i class="fas fa-tasks me-2" style="color:var(--gold)"></i>Progress Reports</h2>
+      <small class="text-muted">{{ student.name }} &mdash; {{ student.roll_id }}</small>
+    </div>
+    <a href="{% url 'parent_dashboard' %}" class="btn btn-sm" style="background:var(--surface);color:var(--text-secondary);border:1px solid var(--border)">
+      <i class="fas fa-arrow-left me-1"></i>Back
+    </a>
+  </div>
+
+  {% for report in progress_reports %}
+  <div class="card mb-4 gsap-up" style="border-left:3px solid var(--gold)">
+    <div class="card-header d-flex align-items-center gap-3">
+      <i class="fas fa-file-alt" style="color:var(--gold)"></i>
+      <span>{{ report.term }}</span>
+      <span class="badge ms-auto" style="background:rgba(217,164,65,.15);color:var(--gold);border:1px solid rgba(217,164,65,.3);font-size:.85rem">Grade: {{ report.grade }}</span>
+    </div>
+    <div class="card-body">
+      <div class="mb-4">
+        <div class="d-flex justify-content-between mb-1">
+          <span class="text-muted small">Overall Performance</span>
+          <strong style="color:var(--gold)">{{ report.overall_percentage|floatformat:1 }}%</strong>
+        </div>
+        <div style="height:10px;background:var(--surface);border-radius:5px;overflow:hidden">
+          <div style="height:100%;width:{{ report.overall_percentage }}%;background:{% if report.overall_percentage >= 75 %}linear-gradient(90deg,#22c55e,#16a34a){% elif report.overall_percentage >= 50 %}linear-gradient(90deg,#eab308,#ca8a04){% else %}linear-gradient(90deg,#ef4444,#dc2626){% endif %};border-radius:5px;transition:width .8s ease"></div>
+        </div>
+      </div>
+
+      <div class="row g-3">
+        <div class="col-md-12">
+          <div style="background:var(--surface);border-radius:var(--radius-sm);padding:1rem;border-left:3px solid var(--gold)">
+            <p class="mb-1 small" style="color:var(--gold);font-weight:600"><i class="fas fa-comment me-1"></i>Teacher's Remarks</p>
+            <p class="mb-0 text-muted">{{ report.teacher_remarks }}</p>
+          </div>
+        </div>
+        {% if report.strengths %}
+        <div class="col-md-6">
+          <div style="background:rgba(34,197,94,.06);border-radius:var(--radius-sm);padding:1rem;border-left:3px solid #22c55e">
+            <p class="mb-1 small" style="color:#22c55e;font-weight:600"><i class="fas fa-thumbs-up me-1"></i>Strengths</p>
+            <p class="mb-0 text-muted">{{ report.strengths }}</p>
+          </div>
+        </div>
+        {% endif %}
+        {% if report.areas_of_improvement %}
+        <div class="col-md-6">
+          <div style="background:rgba(234,179,8,.06);border-radius:var(--radius-sm);padding:1rem;border-left:3px solid #eab308">
+            <p class="mb-1 small" style="color:#eab308;font-weight:600"><i class="fas fa-lightbulb me-1"></i>Areas of Improvement</p>
+            <p class="mb-0 text-muted">{{ report.areas_of_improvement }}</p>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+
+      <p class="text-muted small mt-3 mb-0"><i class="fas fa-calendar me-1"></i>Created: {{ report.created_at|date:"d M Y, h:i A" }}</p>
+    </div>
+  </div>
+  {% empty %}
+  <div class="card gsap-up">
+    <div class="card-body text-center py-5">
+      <i class="fas fa-inbox fa-4x mb-3" style="color:var(--text-dim)"></i>
+      <h5 class="text-muted">No Progress Reports Available</h5>
+      <p class="text-muted small">Reports will appear here once created by teachers.</p>
+    </div>
+  </div>
+  {% endfor %}
+
+</div>
+{% endblock %}

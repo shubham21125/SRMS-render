@@ -1,0 +1,111 @@
+{% load static %}
+<div class="collapse d-md-block" id="parentSidebarCollapse">
+  <nav class="sidebar pt-2 h-100">
+    <div class="admin-avatar-section gsap-scale">
+      <div style="width:72px;height:72px;border-radius:50%;background:var(--gold-subtle, rgba(217,164,65,0.12));
+                  border:2px solid var(--gold-border, rgba(217,164,65,0.35));box-shadow:0 0 20px var(--gold-glow, rgba(217,164,65,0.25));
+                  margin:0 auto;display:flex;align-items:center;justify-content:center;">
+        {% if student.photo %}
+          <img src="{{ student.photo.url }}" alt="{{ student.name }}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">
+        {% else %}
+          <i class="fas fa-user-graduate" style="font-size:2.2rem;color:var(--gold);"></i>
+        {% endif %}
+      </div>
+      <h6 class="mb-1 text-center" style="font-size:0.85rem;margin-top:0.75rem;color:var(--text-primary);font-weight:700;">
+        {{ student.name }}
+      </h6>
+      <div class="text-center">
+        <small style="color:var(--gold);font-weight:600;font-size:0.7rem;text-transform:uppercase;letter-spacing:0.06em;">
+          {% if parent %}{{ parent.get_relationship_display }}{% else %}Student{% endif %} &bull; {{ student.roll_id }}
+        </small>
+      </div>
+    </div>
+
+    <ul class="nav flex-column mt-2">
+      <!-- 1. Dashboard -->
+      <li class="nav-item">
+        <a href="{% url 'parent_dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'parent_dashboard' %}active{% endif %}">
+          <i class="fas fa-tachometer-alt"></i>Dashboard
+        </a>
+      </li>
+
+      <!-- 2. Result (Per-Subject) -->
+      <li class="nav-item">
+        <a href="{% url 'parent_results' %}" class="nav-link {% if request.resolver_match.url_name == 'parent_results' %}active{% endif %}">
+          <i class="fas fa-chart-bar"></i>Subject Results
+        </a>
+      </li>
+
+      <!-- 3. Consolidated Marksheet -->
+      <li class="nav-item">
+        <a href="{% url 'parent_consolidated_marksheet' %}" class="nav-link {% if request.resolver_match.url_name == 'parent_consolidated_marksheet' %}active{% endif %}">
+          <i class="fas fa-file-invoice"></i>Consolidated Marksheet
+        </a>
+      </li>
+
+      <!-- 4. Attendance (Multi-Month) -->
+      <li class="nav-item">
+        <a href="{% url 'parent_attendance' %}" class="nav-link {% if request.resolver_match.url_name == 'parent_attendance' %}active{% endif %}">
+          <i class="fas fa-calendar-check"></i>Attendance
+        </a>
+      </li>
+
+      <!-- 5. Progress Report -->
+      <li class="nav-item">
+        <a href="{% url 'parent_progress' %}" class="nav-link {% if request.resolver_match.url_name == 'parent_progress' %}active{% endif %}">
+          <i class="fas fa-chart-line"></i>Progress Reports
+        </a>
+      </li>
+
+      <!-- 6. Upcoming Exams -->
+      <li class="nav-item">
+        <a href="{% url 'parent_exams' %}" class="nav-link {% if request.resolver_match.url_name == 'parent_exams' %}active{% endif %}">
+          <i class="fas fa-clock"></i>Upcoming Exams
+        </a>
+      </li>
+
+      <!-- 7. Result Card / PDF Download -->
+      <li class="nav-item">
+        <a href="{% url 'parent_result_card' %}" class="nav-link {% if request.resolver_match.url_name == 'parent_result_card' %}active{% endif %}">
+          <i class="fas fa-id-card"></i>Result Card / PDF
+        </a>
+      </li>
+
+      <!-- 8. AI Chatbot -->
+      <li class="nav-item">
+        <a href="javascript:void(0);" onclick="var t=document.getElementById('srms-chat-trigger');if(t)t.click();" class="nav-link">
+          <i class="fas fa-robot"></i>AI Chatbot
+        </a>
+      </li>
+
+      <!-- Notices / Circulars -->
+      <li class="nav-item">
+        <a href="{% url 'parent_notices' %}" class="nav-link {% if request.resolver_match.url_name == 'parent_notices' %}active{% endif %}">
+          <i class="fas fa-bullhorn"></i>Notice Board
+        </a>
+      </li>
+
+      <hr class="y-divider mx-3 my-2">
+
+      <!-- Settings & Account -->
+      <li class="nav-item">
+        <a href="{% url 'parent_profile' %}" class="nav-link {% if request.resolver_match.url_name == 'parent_profile' %}active{% endif %}">
+          <i class="fas fa-user-circle"></i>My Profile
+        </a>
+      </li>
+      <li class="nav-item">
+        <a href="{% url 'parent_change_password' %}" class="nav-link {% if request.resolver_match.url_name == 'parent_change_password' %}active{% endif %}">
+          <i class="fas fa-lock"></i>Change Password
+        </a>
+      </li>
+
+      <hr class="y-divider mx-3 my-2">
+
+      <li class="nav-item mb-3">
+        <a href="{% url 'parent_logout' %}" class="nav-link text-danger">
+          <i class="fas fa-sign-out-alt text-danger"></i>Logout
+        </a>
+      </li>
+    </ul>
+  </nav>
+</div>

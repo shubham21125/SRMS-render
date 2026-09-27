@@ -1,0 +1,132 @@
+{% extends 'admin_base.html' %}
+{% load static %}
+{% block content %}
+
+<div class="container">
+    <h2 class="mb-4 gsap-left"><i class="fas fa-tasks"></i> Add Progress Report</h2>
+    
+
+    
+    <form method="post">
+        {% csrf_token %}
+        
+        <div class="mb-3">
+            <label for="student" class="form-label">Select Student</label>
+            <select class="form-select" id="student" name="student" required>
+                <option value="">--Select Student--</option>
+                {% for student in students %}
+                    <option value="{{ student.id }}">{{ student.name }} - {{ student.roll_id }} ({{ student.student_class }})</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label for="term" class="form-label">Term/Period</label>
+                <input type="text" class="form-control" id="term" name="term" placeholder="e.g., First Term 2025" required>
+            </div>
+
+            <div class="col-md-3 mb-3">
+                <label for="overall_percentage" class="form-label">Overall Percentage</label>
+                <input type="number" class="form-control" id="overall_percentage" name="overall_percentage" 
+                       min="0" max="100" step="0.01" readonly>
+                <small class="text-muted">Auto-calculated from results</small>
+            </div>
+
+            <div class="col-md-3 mb-3">
+                <label for="grade" class="form-label">Grade</label>
+                <input type="text" class="form-control" id="grade" name="grade" readonly>
+                <small class="text-muted">Auto-calculated</small>
+            </div>
+        </div>
+
+        <div class="mb-3">
+            <label for="teacher_remarks" class="form-label">Teacher's Remarks</label>
+            <textarea class="form-control" id="teacher_remarks" name="teacher_remarks" rows="4" 
+                      placeholder="Overall performance and observations..." required></textarea>
+        </div>
+
+        <div class="mb-3">
+            <label for="strengths" class="form-label">Strengths</label>
+            <textarea class="form-control" id="strengths" name="strengths" rows="3" 
+                      placeholder="Student's strengths and positive qualities..."></textarea>
+        </div>
+
+        <div class="mb-3">
+            <label for="areas_of_improvement" class="form-label">Areas of Improvement</label>
+            <textarea class="form-control" id="areas_of_improvement" name="areas_of_improvement" rows="3" 
+                      placeholder="Areas where student can improve..."></textarea>
+        </div>
+
+        <button type="submit" class="btn btn-success">
+            <i class="fas fa-check-circle me-1"></i>Submit Report
+        </button>
+        <a href="{% url 'admin_dashboard' %}" class="btn btn-secondary">
+            <i class="fas fa-times me-1"></i>Cancel
+        </a>
+    </form>
+</div>
+
+<script>
+document.getElementById('student').addEventListener('change', function() {
+    const studentId = this.value;
+    
+    if (!studentId) {
+        document.getElementById('overall_percentage').value = '';
+        document.getElementById('grade').value = '';
+        return;
+    }
+    
+    // Fetch student results via AJAX
+    fetch(`/get_student_percentage/?student_id=${studentId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.percentage !== null) {
+                document.getElementById('overall_percentage').value = data.percentage;
+                document.getElementById('grade').value = data.grade;
+            } else {
+                document.getElementById('overall_percentage').value = '0.00';
+                document.getElementById('grade').value = 'N/A';
+                alert('No results found for this student.');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error fetching student data.');
+        });
+});
+</script>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function() {
+  if (typeof gsap === 'undefined') return;
+  gsap.fromTo('h2',
+    { opacity: 0, x: -30 },
+    { opacity: 1, x: 0, duration: 0.55, ease: 'power3.out', delay: 0.1 }
+  );
+  gsap.fromTo('.card, .table-responsive',
+    { opacity: 0, y: 40, scale: 0.97 },
+    { opacity: 1, y: 0, scale: 1, duration: 0.65, ease: 'back.out(1.4)', stagger: 0.08, delay: 0.2 }
+  );
+  gsap.fromTo('.form-control, .form-select, textarea',
+    { opacity: 0, x: -16 },
+    { opacity: 1, x: 0, duration: 0.4, stagger: 0.05, ease: 'power3.out', delay: 0.45 }
+  );
+  gsap.fromTo('.btn',
+    { opacity: 0, y: 12 },
+    { opacity: 1, y: 0, duration: 0.4, stagger: 0.07, ease: 'power3.out', delay: 0.7 }
+  );
+  gsap.fromTo('tbody tr',
+    { opacity: 0, x: -10 },
+    { opacity: 1, x: 0, duration: 0.15, stagger: 0.008, ease: 'power2.out', delay: 0.08 }
+  );
+  document.querySelectorAll('.form-control, .form-select, textarea').forEach(function(inp) {
+    inp.addEventListener('focus', () => gsap.to(inp, { boxShadow:'0 0 0 3px rgba(245,197,24,.18)', duration:.2 }));
+    inp.addEventListener('blur',  () => gsap.to(inp, { boxShadow:'none', duration:.2 }));
+  });
+})();
+</script>
+{% endblock %}

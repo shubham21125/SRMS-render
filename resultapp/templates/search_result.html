@@ -1,0 +1,385 @@
+{% extends 'base.html' %}
+{% block title %}Search Result — SRMS{% endblock %}
+{% block body_class %}login-page search-result-page{% endblock %}
+
+{% block extra_head %}
+<style>
+  /* ── Full-screen layout: override base.html's JS-injected paddingTop ── */
+  body.search-result-page #page-content-wrap {
+    padding-top: 0 !important;
+    min-height: 0 !important;
+  }
+  body.search-result-page .site-footer { display: none !important; }
+
+  .sr-hero {
+    position: relative;
+    width: 100%;
+    height: 100dvh;
+    min-height: 560px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+  .sr-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    background:
+      radial-gradient(ellipse 85% 65% at 50% 38%, transparent 25%, rgba(6,5,8,0.65) 100%),
+      linear-gradient(to bottom,
+        rgba(6,5,8,0.22)  0%,
+        rgba(6,5,8,0.08) 30%,
+        rgba(6,5,8,0.55) 72%,
+        rgba(6,5,8,0.94) 100%
+      );
+    pointer-events: none;
+  }
+  .sr-hero::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 50%;
+    transform: translateX(-50%);
+    width: 60%; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(217,164,65,0.5), transparent);
+    z-index: 1;
+  }
+
+  .sr-content {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    max-width: 500px;
+    padding: 0 1.25rem;
+  }
+
+  /* ── Chips ── */
+  .sr-chips { display: flex; gap: 0.6rem; justify-content: center; margin-bottom: 1.5rem; flex-wrap: wrap; }
+  .sr-chip {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.62rem; letter-spacing: 0.1em; text-transform: uppercase;
+    padding: 0.22rem 0.7rem;
+    border: 1px solid rgba(217,164,65,0.3);
+    color: rgba(217,164,65,0.65);
+    border-radius: 999px;
+    background: rgba(217,164,65,0.05);
+  }
+
+  /* ── Glass card ── */
+  .sr-card {
+    background: rgba(10,9,14,0.75) !important;
+    backdrop-filter: blur(32px) saturate(180%);
+    -webkit-backdrop-filter: blur(32px) saturate(180%);
+    border: 1px solid rgba(217,164,65,0.28) !important;
+    border-radius: 2px;
+    box-shadow: 0 0 0 1px rgba(255,255,255,0.04) inset, 0 24px 80px rgba(0,0,0,0.55), 0 0 40px rgba(217,164,65,0.06);
+    overflow: hidden;
+  }
+
+  /* ── Card header ── */
+  .sr-card-header {
+    background: linear-gradient(135deg, rgba(18,16,24,0.92), rgba(12,10,18,0.96));
+    border-bottom: 1px solid rgba(217,164,65,0.35);
+    padding: 2rem 2rem 1.6rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .sr-card-header::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, transparent, rgba(217,164,65,0.8), transparent);
+  }
+
+  /* ── Icon badge ── */
+  .sr-icon-badge {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 68px; height: 68px; border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, rgba(245,197,24,0.22), rgba(217,164,65,0.07));
+    border: 1.5px solid rgba(217,164,65,0.55);
+    margin-bottom: 1rem;
+    box-shadow: 0 0 28px rgba(217,164,65,0.18), 0 0 0 8px rgba(217,164,65,0.04);
+    position: relative;
+  }
+  .sr-icon-badge::after {
+    content: ''; position: absolute; inset: -8px;
+    border-radius: 50%; border: 1px solid rgba(217,164,65,0.22);
+    animation: srRingPulse 2.8s ease-in-out infinite;
+  }
+  @keyframes srRingPulse {
+    0%, 100% { opacity: 0.5; transform: scale(1); }
+    50% { opacity: 0.1; transform: scale(1.18); }
+  }
+  .sr-icon-badge i { font-size: 1.8rem; color: var(--gold); filter: drop-shadow(0 0 8px rgba(217,164,65,0.5)); }
+
+  .sr-card-header h4 {
+    font-family: 'Syne', 'Playfair Display', sans-serif;
+    font-size: 1.45rem; font-weight: 800;
+    color: rgba(245,242,237,0.96); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 0.3rem;
+  }
+  .sr-card-header small {
+    font-family: 'JetBrains Mono', monospace; font-size: 0.68rem;
+    color: rgba(245,242,237,0.42); letter-spacing: 0.08em; text-transform: uppercase;
+  }
+
+  /* ── Card body ── */
+  .sr-card-body { padding: 1.8rem 2rem; }
+
+  /* ── Labels ── */
+  .sr-card .form-label {
+    font-family: 'JetBrains Mono', monospace; font-size: 0.68rem; font-weight: 600;
+    color: rgba(217,164,65,0.72); letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 0.4rem;
+  }
+
+  /* ── Inputs ── */
+  .sr-card .form-control,
+  .sr-card .form-select {
+    background: rgba(255,255,255,0.04) !important;
+    border: 1px solid rgba(255,255,255,0.12) !important;
+    color: rgba(245,242,237,0.92) !important;
+    border-radius: 2px; font-family: 'Source Sans 3', sans-serif; font-size: 0.9rem; padding: 0.65rem 1rem;
+    transition: border-color 0.22s ease, box-shadow 0.22s ease, background 0.22s ease;
+  }
+  .sr-card .form-control::placeholder { color: rgba(245,242,237,0.26) !important; }
+  .sr-card .form-select option { background: #16141e; color: rgba(245,242,237,0.9); }
+  .sr-card .form-control:focus,
+  .sr-card .form-select:focus {
+    background: rgba(217,164,65,0.06) !important;
+    border-color: rgba(217,164,65,0.55) !important;
+    box-shadow: 0 0 0 3px rgba(217,164,65,0.12) !important;
+    color: rgba(245,242,237,0.96) !important;
+    outline: none;
+  }
+  .sr-hint {
+    font-family: 'JetBrains Mono', monospace; font-size: 0.65rem;
+    color: rgba(245,242,237,0.28); letter-spacing: 0.04em; margin-top: 5px; display: block;
+  }
+
+  /* ── Submit button ── */
+  .sr-submit-btn {
+    width: 100%; padding: 0.88rem;
+    background: linear-gradient(135deg, #d9a441, #f5c518) !important;
+    border: none !important; border-radius: 2px;
+    color: #0d0c12 !important; font-family: 'Syne', sans-serif; font-size: 0.88rem; font-weight: 800;
+    letter-spacing: 0.14em; text-transform: uppercase; cursor: pointer;
+    position: relative; overflow: hidden;
+    transition: transform 0.18s ease, box-shadow 0.22s ease;
+    box-shadow: 0 4px 20px rgba(217,164,65,0.22);
+  }
+  .sr-submit-btn::before {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.25) 50%, transparent 100%);
+    transform: translateX(-100%); transition: transform 0.55s ease;
+  }
+  .sr-submit-btn:hover::before { transform: translateX(100%); }
+  .sr-submit-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(217,164,65,0.38); }
+  .sr-submit-btn:active { transform: translateY(0); }
+
+  /* ── Alert ── */
+  .sr-card .alert-danger {
+    background: rgba(186,26,26,0.15) !important; border: 1px solid rgba(186,26,26,0.4) !important;
+    color: #ffaaaa !important; border-radius: 2px; font-size: 0.85rem;
+  }
+
+  /* ── Navbar dark override for this page ── */
+  body.search-result-page .navbar-public {
+    background: rgba(8,7,12,0.68) !important;
+    border-bottom-color: rgba(217,164,65,0.2) !important;
+  }
+  body.search-result-page .navbar-public .nav-link { color: rgba(245,242,237,0.78) !important; }
+  body.search-result-page .navbar-public .nav-link:hover { color: var(--paper) !important; }
+  body.search-result-page .navbar-public .navbar-brand { color: var(--paper) !important; }
+  body.search-result-page .navbar-public .navbar-brand .brand-accent { color: var(--gold) !important; }
+  body.search-result-page .navbar-public .nav-cta {
+    background: var(--gold) !important; border-color: var(--gold) !important; color: #0d0c12 !important;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="sr-hero" id="srHero">
+  <div class="sr-overlay"></div>
+
+  <div class="sr-content">
+    <!-- Decorative chips -->
+    <div class="sr-chips">
+      <span class="sr-chip" id="chip1"><i class="fas fa-shield-alt me-1"></i>Secure</span>
+      <span class="sr-chip" id="chip2"><i class="fas fa-bolt me-1"></i>Instant</span>
+      <span class="sr-chip" id="chip3"><i class="fas fa-chart-line me-1"></i>Analytics</span>
+    </div>
+
+    <!-- Card -->
+    <div class="sr-card" id="searchCard">
+      <div class="sr-card-header">
+        <div class="sr-icon-badge" id="iconWrap">
+          <i class="fas fa-graduation-cap"></i>
+        </div>
+        <h4>Search Result</h4>
+        <small>Enter your Roll ID &amp; Class to view your result</small>
+      </div>
+
+      <div class="sr-card-body">
+        {% if messages %}
+          {% for m in messages %}
+          <div class="alert alert-{% if m.tags == 'error' %}danger{% else %}{{ m.tags }}{% endif %} alert-dismissible fade show" id="alertMsg">
+            <i class="fas fa-exclamation-triangle me-2"></i>{{ m }}
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert"></button>
+          </div>
+          {% endfor %}
+        {% endif %}
+
+        <form method="POST" action="{% url 'check_result' %}" id="searchForm">
+          {% csrf_token %}
+
+          <div class="mb-4" id="fgRoll">
+            <label class="form-label"><i class="fas fa-id-card me-1"></i>Roll ID</label>
+            <input type="text" class="form-control" name="rollid"
+                   placeholder="e.g. FYCS001, SYCS001, TYCS001" required autofocus id="inputRoll">
+            <span class="sr-hint">Enter your Roll ID as assigned by the institution</span>
+          </div>
+
+          <div class="mb-4" id="fgClass">
+            <label class="form-label"><i class="fas fa-chalkboard me-1"></i>Select Class</label>
+            <select class="form-select" name="class" required id="inputClass">
+              <option value="">— Select Class —</option>
+              {% for i in classes %}
+              <option value="{{ i.id }}">{% if i.branch %}[{{ i.branch.branch_code }}] {% endif %}{{ i.class_name }} — Section {{ i.section }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="mb-4" id="fgSemester">
+            <label class="form-label"><i class="fas fa-layer-group me-1"></i>Select Semester</label>
+            <select class="form-select" name="semester" id="inputSemester">
+              <option value="">— All Semesters —</option>
+              <option value="1">Semester 1</option>
+              <option value="2">Semester 2</option>
+              <option value="3">Semester 3</option>
+              <option value="4">Semester 4</option>
+              <option value="5">Semester 5</option>
+              <option value="6">Semester 6</option>
+            </select>
+          </div>
+
+          <div id="submitWrap">
+            <button type="submit" class="sr-submit-btn" id="submitBtn">
+              <i class="fas fa-search me-2"></i>SEARCH RESULT
+            </button>
+          </div>
+        </form>
+      </div>
+    </div><!-- /sr-card -->
+  </div><!-- /sr-content -->
+</div><!-- /sr-hero -->
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+  'use strict';
+
+  // ── Navbar hide-on-scroll-down / show-on-scroll-up ───────────
+  document.addEventListener('DOMContentLoaded', function () {
+    const navbar = document.querySelector('.navbar-public');
+    if (!navbar) return;
+    let lastY = window.scrollY;
+    let ticking = false;
+    window.addEventListener('scroll', function () {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(function () {
+        const curY = window.scrollY;
+        if (Math.abs(curY - lastY) >= 6) {
+          if (curY > lastY && curY > 80) {
+            navbar.classList.add('navbar-hidden');
+          } else {
+            navbar.classList.remove('navbar-hidden');
+          }
+          lastY = curY;
+        }
+        ticking = false;
+      });
+    }, { passive: true });
+  });
+
+  // ── GSAP animations ──────────────────────────────────────────
+  function runAnimations() {
+    if (typeof gsap === 'undefined') { setTimeout(runAnimations, 60); return; }
+
+    const ease = 'power3.out';
+    const backEase = 'back.out(1.8)';
+
+    // Set initial hidden states via GSAP (not inline HTML) so they're always visible if GSAP fails
+    gsap.set(['#chip1','#chip2','#chip3'], { opacity: 0, y: -14, scale: 0.8 });
+    gsap.set('#searchCard', { opacity: 0, y: 60, scale: 0.93 });
+    gsap.set(['#fgRoll','#fgClass','#fgSemester','#submitWrap'], { opacity: 0, x: -22 });
+
+    // 1. Chips stagger
+    gsap.to(['#chip1','#chip2','#chip3'],
+      { opacity: 1, y: 0, scale: 1, duration: 0.45, stagger: 0.1, ease: backEase, delay: 0.2 }
+    );
+
+    // 2. Card entrance
+    gsap.to('#searchCard',
+      { opacity: 1, y: 0, scale: 1, duration: 0.82, ease: backEase, delay: 0.3 }
+    );
+
+    // 3. Icon spin
+    gsap.fromTo('#iconWrap',
+      { scale: 0, rotate: -120, opacity: 0 },
+      { scale: 1, rotate: 0,    opacity: 1, duration: 0.7, ease: 'back.out(2.2)', delay: 0.78 }
+    );
+
+    // 4. Form fields
+    gsap.to(['#fgRoll','#fgClass','#fgSemester','#submitWrap'],
+      { opacity: 1, x: 0, duration: 0.5, stagger: 0.12, ease: ease, delay: 1.0 }
+    );
+
+    // 5. Alert
+    const alertEl = document.getElementById('alertMsg');
+    if (alertEl) {
+      gsap.fromTo(alertEl,
+        { opacity: 0, x: 30 },
+        { opacity: 1, x: 0, duration: 0.5, ease: ease, delay: 0.3 }
+      );
+    }
+
+    // 6. Chips float loop
+    ['#chip1','#chip2','#chip3'].forEach(function(sel, i) {
+      gsap.to(sel, { y: -6, duration: 1.8 + i * 0.35, yoyo: true, repeat: -1, ease: 'sine.inOut', delay: i * 0.45 });
+    });
+
+    // 7. Button hover
+    var btn = document.getElementById('submitBtn');
+    if (btn) {
+      btn.addEventListener('mouseenter', function() { gsap.to(btn, { scale: 1.025, duration: 0.18 }); });
+      btn.addEventListener('mouseleave', function() { gsap.to(btn, { scale: 1,     duration: 0.22 }); });
+    }
+
+    // 8. Icon hover
+    var icon = document.getElementById('iconWrap');
+    if (icon) {
+      icon.addEventListener('mouseenter', function() { gsap.to(icon, { rotate: 14, scale: 1.12, duration: 0.25, ease: 'power2.out' }); });
+      icon.addEventListener('mouseleave', function() { gsap.to(icon, { rotate: 0,  scale: 1,    duration: 0.32, ease: backEase    }); });
+    }
+
+    // 9. Input focus glow
+    document.querySelectorAll('.sr-card .form-control, .sr-card .form-select').forEach(function(inp) {
+      inp.addEventListener('focus', function() { gsap.to(inp, { boxShadow: '0 0 0 3px rgba(217,164,65,0.18)', duration: 0.22 }); });
+      inp.addEventListener('blur',  function() { gsap.to(inp, { boxShadow: 'none', duration: 0.22 }); });
+    });
+
+    // 10. Submit loading
+    var form = document.getElementById('searchForm');
+    if (form) {
+      form.addEventListener('submit', function() {
+        var b = document.getElementById('submitBtn');
+        if (b) { b.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Searching…'; gsap.to(b, { opacity: 0.72, scale: 0.98, duration: 0.2 }); }
+      });
+    }
+  }
+
+  setTimeout(runAnimations, 80);
+})();
+</script>
+{% endblock %}
+

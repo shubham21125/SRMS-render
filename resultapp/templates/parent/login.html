@@ -1,0 +1,149 @@
+{% extends 'base.html' %}
+{% block title %}Parent Login — SRMS{% endblock %}
+{% block body_class %}login-page{% endblock %}
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center align-items-center" style="min-height:80vh;">
+    <div class="col-lg-4 col-md-6">
+
+      <div class="card" id="loginCard" style="opacity:0;">
+        <!-- header -->
+        <div class="card-header text-center py-4"
+             style="border-bottom:1px solid rgba(245,242,237,0.18);">
+          <div id="iconWrap"
+               style="display:inline-flex;align-items:center;justify-content:center;
+                      width:68px;height:68px;border-radius:50%;
+                      background:rgba(217,164,65,0.15);border:2px solid rgba(217,164,65,0.45);
+                      margin-bottom:1rem;position:relative;">
+            <i class="fas fa-user-graduate" style="font-size:1.8rem;color:var(--gold);"></i>
+            <span id="pulseRing" style="position:absolute;inset:-6px;border-radius:50%;
+                  border:2px solid var(--gold);opacity:0;"></span>
+          </div>
+          <h4 class="mb-1" style="font-family:'Playfair Display',serif;letter-spacing:0.06em;">Parent Portal</h4>
+          <small style="color:rgba(245,242,237,0.55);">Access your child's academic information</small>
+        </div>
+
+        <div class="card-body p-4">
+          {% if error %}
+          <div class="alert alert-danger" id="errAlert">
+            <i class="fas fa-exclamation-circle me-2"></i>{{ error }}
+          </div>
+          {% endif %}
+
+          <form method="post" id="loginForm">
+            {% csrf_token %}
+            <div class="mb-3" id="fgUser">
+              <label class="form-label"><i class="fas fa-user me-1"></i>Username</label>
+              <input type="text" class="form-control" name="username"
+                     placeholder="Enter username" required autofocus>
+            </div>
+            <div class="mb-4" id="fgPass">
+              <label class="form-label"><i class="fas fa-lock me-1"></i>Password</label>
+              <div style="position:relative;">
+                <input type="password" class="form-control" name="password"
+                       id="passInput" placeholder="Enter password" required>
+                <button type="button" id="togglePass"
+                        style="position:absolute;right:0.75rem;top:50%;transform:translateY(-50%);
+                               background:none;border:none;color:rgba(245,242,237,0.45);cursor:pointer;padding:0;">
+                  <i class="fas fa-eye" id="eyeIcon"></i>
+                </button>
+              </div>
+            </div>
+            <button type="submit" class="btn btn-primary w-100 py-3" id="loginBtn"
+                    style="font-family:'Playfair Display',serif;letter-spacing:0.08em;font-size:0.9rem;">
+              <i class="fas fa-sign-in-alt me-2"></i>LOGIN
+            </button>
+          </form>
+
+          <div class="text-center mt-3">
+            <a href="{% url 'home' %}"
+               style="font-size:0.78rem;color:rgba(245,242,237,0.45);text-decoration:none;">
+              <i class="fas fa-arrow-left me-1"></i>Back to Home
+            </a>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // ── Card entrance ─────────────────────────────────
+  gsap.fromTo('#loginCard',
+    { opacity: 0, y: 60, scale: 0.93 },
+    { opacity: 1, y: 0,  scale: 1, duration: 0.8, ease: 'back.out(1.5)', delay: 0.1 }
+  );
+
+  // ── Icon entrance + pulse ring ────────────────────
+  gsap.fromTo('#iconWrap',
+    { scale: 0, rotate: -180 },
+    { scale: 1,  rotate: 0, duration: 0.75, ease: 'back.out(1.8)', delay: 0.55 }
+  );
+  gsap.to('#pulseRing', {
+    opacity: 0.55, scale: 1.35, duration: 1.3, ease: 'power1.out',
+    repeat: -1, yoyo: true
+  });
+
+  // ── Fields stagger ────────────────────────────────
+  gsap.fromTo(['#fgUser', '#fgPass'],
+    { opacity: 0, x: -22 },
+    { opacity: 1, x: 0, duration: 0.5, stagger: 0.14, ease: 'power3.out', delay: 0.75 }
+  );
+
+  // ── Button entrance ───────────────────────────────
+  gsap.fromTo('#loginBtn',
+    { opacity: 0, y: 16 },
+    { opacity: 1, y: 0, duration: 0.45, ease: 'power3.out', delay: 1.05 }
+  );
+
+  // ── Error alert ───────────────────────────────────
+  const err = document.getElementById('errAlert');
+  if (err) {
+    gsap.fromTo(err, { opacity: 0, x: 24 }, { opacity: 1, x: 0, duration: 0.5, delay: 0.3 });
+    gsap.to(err, { x: 6, duration: 0.08, repeat: 5, yoyo: true, ease: 'none', delay: 0.5 });
+  }
+
+  // ── Button hover ──────────────────────────────────
+  const btn = document.getElementById('loginBtn');
+  btn.addEventListener('mouseenter', () => gsap.to(btn, { scale: 1.03, duration: 0.18 }));
+  btn.addEventListener('mouseleave', () => gsap.to(btn, { scale: 1,    duration: 0.22 }));
+
+  // ── Icon hover ────────────────────────────────────
+  const iconWrap = document.getElementById('iconWrap');
+  iconWrap.addEventListener('mouseenter', () =>
+    gsap.to(iconWrap, { rotate: 8, scale: 1.1, boxShadow:'0 0 20px rgba(217,164,65,0.4)', duration: 0.25 })
+  );
+  iconWrap.addEventListener('mouseleave', () =>
+    gsap.to(iconWrap, { rotate: 0, scale: 1, boxShadow:'none', duration: 0.3, ease:'back.out(1.5)' })
+  );
+
+  // ── Password toggle ───────────────────────────────
+  document.getElementById('togglePass').addEventListener('click', function() {
+    const inp  = document.getElementById('passInput');
+    const icon = document.getElementById('eyeIcon');
+    if (inp.type === 'password') { inp.type = 'text';     icon.className = 'fas fa-eye-slash'; }
+    else                         { inp.type = 'password'; icon.className = 'fas fa-eye'; }
+    gsap.from(icon, { scale: 0.6, duration: 0.25, ease: 'back.out(2)' });
+  });
+
+  // ── Focus glow ────────────────────────────────────
+  document.querySelectorAll('.form-control').forEach(inp => {
+    inp.addEventListener('focus', () =>
+      gsap.to(inp, { boxShadow:'0 0 0 3px rgba(217,164,65,0.20)', duration:0.2 })
+    );
+    inp.addEventListener('blur', () =>
+      gsap.to(inp, { boxShadow:'none', duration:0.2 })
+    );
+  });
+
+  // ── Submit loading state ──────────────────────────
+  document.getElementById('loginForm').addEventListener('submit', function() {
+    const b = document.getElementById('loginBtn');
+    b.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Verifying…';
+    gsap.to(b, { opacity: 0.75, scale: 0.98, duration: 0.2 });
+  });
+</script>
+{% endblock %}

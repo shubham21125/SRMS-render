@@ -1,0 +1,140 @@
+{% extends 'admin_base.html' %}
+{% load static %}
+{% block title %}Manage Subjects — SRMS{% endblock %}
+{% block content %}
+<div class="p-3">
+
+  <!-- Header -->
+  <div class="d-flex justify-content-between align-items-center mb-4 gsap-left">
+    <div>
+      <h2 class="mb-0"><i class="fas fa-book me-2"></i>Manage Subjects</h2>
+      <small style="color:var(--text-secondary);">{{ page_obj.paginator.count }} subject(s)</small>
+    </div>
+    <a href="{% url 'create_subject' %}" class="btn btn-primary">
+      <i class="fas fa-plus me-1"></i>Add New Subject
+    </a>
+  </div>
+
+  <!-- Search Bar (server-side; works correctly with pagination) -->
+  <div class="card mb-3 gsap-up">
+    <div class="card-body py-2 px-3">
+      <form method="get" class="input-group">
+        <span class="input-group-text" style="background:transparent;border-color:var(--rim);">
+          <i class="fas fa-search" style="color:var(--text-dim);"></i>
+        </span>
+        <input type="text" name="q" id="subjectSearch" class="form-control"
+               placeholder="Search by name or code…" value="{{ q }}"
+               style="border-color:var(--rim);background:transparent;color:var(--text-primary);">
+        {% if q %}
+          <a href="{% url 'manage_subject' %}" class="btn" style="border-color:var(--rim);color:var(--text-dim);" title="Clear search">
+            <i class="fas fa-times"></i>
+          </a>
+        {% endif %}
+        <button type="submit" class="btn btn-outline-warning">Search</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Table Card -->
+  <div class="card gsap-up">
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover mb-0">
+          <thead>
+            <tr>
+              <th style="width:50px;">#</th>
+              <th>Subject Name</th>
+              <th>Code</th>
+              <th>Credits</th>
+              <th>Created</th>
+              <th style="width:140px;">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for i in subjects %}
+            <tr class="subject-row">
+              <td style="color:var(--text-dim);">{{ forloop.counter0|add:page_obj.start_index }}</td>
+              <td class="fw-bold" style="color:var(--gold);">{{ i.subject_name }}</td>
+              <td><code style="color:var(--text-secondary);background:var(--surface-mid);padding:2px 7px;border-radius:4px;">{{ i.subject_code }}</code></td>
+              <td>
+                <span class="badge" style="background:rgba(245,197,24,0.15);color:var(--gold);border:1px solid var(--gold-border);">
+                  {{ i.credits }} credit{{ i.credits|pluralize }}
+                </span>
+              </td>
+              <td>{{ i.creation_date|date:"d M Y" }}</td>
+              <td>
+                <div class="d-flex gap-1">
+                  <a href="{% url 'edit_subject' i.id %}" class="btn btn-sm"
+                     style="background:rgba(245,197,24,0.1);border:1px solid var(--gold-border);color:var(--gold);padding:4px 9px;">
+                    <i class="fas fa-edit"></i>
+                  </a>
+                  <button type="button" class="btn btn-sm delete-btn"
+                          data-id="{{ i.id }}" data-label="{{ i.subject_name }}"
+                          style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);color:#ef4444;padding:4px 9px;">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="6">
+                <div class="srms-empty-state">
+                  <i class="fas fa-book srms-empty-icon"></i>
+                  {% if q %}
+                    No subjects match "{{ q }}". <a href="{% url 'manage_subject' %}">Clear search.</a>
+                  {% else %}
+                    No subjects found. <a href="{% url 'create_subject' %}">Add one now.</a>
+                  {% endif %}
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  {% include '_pagination.html' %}
+
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content" style="background:var(--surface);border:1px solid var(--rim);">
+      <div class="modal-header" style="border-color:var(--rim);">
+        <h5 class="modal-title" style="color:var(--gold);">
+          <i class="fas fa-exclamation-triangle me-2" style="color:#ef4444;"></i>Delete Subject
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" style="color:var(--text-secondary);">
+        Are you sure you want to delete <strong id="deleteLabel" style="color:var(--text-primary);"></strong>?
+        <br><small style="color:#ef4444;">This action cannot be undone.</small>
+      </div>
+      <div class="modal-footer" style="border-color:var(--rim);">
+        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+        <form method="post" action="{% url 'manage_subject' %}" style="display:inline;">
+          {% csrf_token %}
+          <input type="hidden" name="delete" id="deleteId">
+          <button type="submit" class="btn btn-sm" style="background:#F04848;color:#fff;border:none;">
+            <i class="fas fa-trash me-1"></i>Yes, Delete
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  window.SRMSList.initServerSearch('subjectSearch', { wait: 400, focusEnd: true });
+  window.SRMSList.initDeleteModal({
+    modalId: 'deleteModal', idFieldId: 'deleteId', labelFieldId: 'deleteLabel',
+    buttonSelector: '.delete-btn'
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,173 @@
+{% extends 'base.html' %}
+{% block title %}OTP Verification — Step 2 — SRMS{% endblock %}
+{% block body_class %}login-page{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center align-items-center" style="min-height:75vh;">
+    <div class="col-lg-4 col-md-6">
+
+      <div class="card" id="otpCard" style="opacity:0;">
+        <!-- Card Header -->
+        <div class="card-header text-center py-4"
+             style="border-bottom:1px solid rgba(245,242,237,0.18);">
+          <div id="lockWrap"
+               style="display:inline-flex;align-items:center;justify-content:center;
+                      width:68px;height:68px;border-radius:50%;
+                      background:var(--gold-subtle);border:2px solid var(--gold-border);
+                      margin-bottom:1rem;position:relative;">
+            <i class="fas fa-key" style="font-size:1.8rem;color:var(--gold);"></i>
+            <span id="pulseRing" style="position:absolute;inset:-6px;border-radius:50%;
+                  border:2px solid var(--gold-border);opacity:0;"></span>
+          </div>
+          <h4 class="mb-1" style="font-family:'Syne',sans-serif;letter-spacing:0.06em;">Enter OTP</h4>
+          <small style="color:var(--text-dim);">Step 2: Verification Code</small>
+        </div>
+
+        <div class="card-body p-4">
+          <!-- Step Progress -->
+          <div class="d-flex justify-content-between mb-4 px-2" style="font-size: 0.75rem;">
+            <span style="color:var(--success); font-weight: 500;"><i class="fas fa-check-circle me-1"></i>1. Email</span>
+            <span style="color:var(--gold); font-weight: 600;"><i class="fas fa-key me-1"></i>2. OTP</span>
+            <span class="text-secondary opacity-50"><i class="fas fa-lock me-1"></i>3. Reset</span>
+          </div>
+
+          {% if messages %}
+            {% for m in messages %}
+              <div class="alert alert-{% if m.tags == 'error' %}danger{% else %}{{m.tags}}{% endif %} alert-dismissible fade show" role="alert" id="msgAlert">
+                <i class="fas {% if m.tags == 'error' %}fa-exclamation-circle{% else %}fa-check-circle{% endif %} me-2"></i>{{ m }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+              </div>
+            {% endfor %}
+          {% endif %}
+
+          <form method="post" id="otpForm">
+            {% csrf_token %}
+            <div class="mb-4 text-center" id="fgOtp">
+              <label class="form-label mb-3 d-block"><i class="fas fa-shield-alt me-1"></i>6-Digit Verification Code</label>
+              
+              <input type="text" class="form-control text-center fw-bold" name="otp"
+                     id="otpInput" maxlength="6" pattern="[0-9]{6}" inputmode="numeric"
+                     placeholder="••••••" autocomplete="one-time-code"
+                     style="font-size: 2.2rem; letter-spacing: 0.6rem; text-indent: 0.3rem; height: 65px;
+                            background: rgba(0,0,0,0.2); border: 2px solid var(--rim);" required autofocus>
+              
+              <div class="mt-3 text-secondary" style="font-size: 0.78rem;">
+                Time remaining: <span id="timer" class="text-gold fw-bold">10:00</span>
+              </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100 py-3" id="submitBtn"
+                    style="font-family:'Syne',sans-serif;letter-spacing:0.08em;font-size:0.9rem;">
+              <i class="fas fa-lock-open me-2"></i>VERIFY CODE
+            </button>
+          </form>
+
+          <div class="text-center mt-4">
+            <a href="{% url 'admin_forgot_password' %}"
+               style="font-size:0.78rem;color:var(--text-dim);text-decoration:none;">
+              <i class="fas fa-arrow-left me-1"></i>Resend OTP / Start Over
+            </a>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // ── Card entrance ─────────────────────────────────
+  gsap.fromTo('#otpCard',
+    { opacity: 0, y: 60, scale: 0.93 },
+    { opacity: 1, y: 0,  scale: 1, duration: 0.8, ease: 'back.out(1.5)', delay: 0.1 }
+  );
+
+  // ── Icon entrance + pulse ring ────────────────────
+  gsap.fromTo('#lockWrap',
+    { scale: 0, rotate: -180 },
+    { scale: 1,  rotate: 0, duration: 0.75, ease: 'back.out(1.8)', delay: 0.55 }
+  );
+
+  gsap.to('#pulseRing', {
+    opacity: 0.6, scale: 1.35, duration: 1.2, ease: 'power1.out',
+    repeat: -1, yoyo: true
+  });
+
+  // ── OTP field entrance ────────────────────────────
+  gsap.fromTo('#fgOtp',
+    { opacity: 0, x: -22 },
+    { opacity: 1, x: 0, duration: 0.5, ease: 'power3.out', delay: 0.75 }
+  );
+
+  // ── Button entrance ───────────────────────────────
+  gsap.fromTo('#submitBtn',
+    { opacity: 0, y: 16 },
+    { opacity: 1, y: 0, duration: 0.45, ease: 'power3.out', delay: 0.95 }
+  );
+
+  // ── Error/Success alerts ──────────────────────────
+  const alert = document.getElementById('msgAlert');
+  if (alert) {
+    gsap.fromTo(alert, { opacity: 0, x: 24 }, { opacity: 1, x: 0, duration: 0.5, delay: 0.3 });
+    if (alert.classList.contains('alert-danger')) {
+      gsap.to(alert, { x: 6, duration: 0.08, repeat: 5, yoyo: true, ease: 'none', delay: 0.5 });
+    }
+  }
+
+  // ── Button hover ──────────────────────────────────
+  const btn = document.getElementById('submitBtn');
+  btn.addEventListener('mouseenter', () => gsap.to(btn, { scale: 1.03, duration: 0.18 }));
+  btn.addEventListener('mouseleave', () => gsap.to(btn, { scale: 1,    duration: 0.22 }));
+
+  // ── Focus glow ────────────────────────────────────
+  const otpInp = document.getElementById('otpInput');
+  otpInp.addEventListener('focus', () =>
+    gsap.to(otpInp, { borderColor: 'var(--gold)', boxShadow: '0 0 15px var(--gold-glow)', duration: 0.2 })
+  );
+  otpInp.addEventListener('blur', () =>
+    gsap.to(otpInp, { borderColor: 'var(--rim)', boxShadow: 'none', duration: 0.2 })
+  );
+
+  // ── OTP input formatting & auto-submit ───────────
+  otpInp.addEventListener('input', function() {
+    this.value = this.value.replace(/[^0-9]/g, '');
+    if (this.value.length === 6) {
+      // Auto submit or highlight verify button
+      gsap.to(btn, { scale: 1.03, duration: 0.15 });
+    }
+  });
+
+  // ── 10-Minute Countdown Timer ─────────────────────
+  let timeRemaining = 600; // 10 minutes in seconds
+  const timerEl = document.getElementById('timer');
+  
+  const timerInterval = setInterval(() => {
+    timeRemaining--;
+    if (timeRemaining <= 0) {
+      clearInterval(timerInterval);
+      timerEl.innerText = "Expired";
+      timerEl.classList.remove('text-gold');
+      timerEl.classList.add('text-danger');
+      otpInp.disabled = true;
+      btn.disabled = true;
+      btn.innerText = "CODE EXPIRED";
+      gsap.to(otpInp, { opacity: 0.5, duration: 0.3 });
+    } else {
+      const minutes = Math.floor(timeRemaining / 60);
+      const seconds = timeRemaining % 60;
+      timerEl.innerText = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+    }
+  }, 1000);
+
+  // ── Submit loading state ──────────────────────────
+  document.getElementById('otpForm').addEventListener('submit', function() {
+    clearInterval(timerInterval);
+    const b = document.getElementById('submitBtn');
+    b.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Verifying OTP…';
+    gsap.to(b, { opacity: 0.75, scale: 0.98, duration: 0.2 });
+  });
+</script>
+{% endblock %}

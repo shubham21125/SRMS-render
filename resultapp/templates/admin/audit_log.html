@@ -1,0 +1,108 @@
+{% extends 'admin_base.html' %}
+{% block title %}Audit Logs — Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="p-4">
+  <div class="d-flex align-items-center justify-content-between mb-4 gsap-left">
+    <div>
+      <h2 class="mb-0 text-white"><i class="fas fa-history me-2 text-warning"></i>System Audit Logs</h2>
+      <small class="text-muted">Track administrative actions, student/result updates, and client IP addresses</small>
+    </div>
+  </div>
+
+  <!-- Search Card -->
+  <div class="card mb-4" style="background:var(--surface);border:1px solid var(--border);border-radius:10px;">
+    <div class="card-body">
+      <form method="GET" action="{% url 'admin_audit_log' %}" class="row g-3">
+        <div class="col-md-9">
+          <div class="input-group">
+            <span class="input-group-text" style="background:rgba(255,255,255,0.05);border:1px solid var(--border);color:var(--text-dim);">
+              <i class="fas fa-search"></i>
+            </span>
+            <input type="text" name="q" class="form-control" placeholder="Search by username, action, model, target ID, or IP..." value="{{ q }}" aria-label="Search audit logs" style="background:rgba(255,255,255,0.02);border:1px solid var(--border);color:#fff;">
+          </div>
+        </div>
+        <div class="col-md-3 d-grid">
+          <button type="submit" class="btn btn-warning font-weight-bold" style="background:var(--gold);color:var(--void);border:none;">
+            Search Logs
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Table Card -->
+  <div class="card" style="background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;">
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover mb-0 text-white" style="border-collapse:separate;border-spacing:0;">
+          <thead>
+            <tr style="background:rgba(0,0,0,0.25);border-bottom:2px solid var(--border);">
+              <th style="color:var(--text-dim);padding:1rem;">TIMESTAMP</th>
+              <th style="color:var(--text-dim);padding:1rem;">ACTOR</th>
+              <th style="color:var(--text-dim);padding:1rem;">ACTION</th>
+              <th style="color:var(--text-dim);padding:1rem;">TARGET MODEL</th>
+              <th style="color:var(--text-dim);padding:1rem;">TARGET ID</th>
+              <th style="color:var(--text-dim);padding:1rem;">IP ADDRESS</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for log in logs %}
+            <tr style="border-bottom:1px solid var(--border);background:{% cycle 'rgba(255,255,255,0.01)' 'transparent' %};">
+              <td style="padding:1rem;font-size:0.85rem;">{{ log.timestamp|date:"d M Y H:i:s" }}</td>
+              <td style="padding:1rem;font-weight:600;">
+                {% if log.actor %}
+                  <i class="fas fa-user-shield me-2 text-warning"></i>{{ log.actor.username }}
+                {% else %}
+                  <i class="fas fa-user-secret me-2 text-muted"></i><span class="text-muted">Anonymous/System</span>
+                {% endif %}
+              </td>
+              <td style="padding:1rem;">
+                <span class="badge {% if log.action == 'CREATE' %}bg-success{% elif log.action == 'UPDATE' %}bg-warning text-dark{% else %}bg-danger{% endif %}" style="font-size:0.75rem;letter-spacing:0.04em;">
+                  {{ log.action }}
+                </span>
+              </td>
+              <td style="padding:1rem;font-weight:500;">{{ log.target_model }}</td>
+              <td style="padding:1rem;font-family:monospace;font-size:0.9rem;color:var(--gold);">{{ log.target_id }}</td>
+              <td style="padding:1rem;font-family:monospace;font-size:0.85rem;color:var(--text-dim);">
+                {{ log.ip_address|default:"Unknown" }}
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="6" class="text-center p-5 text-muted">
+                <i class="fas fa-folder-open fa-3x mb-3 text-dim"></i>
+                <p class="mb-0">No audit logs found matching your query.</p>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pagination -->
+  {% if logs.has_other_pages %}
+  <nav class="mt-4 d-flex justify-content-center">
+    <ul class="pagination">
+      {% if logs.has_previous %}
+      <li class="page-item">
+        <a class="page-link" href="?q={{ q }}&page={{ logs.previous_page_number }}" style="background:var(--surface);border:1px solid var(--border);color:var(--gold);"><i class="fas fa-chevron-left"></i></a>
+      </li>
+      {% endif %}
+      
+      <li class="page-item disabled">
+        <span class="page-link" style="background:rgba(255,255,255,0.05);border:1px solid var(--border);color:#fff;">Page {{ logs.number }} of {{ logs.paginator.num_pages }}</span>
+      </li>
+
+      {% if logs.has_next %}
+      <li class="page-item">
+        <a class="page-link" href="?q={{ q }}&page={{ logs.next_page_number }}" style="background:var(--surface);border:1px solid var(--border);color:var(--gold);"><i class="fas fa-chevron-right"></i></a>
+      </li>
+      {% endif %}
+    </ul>
+  </nav>
+  {% endif %}
+</div>
+{% endblock %}

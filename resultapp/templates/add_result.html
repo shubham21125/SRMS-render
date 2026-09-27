@@ -1,0 +1,214 @@
+{% extends 'admin_base.html' %}
+{% load static %}
+{% block content %}
+
+<div class="container">
+  <h2 class="mb-1 gsap-left"><i class="fas fa-plus-circle me-2" style="color:var(--gold);"></i>Declare Result</h2>
+  <p style="color:var(--text-dim);font-size:0.82rem;margin-bottom:1.5rem;">
+    Mumbai University · NEP 2020 &mdash; Theory (30) + Internal (20) + Practical/TW (25, optional) + Oral/Viva (25, optional)
+  </p>
+
+  <form method="post" id="resultForm">
+    {% csrf_token %}
+    <div class="row g-3 mb-3">
+      <div class="col-md-4">
+        <label class="form-label">Select Class</label>
+        <select class="form-select" id="class_id" name="class" required>
+          <option value="">-- Select Class --</option>
+          {% for i in classes %}
+          <option value="{{ i.id }}">{% if i.branch %}[{{ i.branch.branch_code }}] {% endif %}{{ i.class_name }} - Section {{ i.section }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Select Semester</label>
+        <select class="form-select" id="semester_id" name="semester" disabled>
+          <option value="">-- Select Semester --</option>
+          <option value="1">Semester 1</option>
+          <option value="2">Semester 2</option>
+          <option value="3">Semester 3</option>
+          <option value="4">Semester 4</option>
+          <option value="5">Semester 5</option>
+          <option value="6">Semester 6</option>
+        </select>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Select Student</label>
+        <select class="form-select" id="student_id" name="studentid" required disabled>
+          <option value="">-- Select Class First --</option>
+        </select>
+        <small class="text-muted" id="student_count"></small>
+      </div>
+    </div>
+
+    <div id="subject_fields"></div>
+    <div id="error_message" class="alert alert-danger" style="display:none;"></div>
+
+    <div class="mb-3 form-check mt-3">
+      <input type="checkbox" class="form-check-input" id="send_whatsapp" name="send_whatsapp" value="1" checked>
+      <label class="form-check-label" for="send_whatsapp">Send WhatsApp alert to parent</label>
+    </div>
+
+    <button type="submit" class="btn btn-success mt-3" id="submitBtn" disabled>
+      <i class="fas fa-check-circle me-1"></i>Submit Result
+    </button>
+  </form>
+</div>
+
+<script>
+const classSelect    = document.getElementById('class_id');
+const semesterSelect = document.getElementById('semester_id');
+const studentSelect  = document.getElementById('student_id');
+const subjectFields  = document.getElementById('subject_fields');
+const submitBtn      = document.getElementById('submitBtn');
+const studentCount   = document.getElementById('student_count');
+const errorMessage   = document.getElementById('error_message');
+
+function loadData() {
+  const classId = classSelect.value;
+  const semester = semesterSelect.value;
+
+  if (!classId) {
+    studentSelect.innerHTML = '<option value="">-- Select Class First --</option>';
+    studentSelect.disabled = true;
+    semesterSelect.value = '';
+    semesterSelect.disabled = true;
+    subjectFields.innerHTML = '';
+    submitBtn.disabled = true;
+    studentCount.textContent = '';
+    errorMessage.style.display = 'none';
+    return;
+  }
+
+  // Enable semester selector
+  semesterSelect.disabled = false;
+
+  fetch(`/get_students_subjects/?class_id=${classId}&semester=${semester}`)
+    .then(r => r.json())
+    .then(data => {
+      // Populate student list
+      const previousVal = studentSelect.value;
+      studentSelect.innerHTML = '<option value="">-- Select Student --</option>';
+      if (!data.students.length) {
+        studentCount.textContent = 'No students in this class';
+        studentSelect.disabled = true;
+        subjectFields.innerHTML = '';
+        return;
+      }
+      data.students.forEach(s => {
+        const o = document.createElement('option');
+        o.value = s.id;
+        o.text  = `${s.name} (Roll: ${s.roll_id})`;
+        studentSelect.appendChild(o);
+      });
+      studentSelect.disabled = false;
+      if (previousVal) studentSelect.value = previousVal;
+      studentCount.textContent = `${data.students.length} student(s) found`;
+      studentCount.className = 'text-success';
+
+      // Populate subjects
+      if (!data.subjects.length) {
+        subjectFields.innerHTML = '<div class="alert alert-warning mt-2">No subjects found for this selection.</div>';
+        return;
+      }
+
+      // Build NEP 2020 marks input table
+      let html = `
+        <div class="mt-4 mb-2" style="display:flex;align-items:center;gap:0.5rem;">
+          <span style="font-size:1rem;font-weight:700;color:var(--gold);">
+            <i class="fas fa-table me-1"></i> Subject-wise Marks Entry
+          </span>
+          <span style="font-size:0.75rem;color:var(--text-dim);">(NEP 2020)</span>
+        </div>
+        <div style="background:rgba(245,197,24,0.04);border:1px solid rgba(245,197,24,0.15);
+          border-radius:8px;padding:0.6rem 1rem;margin-bottom:1rem;font-size:0.78rem;color:var(--text-dim);">
+          <i class="fas fa-info-circle me-1" style="color:var(--gold);"></i>
+          <strong style="color:var(--text-secondary);">Max marks:</strong>
+          Theory = 30 &nbsp;|&nbsp; Internal = 20 &nbsp;|&nbsp; Practical/TW = 25 (optional) &nbsp;|&nbsp; Oral/Viva = 25 (optional).<br>
+          Leave Practical/Oral blank if the subject does not have them.
+        </div>
+        <div style="overflow-x:auto;">
+        <table style="width:100%;border-collapse:collapse;font-size:0.83rem;">
+          <thead>
+            <tr style="background:rgba(245,197,24,0.1);border-bottom:1px solid var(--gold-border);">
+              <th style="padding:0.6rem 0.8rem;text-align:left;color:var(--gold);font-size:0.72rem;text-transform:uppercase;letter-spacing:0.08em;">Subject</th>
+              <th style="padding:0.6rem 0.5rem;text-align:center;color:var(--gold);font-size:0.72rem;text-transform:uppercase;letter-spacing:0.08em;">Theory<br><small style="font-weight:400;opacity:0.6;">/30</small></th>
+              <th style="padding:0.6rem 0.5rem;text-align:center;color:var(--gold);font-size:0.72rem;text-transform:uppercase;letter-spacing:0.08em;">Internal<br><small style="font-weight:400;opacity:0.6;">/20</small></th>
+              <th style="padding:0.6rem 0.5rem;text-align:center;color:var(--gold);font-size:0.72rem;text-transform:uppercase;letter-spacing:0.08em;">Practical/TW<br><small style="font-weight:400;opacity:0.6;">/25 (optional)</small></th>
+              <th style="padding:0.6rem 0.5rem;text-align:center;color:var(--gold);font-size:0.72rem;text-transform:uppercase;letter-spacing:0.08em;">Oral/Viva<br><small style="font-weight:400;opacity:0.6;">/25 (optional)</small></th>
+            </tr>
+          </thead>
+          <tbody>`;
+
+      data.subjects.forEach(sub => {
+        html += `
+            <tr style="border-bottom:1px solid rgba(255,255,255,0.05);">
+              <td style="padding:0.6rem 0.8rem;font-weight:600;color:var(--text-primary);">${sub.subject_name}</td>
+              <td style="padding:0.4rem 0.4rem;text-align:center;">
+                <input type="number" class="form-control form-control-sm text-center"
+                  name="theory_${sub.id}" min="0" max="30" required
+                  placeholder="0–30" style="width:70px;margin:auto;">
+              </td>
+              <td style="padding:0.4rem 0.4rem;text-align:center;">
+                <input type="number" class="form-control form-control-sm text-center"
+                  name="internal_${sub.id}" min="0" max="20" required
+                  placeholder="0–20" style="width:70px;margin:auto;">
+              </td>
+              <td style="padding:0.4rem 0.4rem;text-align:center;">
+                <input type="number" class="form-control form-control-sm text-center"
+                  name="practical_${sub.id}" min="0" max="25"
+                  placeholder="—" style="width:70px;margin:auto;">
+              </td>
+              <td style="padding:0.4rem 0.4rem;text-align:center;">
+                <input type="number" class="form-control form-control-sm text-center"
+                  name="oral_${sub.id}" min="0" max="25"
+                  placeholder="—" style="width:70px;margin:auto;">
+              </td>
+            </tr>`;
+      });
+
+      html += '</tbody></table></div>';
+      subjectFields.innerHTML = html;
+    })
+    .catch(err => {
+      errorMessage.textContent = 'Failed to load data: ' + err.message;
+      errorMessage.style.display = 'block';
+    });
+}
+
+classSelect.addEventListener('change', function() {
+  semesterSelect.value = '';
+  loadData();
+});
+semesterSelect.addEventListener('change', loadData);
+
+studentSelect.addEventListener('change', function () {
+  submitBtn.disabled = !this.value;
+});
+</script>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+{% if messages %}
+  {% for m in messages %}{% if m.tags == 'success' %}
+    window.SRMSList.confetti();
+  {% endif %}{% endfor %}
+{% endif %}
+</script>
+<script>
+(function () {
+  if (typeof gsap === 'undefined') return;
+  gsap.fromTo('h2', { opacity:0, x:-30 }, { opacity:1, x:0, duration:0.6, ease:'power3.out', delay:0.1 });
+  gsap.fromTo('.form-select, .form-control',
+    { opacity:0, x:-16 },
+    { opacity:1, x:0, duration:0.45, stagger:0.06, ease:'power3.out', delay:0.3 }
+  );
+  document.querySelectorAll('.form-control, .form-select').forEach(inp => {
+    inp.addEventListener('focus', () => gsap.to(inp, { boxShadow:'0 0 0 3px rgba(245,197,24,0.18)', duration:0.2 }));
+    inp.addEventListener('blur',  () => gsap.to(inp, { boxShadow:'none', duration:0.2 }));
+  });
+})();
+</script>
+{% endblock %}

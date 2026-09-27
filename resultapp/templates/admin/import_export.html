@@ -1,0 +1,237 @@
+{% extends 'admin_base.html' %}
+{% load static %}
+
+{% block title %}Import / Export — SRMS Admin{% endblock %}
+
+{% block extra_css %}
+<style>
+.import-zone {
+  border: 2px dashed var(--adm-border-strong);
+  border-radius: var(--adm-radius-lg);
+  padding: 2.5rem;
+  text-align: center;
+  background: var(--adm-surface-muted);
+  transition: border-color 0.22s ease, background 0.22s ease;
+  cursor: pointer;
+  position: relative;
+}
+.import-zone.dragover, .import-zone:hover {
+  border-color: var(--adm-primary);
+  background: var(--adm-primary-light);
+}
+.import-zone input[type="file"] {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+  width: 100%;
+  height: 100%;
+}
+.export-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+  border-radius: var(--adm-radius-md);
+  border: 1px solid var(--adm-border);
+  background: var(--adm-surface);
+  color: var(--adm-text);
+  text-decoration: none;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease, transform 0.15s ease;
+  font-weight: 600;
+}
+.export-btn:hover {
+  border-color: var(--adm-border-strong);
+  box-shadow: var(--adm-shadow-md);
+  background: var(--adm-surface-muted);
+  transform: translateY(-2px);
+  color: var(--adm-text);
+  text-decoration: none;
+}
+.export-btn .export-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--adm-radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.15rem;
+  flex-shrink: 0;
+}
+.error-report-row { font-size: 0.82rem; }
+.error-row-num { font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="p-4">
+  <!-- Header -->
+  <div class="d-flex align-items-center gap-3 mb-4">
+    <div style="width:46px;height:46px;border-radius:var(--adm-radius-md);background:rgba(251,191,36,0.12);display:flex;align-items:center;justify-content:center;">
+      <i class="fas fa-exchange-alt" style="color:#FBBF24;font-size:1.15rem;"></i>
+    </div>
+    <div>
+      <h2 class="mb-0" style="font-size:1.45rem;font-weight:700;">Import &amp; Export</h2>
+      <small style="color:var(--adm-text-muted);">Bulk data operations — CSV format compatible with Excel</small>
+    </div>
+  </div>
+
+  <!-- Import result messages -->
+  {% if import_attempted %}
+  <div class="alert {% if import_errors %}alert-warning{% else %}alert-success{% endif %} mb-4">
+    <div class="d-flex align-items-center gap-2 mb-1">
+      <i class="fas {% if import_errors %}fa-exclamation-triangle{% else %}fa-check-circle{% endif %} fa-lg"></i>
+      <strong>{% if import_errors %}Import completed with {{ import_errors|length }} error(s){% else %}Import Successful{% endif %}</strong>
+    </div>
+    {{ import_success_count }} result(s) saved.
+    {% if import_errors %}{{ import_errors|length }} row(s) could not be imported — see the error report below.{% endif %}
+  </div>
+  {% endif %}
+
+  <div class="row g-4">
+    <!-- ── EXPORT SECTION ── -->
+    <div class="col-lg-5">
+      <div class="card h-100">
+        <div class="card-header">
+          <h5 class="mb-0"><i class="fas fa-download me-2" style="color:#34D399;"></i>Export Data</h5>
+        </div>
+        <div class="card-body d-flex flex-column gap-3">
+          <p style="color:var(--adm-text-muted);font-size:0.88rem;margin-bottom:0.5rem;">Download a CSV file you can open directly in Microsoft Excel, LibreOffice Calc, or Google Sheets.</p>
+
+          <a href="{% url 'export_students_csv' %}" class="export-btn">
+            <div class="export-icon" style="background:rgba(52,211,153,0.12);">
+              <i class="fas fa-user-graduate" style="color:#34D399;"></i>
+            </div>
+            <div>
+              <div style="font-size:0.95rem;">Export Students</div>
+              <div style="font-size:0.75rem;font-weight:400;color:var(--adm-text-muted);">Roll ID, Name, Class, Branch, Status…</div>
+            </div>
+            <i class="fas fa-cloud-download-alt ms-auto" style="color:var(--adm-text-muted);"></i>
+          </a>
+
+          <a href="{% url 'export_results_csv' %}" class="export-btn">
+            <div class="export-icon" style="background:rgba(96,165,250,0.12);">
+              <i class="fas fa-poll-h" style="color:#60A5FA;"></i>
+            </div>
+            <div>
+              <div style="font-size:0.95rem;">Export Results</div>
+              <div style="font-size:0.75rem;font-weight:400;color:var(--adm-text-muted);">Marks, Grade, Pass/Fail per subject…</div>
+            </div>
+            <i class="fas fa-cloud-download-alt ms-auto" style="color:var(--adm-text-muted);"></i>
+          </a>
+
+          <div class="mt-auto pt-2" style="border-top:1px solid var(--adm-border);">
+            <p style="font-size:0.78rem;color:var(--adm-text-muted);margin-bottom:0;">
+              <i class="fas fa-info-circle me-1"></i>
+              Files are streamed directly — no size limits. Works on all student counts.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── IMPORT SECTION ── -->
+    <div class="col-lg-7">
+      <div class="card">
+        <div class="card-header d-flex align-items-center justify-content-between flex-wrap gap-2">
+          <h5 class="mb-0"><i class="fas fa-upload me-2" style="color:#FBBF24;"></i>Import Results (CSV)</h5>
+          <a href="{% url 'export_results_csv' %}" class="btn btn-sm btn-outline-secondary" style="font-size:0.78rem;">
+            <i class="fas fa-download me-1"></i>Download Template
+          </a>
+        </div>
+        <div class="card-body">
+          <!-- Column format guide -->
+          <div class="mb-3 p-3" style="background:var(--adm-surface-muted);border-radius:var(--adm-radius-md);border:1px solid var(--adm-border);">
+            <div style="font-size:0.8rem;font-weight:700;color:var(--adm-text-muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:0.5rem;">Required CSV Columns</div>
+            <div class="d-flex flex-wrap gap-1">
+              <span class="badge" style="background:rgba(99,102,241,0.15);color:#818CF8;font-family:'JetBrains Mono',monospace;font-size:0.72rem;padding:0.3rem 0.6rem;">Roll ID</span>
+              <span class="badge" style="background:rgba(99,102,241,0.15);color:#818CF8;font-family:'JetBrains Mono',monospace;font-size:0.72rem;padding:0.3rem 0.6rem;">Subject Code</span>
+              <span class="badge" style="background:rgba(99,102,241,0.15);color:#818CF8;font-family:'JetBrains Mono',monospace;font-size:0.72rem;padding:0.3rem 0.6rem;">Theory (30)</span>
+              <span class="badge" style="background:rgba(99,102,241,0.15);color:#818CF8;font-family:'JetBrains Mono',monospace;font-size:0.72rem;padding:0.3rem 0.6rem;">Internal (20)</span>
+            </div>
+            <div style="font-size:0.78rem;color:var(--adm-text-muted);margin-top:0.5rem;">
+              Optional: <code style="font-size:0.78rem;">Practical (25)</code>, <code style="font-size:0.78rem;">Oral (25)</code> — leave blank if not applicable.
+              Existing results for matching (Roll ID + Subject Code) will be <strong>updated</strong>.
+            </div>
+          </div>
+
+          <!-- Drop zone -->
+          <form method="post" action="{% url 'import_results_csv' %}" enctype="multipart/form-data" id="importForm">
+            {% csrf_token %}
+            <div class="import-zone mb-3" id="dropZone">
+              <input type="file" name="csv_file" id="csvFile" accept=".csv" required>
+              <div id="dropZoneContent">
+                <i class="fas fa-cloud-upload-alt fa-2x mb-2" style="color:var(--adm-primary);opacity:0.7;"></i>
+                <div style="font-size:0.95rem;font-weight:600;color:var(--adm-text);">Drag &amp; drop your CSV here</div>
+                <div style="font-size:0.82rem;color:var(--adm-text-muted);">or click to browse</div>
+              </div>
+            </div>
+            <button type="submit" class="btn btn-warning w-100 py-2" style="font-weight:700;">
+              <i class="fas fa-file-import me-2"></i>Import Results
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Error Report -->
+      {% if import_errors %}
+      <div class="card mt-3" style="border-color:rgba(251,191,36,0.35);">
+        <div class="card-header" style="background:rgba(251,191,36,0.08);border-bottom-color:rgba(251,191,36,0.25);">
+          <h5 class="mb-0" style="color:#FBBF24;"><i class="fas fa-exclamation-triangle me-2"></i>Error Report ({{ import_errors|length }} rows)</h5>
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive" style="max-height:320px;overflow-y:auto;">
+            <table class="table table-sm mb-0">
+              <thead>
+                <tr><th>Row</th><th>Roll ID</th><th>Error</th></tr>
+              </thead>
+              <tbody>
+                {% for err in import_errors %}
+                <tr class="error-report-row">
+                  <td class="error-row-num">{{ err.row }}</td>
+                  <td><code style="color:#FBBF24;font-size:0.8rem;">{{ err.roll }}</code></td>
+                  <td style="color:var(--adm-text-secondary);">{{ err.error }}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Drag & drop visual feedback
+(function () {
+  var zone = document.getElementById('dropZone');
+  var input = document.getElementById('csvFile');
+  var content = document.getElementById('dropZoneContent');
+  if (!zone || !input) return;
+
+  ['dragenter', 'dragover'].forEach(function (ev) {
+    zone.addEventListener(ev, function (e) { e.preventDefault(); zone.classList.add('dragover'); }, false);
+  });
+  ['dragleave', 'drop'].forEach(function (ev) {
+    zone.addEventListener(ev, function (e) { e.preventDefault(); zone.classList.remove('dragover'); }, false);
+  });
+  zone.addEventListener('drop', function (e) {
+    var dt = e.dataTransfer;
+    if (dt && dt.files[0]) {
+      input.files = dt.files;
+      updateLabel(dt.files[0].name);
+    }
+  });
+  input.addEventListener('change', function () {
+    if (input.files[0]) updateLabel(input.files[0].name);
+  });
+  function updateLabel(name) {
+    content.innerHTML = '<i class="fas fa-file-csv fa-2x mb-2" style="color:#34D399;"></i><div style="font-size:0.95rem;font-weight:600;color:var(--adm-text);">' + name + '</div><div style="font-size:0.8rem;color:var(--adm-text-muted);">Ready to import</div>';
+  }
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  @page {
+    size: letter;
+    margin: 0.5in;
+  }
+  body {
+    font-family: Helvetica, Arial, sans-serif;
+    color: #333333;
+    font-size: 10pt;
+    line-height: 1.4;
+  }
+  .header-card {
+    background-color: #1a1a2e;
+    padding: 20px;
+    text-align: center;
+    border-bottom: 3px solid #F0B84A;
+  }
+  .header-card h3 {
+    color: #F0B84A;
+    margin: 0 0 5px 0;
+    font-size: 16pt;
+    letter-spacing: 2px;
+  }
+  .header-card p {
+    color: #cccccc;
+    margin: 0;
+    font-size: 9pt;
+  }
+  .info-table {
+    width: 100%;
+    margin-top: 20px;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #dddddd;
+    padding-bottom: 10px;
+  }
+  .info-table td {
+    padding: 4px 0;
+  }
+  .info-label {
+    color: #666666;
+    font-weight: bold;
+    width: 25%;
+  }
+  .info-value {
+    color: #111111;
+  }
+  .section-title {
+    color: #1a1a2e;
+    font-size: 12pt;
+    font-weight: bold;
+    margin-top: 20px;
+    margin-bottom: 10px;
+    border-bottom: 1px solid #1a1a2e;
+    padding-bottom: 4px;
+  }
+  .marks-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+  }
+  .marks-table th {
+    background-color: #f5f5f5;
+    color: #555555;
+    font-weight: bold;
+    text-align: center;
+    padding: 8px;
+    border: 1px solid #dddddd;
+    font-size: 8pt;
+  }
+  .marks-table td {
+    padding: 8px;
+    border: 1px solid #dddddd;
+    text-align: center;
+    font-size: 9pt;
+  }
+  .marks-table .left-align {
+    text-align: left;
+  }
+  .marks-table .total-row td {
+    font-weight: bold;
+    background-color: #f9f9f9;
+    border-top: 2px solid #1a1a2e;
+  }
+  .summary-box {
+    width: 100%;
+    margin-top: 20px;
+    margin-bottom: 20px;
+  }
+  .summary-cell {
+    background-color: #f9f9f9;
+    border: 1px solid #dddddd;
+    border-radius: 6px;
+    padding: 12px;
+    text-align: center;
+    width: 23%;
+  }
+  .summary-title {
+    font-size: 7pt;
+    color: #666666;
+    margin-bottom: 4px;
+    font-weight: bold;
+  }
+  .summary-value {
+    font-size: 12pt;
+    font-weight: bold;
+    color: #1a1a2e;
+  }
+  .pass-text {
+    color: #22c55e;
+  }
+  .fail-text {
+    color: #ef4444;
+  }
+  .signature-table {
+    width: 100%;
+    margin-top: 50px;
+  }
+  .signature-line {
+    border-top: 1px solid #999999;
+    text-align: center;
+    padding-top: 5px;
+    font-size: 8pt;
+    color: #555555;
+    width: 30%;
+  }
+</style>
+</head>
+<body>
+
+  <div class="header-card">
+    <h3>STUDENT RESULT MANAGEMENT SYSTEM</h3>
+    <p>OFFICIAL ACADEMIC RESULT CARD</p>
+    <p style="font-size: 8pt; color: #999999;">NEP 2020 — Mumbai University Pattern</p>
+  </div>
+
+  <table class="info-table">
+    <tr>
+      <td class="info-label">Student Name:</td>
+      <td class="info-value" style="font-weight: bold;">{{ student.name }}</td>
+      <td class="info-label">Date of Birth:</td>
+      <td class="info-value">{{ student.dob }}</td>
+    </tr>
+    <tr>
+      <td class="info-label">Student ID:</td>
+      <td class="info-value">{{ student.roll_id }}</td>
+      <td class="info-label">Gender:</td>
+      <td class="info-value">{{ student.gender|title }}</td>
+    </tr>
+    <tr>
+      <td class="info-label">Class:</td>
+      <td class="info-value">{{ student.student_class.class_name }} — Section {{ student.student_class.section }}</td>
+      <td class="info-label">Generated On:</td>
+      <td class="info-value">{% now "d M Y" %}</td>
+    </tr>
+  </table>
+
+  <div class="section-title">SUBJECT-WISE MARKS</div>
+
+  <table class="marks-table">
+    <thead>
+      <tr>
+        <th style="width: 5%;">#</th>
+        <th class="left-align" style="width: 35%;">SUBJECT</th>
+        <th style="width: 10%;">CODE</th>
+        <th style="width: 8%;">TH<br>(30)</th>
+        <th style="width: 8%;">IA<br>(20)</th>
+        <th style="width: 8%;">PR<br>(25)</th>
+        <th style="width: 8%;">OR<br>(25)</th>
+        <th style="width: 12%;">TOTAL</th>
+        <th style="width: 10%;">GRADE</th>
+        <th style="width: 8%;">RESULT</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in results %}
+      <tr>
+        <td>{{ forloop.counter }}</td>
+        <td class="left-align" style="font-weight: bold;">{{ r.subject.subject_name }}</td>
+        <td>{{ r.subject.subject_code }}</td>
+        <td>{{ r.theory_marks }}</td>
+        <td>{{ r.internal_marks }}</td>
+        <td>{{ r.practical_marks|default:"–" }}</td>
+        <td>{{ r.oral_marks|default:"–" }}</td>
+        <td style="font-weight: bold; color: #1a1a2e;">{{ r.total_obtained }}/{{ r.total_max }}</td>
+        <td style="font-weight: bold; color: {% if r.nep_grade == 'O' or r.nep_grade == 'A+' %}#22c55e{% elif r.nep_grade == 'F' %}#ef4444{% else %}#F0B84A{% endif %};">{{ r.nep_grade }}</td>
+        <td style="font-weight: bold;" class="{% if r.is_subject_pass %}pass-text{% else %}fail-text{% endif %}">
+          {% if r.is_subject_pass %}PASS{% else %}FAIL{% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+      <tr class="total-row">
+        <td colspan="7" class="left-align">OVERALL SUMMARY</td>
+        <td>{{ total_obtained }}/{{ total_max }}</td>
+        <td>{{ overall_grade }}</td>
+        <td class="{% if failed_any %}fail-text{% else %}pass-text{% endif %}">
+          {% if failed_any %}FAIL{% else %}PASS{% endif %}
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="section-title">ACADEMIC PERFORMANCE SUMMARY</div>
+
+  <table style="width: 100%;">
+    <tr>
+      <td class="summary-cell">
+        <div class="summary-title">TOTAL MARKS</div>
+        <div class="summary-value">{{ total_obtained }}/{{ total_max }}</div>
+      </td>
+      <td style="width: 2%;"></td>
+      <td class="summary-cell">
+        <div class="summary-title">PERCENTAGE</div>
+        <div class="summary-value">{{ overall_pct }}%</div>
+      </td>
+      <td style="width: 2%;"></td>
+      <td class="summary-cell">
+        <div class="summary-title">CGPA</div>
+        <div class="summary-value">{{ cgpa }}</div>
+      </td>
+      <td style="width: 2%;"></td>
+      <td class="summary-cell">
+        <div class="summary-title">FINAL STATUS</div>
+        <div class="summary-value {% if failed_any %}fail-text{% else %}pass-text{% endif %}">
+          {% if failed_any %}FAIL{% else %}PASS{% endif %}
+        </div>
+      </td>
+    </tr>
+  </table>
+
+  <table class="signature-table">
+    <tr>
+      <td class="signature-line">Class Teacher</td>
+      <td style="width: 5%;"></td>
+      <td class="signature-line">Exam Controller</td>
+      <td style="width: 5%;"></td>
+      <td class="signature-line">Principal</td>
+    </tr>
+  </table>
+
+</body>
+</html>

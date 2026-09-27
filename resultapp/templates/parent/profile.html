@@ -1,0 +1,196 @@
+{% extends 'parent/parent_base.html' %}
+{% load static %}
+{% block title %}Profile — Parent Portal{% endblock %}
+
+{% block content %}
+<div class="p-3">
+
+  <div class="d-flex align-items-center justify-content-between mb-4 gsap-left">
+    <div>
+      <h2 class="mb-0"><i class="fas fa-user-circle me-2" style="color:var(--gold)"></i>My Profile</h2>
+      <small class="text-muted">Account details and linked student information</small>
+    </div>
+    <a href="{% url 'parent_dashboard' %}" class="btn btn-sm" style="background:var(--surface);color:var(--text-secondary);border:1px solid var(--border)">
+      <i class="fas fa-arrow-left me-1"></i>Back
+    </a>
+  </div>
+
+  <div class="row g-3 mb-4">
+    <!-- Parent Card -->
+    {% if parent %}
+    <div class="col-md-6 gsap-up">
+      <div class="card h-100">
+        <!-- Gold header band -->
+        <div style="background:linear-gradient(135deg,var(--gold) 0%,#e8a800 100%);padding:2rem;text-align:center;border-radius:var(--radius) var(--radius) 0 0">
+          <div style="width:80px;height:80px;border-radius:50%;background:var(--void);margin:0 auto 1rem;display:flex;align-items:center;justify-content:center;font-size:2rem;color:var(--gold);border:3px solid rgba(255,255,255,.3)">
+            <i class="fas fa-user"></i>
+          </div>
+          <h4 style="color:var(--void);margin-bottom:.25rem">{{ parent.user.get_full_name }}</h4>
+          <span style="background:rgba(0,0,0,.15);color:var(--void);border-radius:20px;padding:.2em .8em;font-size:.8rem">{{ parent.get_relationship_display }}</span>
+        </div>
+        <div class="card-body">
+          <div class="d-flex align-items-center justify-content-between mb-3">
+            <h6 class="m-0" style="color:var(--gold)"><i class="fas fa-info-circle me-2"></i>Parent Information</h6>
+            <button class="btn btn-sm py-1 px-2 btn-outline-warning" data-bs-toggle="modal" data-bs-target="#editSettingsModal" style="font-size:0.75rem;">
+              <i class="fas fa-edit me-1"></i>Edit Settings
+            </button>
+          </div>
+          <table style="width:100%;border-collapse:separate;border-spacing:0 .5rem">
+            <tr><td class="text-muted small" style="width:35%;padding:.4rem 0"><i class="fas fa-user me-2" style="color:var(--gold)"></i>Full Name</td><td style="color:var(--text-primary)">{{ parent.user.get_full_name }}</td></tr>
+            <tr><td class="text-muted small"><i class="fas fa-id-card me-2" style="color:var(--gold)"></i>Username</td><td style="color:var(--text-primary)">{{ parent.user.username }}</td></tr>
+            <tr><td class="text-muted small"><i class="fas fa-envelope me-2" style="color:var(--gold)"></i>Email</td><td style="color:var(--text-primary)">{{ parent.user.email|default:"Not provided" }}</td></tr>
+            <tr><td class="text-muted small"><i class="fas fa-phone me-2" style="color:var(--gold)"></i>Phone</td><td style="color:var(--text-primary)">{{ parent.phone|default:"Not provided" }}</td></tr>
+            <tr><td class="text-muted small"><i class="fas fa-map-marker-alt me-2" style="color:var(--gold)"></i>Address</td><td style="color:var(--text-primary)">{{ parent.address|default:"Not provided" }}</td></tr>
+            <tr><td class="text-muted small"><i class="fas fa-bell me-2" style="color:var(--gold)"></i>Absence Alerts</td><td>
+              {% if parent.email_alerts %}
+                <span class="badge" style="background:rgba(34,197,94,.15);color:#22c55e;border:1px solid #22c55e55"><i class="fas fa-check-circle me-1"></i>Enabled</span>
+              {% else %}
+                <span class="badge" style="background:rgba(239,68,68,.15);color:#ef4444;border:1px solid #ef444455"><i class="fas fa-times-circle me-1"></i>Disabled</span>
+              {% endif %}
+            </td></tr>
+            <tr><td class="text-muted small"><i class="fas fa-heart me-2" style="color:var(--gold)"></i>Relation</td><td><span class="badge" style="background:rgba(217,164,65,.15);color:var(--gold);border:1px solid rgba(217,164,65,.3)">{{ parent.get_relationship_display }}</span></td></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+    {% else %}
+    <!-- Student's own account card (direct student login, no Parent record) -->
+    <div class="col-md-6 gsap-up">
+      <div class="card h-100">
+        <div style="background:linear-gradient(135deg,var(--gold) 0%,#e8a800 100%);padding:2rem;text-align:center;border-radius:var(--radius) var(--radius) 0 0">
+          <div style="width:80px;height:80px;border-radius:50%;background:var(--void);margin:0 auto 1rem;display:flex;align-items:center;justify-content:center;font-size:2rem;color:var(--gold);border:3px solid rgba(255,255,255,.3)">
+            <i class="fas fa-user-graduate"></i>
+          </div>
+          <h4 style="color:var(--void);margin-bottom:.25rem">{{ student.name }}</h4>
+          <span style="background:rgba(0,0,0,.15);color:var(--void);border-radius:20px;padding:.2em .8em;font-size:.8rem">Student Account</span>
+        </div>
+        <div class="card-body">
+          <h6 class="mb-3" style="color:var(--gold)"><i class="fas fa-info-circle me-2"></i>Account Information</h6>
+          <table style="width:100%;border-collapse:separate;border-spacing:0 .5rem">
+            <tr><td class="text-muted small" style="width:35%;padding:.4rem 0"><i class="fas fa-user me-2" style="color:var(--gold)"></i>Full Name</td><td style="color:var(--text-primary)">{{ request.user.get_full_name|default:student.name }}</td></tr>
+            <tr><td class="text-muted small"><i class="fas fa-id-card me-2" style="color:var(--gold)"></i>Username</td><td style="color:var(--text-primary)">{{ request.user.username }}</td></tr>
+            <tr><td class="text-muted small"><i class="fas fa-envelope me-2" style="color:var(--gold)"></i>Email</td><td style="color:var(--text-primary)">{{ request.user.email|default:"Not provided" }}</td></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Student Card -->
+    <div class="col-md-6 gsap-up">
+      <div class="card h-100">
+        <div style="background:linear-gradient(135deg,#1e293b 0%,#0f172a 100%);padding:2rem;text-align:center;border-radius:var(--radius) var(--radius) 0 0;border-bottom:2px solid var(--gold)">
+          {% if student.photo %}
+            <img src="{{ student.photo.url }}" style="width:80px;height:80px;border-radius:50%;object-fit:cover;margin:0 auto 1rem;border:3px solid var(--gold);display:block;" alt="{{ student.name }}">
+          {% else %}
+            <div style="width:80px;height:80px;border-radius:50%;background:rgba(217,164,65,.1);margin:0 auto 1rem;display:flex;align-items:center;justify-content:center;font-size:2rem;color:var(--gold);border:3px solid rgba(217,164,65,.4)">
+              <i class="fas fa-user-graduate"></i>
+            </div>
+          {% endif %}
+          <h4 style="color:var(--text-primary);margin-bottom:.25rem">{{ student.name }}</h4>
+          <span style="background:rgba(217,164,65,.15);color:var(--gold);border-radius:20px;padding:.2em .8em;font-size:.8rem">{{ student.student_class.class_name }} – Section {{ student.student_class.section }}</span>
+        </div>
+        <div class="card-body">
+          <h6 class="mb-3" style="color:var(--gold)"><i class="fas fa-graduation-cap me-2"></i>Student Information</h6>
+          <table style="width:100%;border-collapse:separate;border-spacing:0 .5rem">
+            <tr><td class="text-muted small" style="width:35%;padding:.4rem 0"><i class="fas fa-id-badge me-2" style="color:var(--gold)"></i>Roll No</td><td style="color:var(--text-primary)">{{ student.roll_id }}</td></tr>
+            <tr><td class="text-muted small"><i class="fas fa-envelope me-2" style="color:var(--gold)"></i>Email</td><td style="color:var(--text-primary)">{{ student.email|default:"Not provided" }}</td></tr>
+            <tr><td class="text-muted small"><i class="fas fa-venus-mars me-2" style="color:var(--gold)"></i>Gender</td><td style="color:var(--text-primary)">{{ student.gender|title }}</td></tr>
+            <tr><td class="text-muted small"><i class="fas fa-birthday-cake me-2" style="color:var(--gold)"></i>DOB</td><td style="color:var(--text-primary)">{{ student.dob|default:"Not provided" }}</td></tr>
+            <tr><td class="text-muted small"><i class="fas fa-phone me-2" style="color:var(--gold)"></i>Phone</td><td style="color:var(--text-primary)">{{ student.phone|default:"—" }}</td></tr>
+            <tr><td class="text-muted small"><i class="fas fa-map-marker-alt me-2" style="color:var(--gold)"></i>Address</td><td style="color:var(--text-primary)">{{ student.address|default:"—" }}</td></tr>
+            <tr><td class="text-muted small"><i class="fas fa-first-aid me-2" style="color:var(--gold)"></i>Blood Group</td><td style="color:var(--text-primary)"><span class="badge" style="background:rgba(255,255,255,0.06);color:var(--text-primary);border:1px solid var(--rim);">{{ student.blood_group|default:"—" }}</span></td></tr>
+            <tr><td class="text-muted small"><i class="fas fa-ambulance me-2" style="color:var(--gold)"></i>Emergency Contact</td><td style="color:var(--text-primary)">
+              {% if student.emergency_contact_name %}
+                {{ student.emergency_contact_name }} {% if student.emergency_contact_phone %}({{ student.emergency_contact_phone }}){% endif %}
+              {% else %}
+                —
+              {% endif %}
+            </td></tr>
+            <tr><td class="text-muted small"><i class="fas fa-calendar me-2" style="color:var(--gold)"></i>Registered</td><td style="color:var(--text-primary)">{{ student.reg_date|date:"d M Y" }}</td></tr>
+            <tr><td class="text-muted small"><i class="fas fa-toggle-on me-2" style="color:var(--gold)"></i>Status</td><td>
+              {% if student.status == 1 %}
+                <span class="badge" style="background:rgba(34,197,94,.15);color:#22c55e;border:1px solid #22c55e55"><i class="fas fa-check-circle me-1"></i>Active</span>
+              {% else %}
+                <span class="badge" style="background:rgba(239,68,68,.15);color:#ef4444;border:1px solid #ef444455">Inactive</span>
+              {% endif %}
+            </td></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Actions -->
+  <div class="card gsap-up">
+    <div class="card-header"><i class="fas fa-bolt me-2" style="color:var(--gold)"></i>Quick Actions</div>
+    <div class="card-body">
+      <div class="row g-2">
+        <div class="col-md-3">
+          <a href="{% url 'parent_attendance' %}" class="btn w-100" style="background:var(--surface);color:var(--text-primary);border:1px solid var(--border)">
+            <i class="fas fa-calendar-check me-2" style="color:var(--gold)"></i>Attendance
+          </a>
+        </div>
+        <div class="col-md-3">
+          <a href="{% url 'parent_results' %}" class="btn w-100" style="background:var(--surface);color:var(--text-primary);border:1px solid var(--border)">
+            <i class="fas fa-chart-bar me-2" style="color:var(--gold)"></i>Results
+          </a>
+        </div>
+        <div class="col-md-3">
+          <a href="{% url 'parent_progress' %}" class="btn w-100" style="background:var(--surface);color:var(--text-primary);border:1px solid var(--border)">
+            <i class="fas fa-tasks me-2" style="color:var(--gold)"></i>Progress
+          </a>
+        </div>
+        <div class="col-md-3">
+          <a href="{% url 'parent_dashboard' %}" class="btn w-100" style="background:var(--gold);color:var(--void);font-weight:600">
+            <i class="fas fa-home me-2"></i>Dashboard
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+{% if parent %}
+<!-- Edit Settings Modal -->
+<div class="modal fade" id="editSettingsModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content" style="background:var(--surface);border:1px solid var(--rim);">
+      <div class="modal-header" style="border-color:var(--rim);">
+        <h5 class="modal-title" style="color:var(--gold);">
+          <i class="fas fa-cog me-2"></i>Update Account Settings
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <form method="post">
+        {% csrf_token %}
+        <div class="modal-body">
+          <div class="mb-3">
+            <label for="phone" class="form-label" style="color:var(--text-secondary)">Phone Number</label>
+            <input type="text" name="phone" id="phone" class="form-control" value="{{ parent.phone|default:'' }}" style="background:transparent;color:var(--text-primary);border-color:var(--rim);">
+          </div>
+          <div class="mb-3">
+            <label for="address" class="form-label" style="color:var(--text-secondary)">Address</label>
+            <textarea name="address" id="address" class="form-control" rows="3" style="background:transparent;color:var(--text-primary);border-color:var(--rim);">{{ parent.address|default:'' }}</textarea>
+          </div>
+          <div class="form-check form-switch mb-3">
+            <input class="form-check-input" type="checkbox" id="email_alerts" name="email_alerts" {% if parent.email_alerts %}checked{% endif %}>
+            <label class="form-check-label" for="email_alerts" style="color:var(--text-primary)">
+              Receive email alerts for student absences
+            </label>
+          </div>
+        </div>
+        <div class="modal-footer" style="border-color:var(--rim);">
+          <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-success btn-sm">
+            <i class="fas fa-save me-1"></i>Save Changes
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+{% endblock %}

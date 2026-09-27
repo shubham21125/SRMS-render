@@ -1,0 +1,111 @@
+{% extends 'admin_base.html' %}
+{% load static %}
+{% block title %}Manage Results — SRMS{% endblock %}
+{% block content %}
+<div class="p-3">
+
+  <!-- Header -->
+  <div class="d-flex justify-content-between align-items-center mb-4 gsap-left">
+    <div>
+      <h2 class="mb-0"><i class="fas fa-list me-2"></i>Manage Results</h2>
+      <small style="color:var(--text-secondary);">{{ page_obj.paginator.count }} student result set(s)</small>
+    </div>
+    <a href="{% url 'add_result' %}" class="btn btn-primary">
+      <i class="fas fa-plus me-1"></i>Add Result
+    </a>
+  </div>
+
+  <!-- Search Bar (server-side; works correctly with pagination) -->
+  <div class="card mb-3 gsap-up">
+    <div class="card-body py-2 px-3">
+      <form method="get" class="input-group">
+        <span class="input-group-text" style="background:transparent;border-color:var(--rim);">
+          <i class="fas fa-search" style="color:var(--text-dim);"></i>
+        </span>
+        <input type="text" name="q" id="resultSearch" class="form-control"
+               placeholder="Search by name, roll no or class…" value="{{ q }}"
+               style="border-color:var(--rim);background:transparent;color:var(--text-primary);">
+        {% if q %}
+          <a href="{% url 'manage_result' %}" class="btn" style="border-color:var(--rim);color:var(--text-dim);" title="Clear search">
+            <i class="fas fa-times"></i>
+          </a>
+        {% endif %}
+        <button type="submit" class="btn btn-outline-warning">Search</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Table Card -->
+  <div class="card gsap-up">
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover mb-0">
+          <thead>
+            <tr>
+              <th style="width:50px;">#</th>
+              <th>Student Name</th>
+              <th>Roll No</th>
+              <th>Class</th>
+              <th>Reg Date</th>
+              <th>Status</th>
+              <th style="width:110px;">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for i in results %}
+            <tr class="result-row">
+              <td style="color:var(--text-dim);">{{ forloop.counter0|add:page_obj.start_index }}</td>
+              <td class="fw-bold" style="color:var(--gold);">{{ i.student.name }}</td>
+              <td><code style="color:var(--text-secondary);background:var(--surface-mid);padding:2px 7px;border-radius:4px;">{{ i.student.roll_id }}</code></td>
+              <td>{% if i.class %}{{ i.class.class_name }} - Section {{ i.class.section }}{% else %}—{% endif %}</td>
+              <td>{{ i.student.reg_date|date:"d M Y" }}</td>
+              <td>
+                {% if i.student.status == 1 %}
+                  <span class="badge" style="background:rgba(34,197,94,0.15);color:#22c55e;border:1px solid rgba(34,197,94,0.3);">
+                    <i class="fas fa-circle me-1" style="font-size:0.5rem;vertical-align:middle;"></i>Active
+                  </span>
+                {% else %}
+                  <span class="badge" style="background:rgba(156,163,175,0.15);color:#9CA3AF;border:1px solid rgba(156,163,175,0.3);">
+                    <i class="fas fa-circle me-1" style="font-size:0.5rem;vertical-align:middle;"></i>Inactive
+                  </span>
+                {% endif %}
+              </td>
+              <td>
+                <a href="{% url 'edit_result' i.student.id %}"
+                   class="btn btn-sm"
+                   title="Edit Result"
+                   style="background:rgba(245,197,24,0.1);border:1px solid var(--gold-border);color:var(--gold);padding:4px 9px;">
+                  <i class="fas fa-edit"></i> Edit
+                </a>
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="7">
+                <div class="srms-empty-state">
+                  <i class="fas fa-clipboard-question srms-empty-icon"></i>
+                  {% if q %}
+                    No results match "{{ q }}". <a href="{% url 'manage_result' %}">Clear search.</a>
+                  {% else %}
+                    No results found. <a href="{% url 'add_result' %}">Add one now.</a>
+                  {% endif %}
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  {% include '_pagination.html' %}
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  window.SRMSList.initServerSearch('resultSearch', { wait: 400, focusEnd: true });
+</script>
+{% endblock %}

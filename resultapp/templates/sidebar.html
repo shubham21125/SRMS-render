@@ -1,0 +1,137 @@
+{% load static %}
+<nav class="sidebar pt-2 h-100">
+  <div class="admin-avatar-section gsap-scale">
+    <img src="{% if request.user.admin_profile.photo %}{{ request.user.admin_profile.photo.url }}{% else %}{% static 'images/admin.png' %}{% endif %}" alt="Admin" />
+    <h6><i class="fas fa-shield-alt me-1"></i>Administrator</h6>
+  </div>
+
+  <ul class="nav flex-column">
+    <li class="nav-item">
+      <a href="{% url 'admin_dashboard' %}" class="nav-link">
+        <i class="fas fa-tachometer-alt"></i>Dashboard
+      </a>
+    </li>
+
+    <!-- Branches -->
+    <li class="nav-item">
+      <a href="#branchesMenu" data-bs-toggle="collapse" class="nav-link d-flex justify-content-between align-items-center">
+        <span><i class="fas fa-sitemap"></i>Branches</span>
+        <i class="fas fa-chevron-down small"></i>
+      </a>
+      <div id="branchesMenu" class="collapse">
+        <ul class="nav flex-column">
+          <li class="nav-item"><a href="{% url 'create_branch' %}" class="nav-link"><i class="fas fa-plus"></i>Add Branch</a></li>
+          <li class="nav-item"><a href="{% url 'manage_branches' %}" class="nav-link"><i class="fas fa-table"></i>Manage Branches</a></li>
+          <li class="nav-item"><a href="{% url 'add_branch_subject' %}" class="nav-link"><i class="fas fa-layer-group"></i>Add Branch Subject</a></li>
+          <li class="nav-item"><a href="{% url 'manage_branch_subjects' %}" class="nav-link"><i class="fas fa-list"></i>Manage Branch Subjects</a></li>
+        </ul>
+      </div>
+    </li>
+
+    <!-- Classes -->
+    <li class="nav-item">
+      <a href="#classesMenu" data-bs-toggle="collapse" class="nav-link d-flex justify-content-between align-items-center">
+        <span><i class="fas fa-chalkboard"></i>Classes</span>
+        <i class="fas fa-chevron-down small"></i>
+      </a>
+      <div id="classesMenu" class="collapse">
+        <ul class="nav flex-column">
+          <li class="nav-item"><a href="{% url 'create_class' %}" class="nav-link"><i class="fas fa-plus"></i>Create Class</a></li>
+          <li class="nav-item"><a href="{% url 'manage_classes' %}" class="nav-link"><i class="fas fa-table"></i>Manage Classes</a></li>
+        </ul>
+      </div>
+    </li>
+
+    <!-- Subjects -->
+    <li class="nav-item">
+      <a href="#subjectsMenu" data-bs-toggle="collapse" class="nav-link d-flex justify-content-between align-items-center">
+        <span><i class="fas fa-book"></i>Subjects</span>
+        <i class="fas fa-chevron-down small"></i>
+      </a>
+      <div id="subjectsMenu" class="collapse">
+        <ul class="nav flex-column">
+          <li class="nav-item"><a href="{% url 'create_subject' %}" class="nav-link"><i class="fas fa-plus"></i>Create Subject</a></li>
+          <li class="nav-item"><a href="{% url 'manage_subject' %}" class="nav-link"><i class="fas fa-list"></i>Manage Subjects</a></li>
+          <li class="nav-item"><a href="{% url 'add_subject_combination' %}" class="nav-link"><i class="fas fa-layer-group"></i>Add Combination</a></li>
+          <li class="nav-item"><a href="{% url 'manage_subject_combination' %}" class="nav-link"><i class="fas fa-layer-group"></i>Manage Combinations</a></li>
+        </ul>
+      </div>
+    </li>
+
+    <!-- Students -->
+    <li class="nav-item">
+      <a href="#studentMenu" data-bs-toggle="collapse" class="nav-link d-flex justify-content-between align-items-center">
+        <span><i class="fas fa-user-graduate"></i>Students</span>
+        <i class="fas fa-chevron-down small"></i>
+      </a>
+      <div id="studentMenu" class="collapse">
+        <ul class="nav flex-column">
+          <li class="nav-item"><a href="{% url 'add_student' %}" class="nav-link"><i class="fas fa-plus"></i>Add Student</a></li>
+          <li class="nav-item"><a href="{% url 'manage_students' %}" class="nav-link"><i class="fas fa-list"></i>Manage Students</a></li>
+        </ul>
+      </div>
+    </li>
+
+    <!-- Attendance -->
+    <li class="nav-item">
+      <a href="#attendanceMenu" data-bs-toggle="collapse" class="nav-link d-flex justify-content-between align-items-center">
+        <span><i class="fas fa-calendar-check"></i>Attendance</span>
+        <i class="fas fa-chevron-down small"></i>
+      </a>
+      <div id="attendanceMenu" class="collapse">
+        <ul class="nav flex-column">
+          <li class="nav-item"><a href="{% url 'add_attendance' %}" class="nav-link"><i class="fas fa-plus"></i>Bulk Attendance</a></li>
+          <li class="nav-item"><a href="{% url 'admin_attendance_reports' %}" class="nav-link"><i class="fas fa-chart-pie"></i>Attendance Reports</a></li>
+        </ul>
+      </div>
+    </li>
+
+    <!-- Results -->
+    <li class="nav-item">
+      <a href="#resultsMenu" data-bs-toggle="collapse" class="nav-link d-flex justify-content-between align-items-center">
+        <span><i class="fas fa-clipboard-list"></i>Results</span>
+        <i class="fas fa-chevron-down small"></i>
+      </a>
+      <div id="resultsMenu" class="collapse">
+        <ul class="nav flex-column">
+          <li class="nav-item"><a href="{% url 'add_result' %}" class="nav-link"><i class="fas fa-plus"></i>Add Result</a></li>
+          <li class="nav-item"><a href="{% url 'manage_result' %}" class="nav-link"><i class="fas fa-list"></i>Manage Results</a></li>
+        </ul>
+      </div>
+    </li>
+
+    <!-- Notices -->
+    <li class="nav-item">
+      <a href="#NoticeMenu" data-bs-toggle="collapse" class="nav-link d-flex justify-content-between align-items-center">
+        <span><i class="fas fa-bullhorn"></i>Notices</span>
+        <i class="fas fa-chevron-down small"></i>
+      </a>
+      <div id="NoticeMenu" class="collapse">
+        <ul class="nav flex-column">
+          <li class="nav-item"><a href="{% url 'add_notice' %}" class="nav-link"><i class="fas fa-plus"></i>Add Notice</a></li>
+          <li class="nav-item"><a href="{% url 'manage_notice' %}" class="nav-link"><i class="fas fa-list"></i>Manage Notices</a></li>
+        </ul>
+      </div>
+    </li>
+
+    <!-- Admin Management -->
+    <li class="nav-item">
+      <a href="{% url 'create_admin' %}" class="nav-link">
+        <i class="fas fa-user-shield"></i>Admin Management
+      </a>
+    </li>
+
+    <hr class="y-divider mx-3">
+
+    <li class="nav-item">
+      <a href="{% url 'change_password' %}" class="nav-link">
+        <i class="fas fa-key"></i>Change Password
+      </a>
+    </li>
+    <li class="nav-item">
+      <a href="{% url 'admin_analytics' %}" class="nav-link">
+        <i class="fas fa-chart-bar"></i>Analytics
+      </a>
+    </li>
+  </ul>
+</nav>
